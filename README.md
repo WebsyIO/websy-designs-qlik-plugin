@@ -1,0 +1,1 @@
+# websy-designs-qlik-plugin
