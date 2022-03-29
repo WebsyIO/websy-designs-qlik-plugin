@@ -35,6 +35,9 @@ class Chart {
       input[key] = options[key]
     }
   }
+  close () {
+    this.chart.close()
+  }
   createSeriesKey (title) {
     return title.replace(/ /g, '_')
   }

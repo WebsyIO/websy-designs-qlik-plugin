@@ -47,6 +47,9 @@ class Chart {
       input[key] = options[key]
     }
   }
+  close () {
+    this.chart.close()
+  }
   createSeriesKey (title) {
     return title.replace(/ /g, '_')
   }
@@ -507,7 +510,10 @@ class DatePicker {
 class Dropdown {
   constructor (elementId, options) {
     this.elementId = elementId
-    this.options = Object.assign({}, options)
+    const DEFAULTS = {
+      pageSize: 100
+    }
+    this.options = Object.assign({}, DEFAULTS, options)
     this.dropdownOptions = Object.assign({}, options.def.options, {
       onItemSelected: this.itemSelected.bind(this),
       onClearSelected: this.clearSelected.bind(this),
@@ -520,6 +526,19 @@ class Dropdown {
   cancelSearch (value) {
     this.options.model.abortListObjectSearch('/qListObjectDef')
   }  
+  checkForData (layout) {
+    return new Promise((resolve, reject) => {
+      this.options.model.getListObjectData('/qListObjectDef', [{
+        qTop: 0,
+        qLeft: 0,
+        qWidth: 1,
+        qHeight: this.options.pageSize
+      }]).then(pages => {
+        layout.qListObject.qDataPages = pages
+        resolve(layout)
+      }, reject)
+    })    
+  }
   clearSelected () {
     this.options.model.clearSelections('/qListObjectDef')
   }
@@ -528,30 +547,32 @@ class Dropdown {
   }
   render () {
     this.options.model.getLayout().then(layout => {
-      if (layout.qListObject.qDataPages[0]) {
-        this.dropdown.options.label = layout.qListObject.qDimensionInfo.qFallbackTitle
-        const indexes = {}
-        if (this.options.hideExcluded === true) {
-          layout.qListObject.qDataPages[0].qMatrix = layout.qListObject.qDataPages[0].qMatrix.filter(r => ['X', 'XS', 'XL'].indexOf(r[0].qState) === -1) 
-        }        
-        layout.qListObject.qDataPages[0].qMatrix.forEach((r, i) => {
-          if (!indexes[r[0].qState]) {
-            indexes[r[0].qState] = []
+      this.checkForData(layout).then(layout => {
+        if (layout.qListObject.qDataPages[0]) {
+          this.dropdown.options.label = layout.qListObject.qDimensionInfo.qFallbackTitle
+          const indexes = {}
+          if (this.options.hideExcluded === true) {
+            layout.qListObject.qDataPages[0].qMatrix = layout.qListObject.qDataPages[0].qMatrix.filter(r => ['X', 'XS', 'XL'].indexOf(r[0].qState) === -1) 
+          }        
+          layout.qListObject.qDataPages[0].qMatrix.forEach((r, i) => {
+            if (!indexes[r[0].qState]) {
+              indexes[r[0].qState] = []
+            }
+            indexes[r[0].qState].push(i)
+          })        
+          if (indexes.S && indexes.S.length > 0) {
+            this.dropdown.selectedItems = indexes.S
           }
-          indexes[r[0].qState].push(i)
-        })        
-        if (indexes.S && indexes.S.length > 0) {
-          this.dropdown.selectedItems = indexes.S
+          else if (indexes.S && indexes.S.length === 0 && indexes.O && indexes.O.length === 1) {
+            this.dropdown.selectedItems = indexes.O 
+          }
+          else {
+            this.dropdown.selectedItems = []
+          }        
+          const data = layout.qListObject.qDataPages[0].qMatrix.map(r => (Object.assign(r[0], {label: r[0].qText || '-', classes: [`state-${r[0].qState}`]})))
+          this.dropdown.data = data
         }
-        else if (indexes.S && indexes.S.length === 0 && indexes.O && indexes.O.length === 1) {
-          this.dropdown.selectedItems = indexes.O 
-        }
-        else {
-          this.dropdown.selectedItems = []
-        }        
-        const data = layout.qListObject.qDataPages[0].qMatrix.map(r => (Object.assign(r[0], {label: r[0].qText || '-', classes: [`state-${r[0].qState}`]})))
-        this.dropdown.data = data
-      }
+      })      
     })
   }
   search (value) {
@@ -559,7 +580,7 @@ class Dropdown {
   }
 }
 
-/* global WebsyDesigns translate */ 
+/* global WebsyDesigns */ 
 class KPI {
   constructor (elementId, options) {
     this.elementId = elementId
@@ -581,14 +602,14 @@ class KPI {
         value: v
       }        
       this.kpiOptions.label = {
-        value: translate('global', layout.kpi.qHyperCube.qMeasureInfo[0].qFallbackTitle)
+        value: layout.kpi.qHyperCube.qMeasureInfo[0].qFallbackTitle
       }
       if (layout.icon) {
         this.kpiOptions.icon = `${window.location.origin}/resources/svg/${layout.icon}.svg`
       }
       if (layout.tooltip && layout.tooltip.value) {
         this.kpiOptions.tooltip = {
-          value: translate('global', layout.tooltip.value)
+          value: layout.tooltip.value
         }
         if (layout.tooltip.classes) {
           this.kpiOptions.tooltip.classes = layout.tooltip.classes
@@ -602,13 +623,9 @@ class KPI {
         if (typeof layout.kpi.qHyperCube.qMeasureInfo[1].decimals !== 'undefined') {
           decimals = layout.kpi.qHyperCube.qMeasureInfo[1].decimals
         }
-        // let v1 = layout.kpi.qHyperCube.qDataPages[0].qMatrix[0][1].qNum === 'NaN' ? layout.kpi.qHyperCube.qDataPages[0].qMatrix[0][1].qText : layout.kpi.qHyperCube.qDataPages[0].qMatrix[0][1].qNum.toReduced(decimals, layout.kpi.qHyperCube.qDataPages[0].qMatrix[0][1].qText.indexOf('%') !== -1)            
-        // if (layout.kpi.qHyperCube.qDataPages[0].qMatrix[0][1].qText && layout.kpi.qHyperCube.qDataPages[0].qMatrix[0][1].qText.indexOf('€') !== -1) {
-        //   v1 = v1.toCurrency('€')
-        // }
         let v1 = layout.kpi.qHyperCube.qDataPages[0].qMatrix[0][1].qText
         this.kpiOptions.subValue = {
-          value: `${translate('global', layout.kpi.qHyperCube.qMeasureInfo[1].qFallbackTitle)} ${v1}`
+          value: `${layout.kpi.qHyperCube.qMeasureInfo[1].qFallbackTitle} ${v1}`
         }        
       }      
       this.kpi.render(this.kpiOptions)
@@ -623,19 +640,22 @@ class KPI {
 class GeoMap {
   constructor (elementId, options) {
     this.elementId = elementId
-    this.options = Object.assign({}, options)
-    this.mapOptions = Object.assign({}, options.def.mapOptions || {})
-    if (this.mapOptions.geoJSON && typeof this.mapOptions.geoJSON === 'string') {
-      WebsyDesigns.service.get(this.mapOptions.geoJSON).then(geoJSON => {
-        this.geoJSON = geoJSON
-        // this.mapOptions.geoJSON = geoJSON
-        delete this.mapOptions.geoJSON
-        this.map = new WebsyDesigns.WebsyMap(elementId, this.mapOptions)
+    const DEFAULTS = {
+      geoFillColor: '#783c96',
+      geoAutoFill: true,
+      geoShowTooltip: true
+    }
+    this.options = Object.assign({}, DEFAULTS, options, options.def.options)    
+    if (this.options.geoJSON && typeof this.options.geoJSON === 'string') {
+      WebsyDesigns.service.get(this.options.geoJSON).then(geoJSON => {
+        this.geoJSON = geoJSON        
+        delete this.options.geoJSON
+        this.map = new WebsyDesigns.WebsyMap(elementId, this.options)
         this.render()
       })      
     }   
     else {
-      this.map = new WebsyDesigns.WebsyMap(elementId, this.mapOptions)
+      this.map = new WebsyDesigns.WebsyMap(elementId, this.options)
       this.render()
     }    
   }
@@ -653,6 +673,10 @@ class GeoMap {
       el.parentElement.classList.add('loading')
     } 
     this.options.model.getLayout().then(layout => {
+      if (layout.options) {
+        this.options = Object.assign({}, layout.options)
+        this.map.options = Object.assign({}, this.map.options, layout.options)
+      }
       if (layout.qHyperCube.qDataPages[0]) {
         if (this.geoJSON) {
           let geoJSON = {
@@ -661,11 +685,18 @@ class GeoMap {
           }
           layout.qHyperCube.qDataPages[0].qMatrix.forEach(r => {          
             let p = this.findGeoJsonByProperty(r[0].qText)          
-            if (p) {               
-              p.fillColor = '#783c96'            
-              p.fillOpacity = 0.4 + ((r[1].qNum / layout.qHyperCube.qMeasureInfo[0].qMax) * 0.6)
-              p.tooltip = `${r[1].qText}<br>${p.properties.label}`
-              p.tooltipClass = 'websy-map-tooltip'
+            if (p) {       
+              if (this.options.geoAutoFill === true) {
+                p.fillColor = this.options.geoFillColor
+                p.fillOpacity = 0.4 + ((r[1].qNum / layout.qHyperCube.qMeasureInfo[0].qMax) * 0.6)
+              }
+              if (r[1].qAttrExps && r[1].qAttrExps.qValues && r[1].qAttrExps.qValues[0] && r[1].qAttrExps.qValues[0].qText) {
+                p.fillColor = r[1].qAttrExps.qValues[0].qText
+              }                     
+              if (this.options.geoShowTooltip === true) {
+                p.tooltip = `${r[1].qText}<br>${p.properties.label}`
+                p.tooltipClass = 'websy-map-tooltip' 
+              }              
               geoJSON.features.push(p)
             }            
           })
@@ -979,6 +1010,7 @@ class ObjectManager {
       helpEvent: 'mouseover',
       applySelections: false,
       actions: [],
+      retryCount: 5,
       initialActions: [],
       visualisationPlugins: [
         {
@@ -1169,8 +1201,11 @@ class ObjectManager {
         el.addEventListener(this.options.actions[a].event, () => {                                
           for (let i = 0; i < this.options.actions[a].items.length; i++) {
             let item = this.options.actions[a].items[i]
+            if (typeof item.params === 'undefined') {
+              item.params = []
+            }
             if (item.field) {
-              this.app.getField(item.field).then(field => {
+              this.app.getField(item.field).then(field => {                
                 field[item.method](...item.params)
               })
             }
@@ -1282,7 +1317,7 @@ class ObjectManager {
           }
         }
         else {
-          this.sessionOnNotification(data)
+          this.sessionOnNotification(data, eventName)
         }
       })
       session.on('suspended', this.sessionSuspended.bind(this))
@@ -1360,7 +1395,9 @@ class ObjectManager {
       if (this.options.views[view].prepped !== true) {
         this.prep(view)
       }
+      console.log('Running Actions', view)
       this.executeActions(view).then(() => {    
+        console.log('Actions complete', view)
         if ((this.globalObjectsLoaded === false || this.options.alwaysLoadGlobal === true) && view !== 'global') {
           this.loadObjects('global', force)
           this.globalObjectsLoaded = true
@@ -1374,6 +1411,9 @@ class ObjectManager {
   }
   executeAction (index, actionList, callbackFn) {
     let item = actionList[index]
+    if (typeof item.params === 'undefined') {
+      item.params = []
+    }
     if (item.field) {
       this.app.getField(item.field).then(field => {
         field[item.method](...item.params).then(() => {
@@ -1421,6 +1461,7 @@ class ObjectManager {
     })
   }
   loadObjects (view, force) {
+    console.log('Loading objects', view)
     if (typeof force === 'undefined') {
       force = false
     }
@@ -1457,6 +1498,9 @@ class ObjectManager {
     }
   }
   closeObjects (view) {
+    this.closeView(view)
+  }
+  closeView (view) {
     if (view === '' || !this.options.views[view]) {
       return
     }
@@ -1491,7 +1535,11 @@ class ObjectManager {
     }
   }
   createObjectFromDefinition (objectConfig) {
+    if (objectConfig.retries) {
+      objectConfig.retries = 0
+    }    
     if (objectConfig.definition && this.app) {
+      console.log('Creating object', objectConfig.definition.qInfo)
       let method = 'createSessionObject'
       let params = objectConfig.definition
       if (objectConfig.definition.qField) {
@@ -1525,6 +1573,16 @@ class ObjectManager {
             }
           })
         }
+      }, err => {
+        console.log('Error creating object', err)
+        if (objectConfig.retries < this.options.retryCount) {
+          console.log('retrying')
+          objectConfig.retries++
+          this.createObjectFromDefinition(objectConfig) 
+        }        
+        else {
+          console.log('Max retries reached.')
+        }
       })
     }
     else if (objectConfig.type) {
@@ -1546,9 +1604,9 @@ class ObjectManager {
   normalizeId (id) {
     return id.replace(/\s:\\\//, '-')
   }
-  sessionOnNotification (event) {    
+  sessionOnNotification (data, eventName) {    
     if (this.options.sessionOnNotification) {
-      this.options.sessionOnNotification(event)
+      this.options.sessionOnNotification(data, eventName)
     }
   }
   sessionOnTraffic (event) {    

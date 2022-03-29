@@ -2,19 +2,22 @@
 class GeoMap {
   constructor (elementId, options) {
     this.elementId = elementId
-    this.options = Object.assign({}, options)
-    this.mapOptions = Object.assign({}, options.def.mapOptions || {})
-    if (this.mapOptions.geoJSON && typeof this.mapOptions.geoJSON === 'string') {
-      WebsyDesigns.service.get(this.mapOptions.geoJSON).then(geoJSON => {
-        this.geoJSON = geoJSON
-        // this.mapOptions.geoJSON = geoJSON
-        delete this.mapOptions.geoJSON
-        this.map = new WebsyDesigns.WebsyMap(elementId, this.mapOptions)
+    const DEFAULTS = {
+      geoFillColor: '#783c96',
+      geoAutoFill: true,
+      geoShowTooltip: true
+    }
+    this.options = Object.assign({}, DEFAULTS, options, options.def.options)    
+    if (this.options.geoJSON && typeof this.options.geoJSON === 'string') {
+      WebsyDesigns.service.get(this.options.geoJSON).then(geoJSON => {
+        this.geoJSON = geoJSON        
+        delete this.options.geoJSON
+        this.map = new WebsyDesigns.WebsyMap(elementId, this.options)
         this.render()
       })      
     }   
     else {
-      this.map = new WebsyDesigns.WebsyMap(elementId, this.mapOptions)
+      this.map = new WebsyDesigns.WebsyMap(elementId, this.options)
       this.render()
     }    
   }
@@ -32,6 +35,10 @@ class GeoMap {
       el.parentElement.classList.add('loading')
     } 
     this.options.model.getLayout().then(layout => {
+      if (layout.options) {
+        this.options = Object.assign({}, layout.options)
+        this.map.options = Object.assign({}, this.map.options, layout.options)
+      }
       if (layout.qHyperCube.qDataPages[0]) {
         if (this.geoJSON) {
           let geoJSON = {
@@ -40,11 +47,18 @@ class GeoMap {
           }
           layout.qHyperCube.qDataPages[0].qMatrix.forEach(r => {          
             let p = this.findGeoJsonByProperty(r[0].qText)          
-            if (p) {               
-              p.fillColor = '#783c96'            
-              p.fillOpacity = 0.4 + ((r[1].qNum / layout.qHyperCube.qMeasureInfo[0].qMax) * 0.6)
-              p.tooltip = `${r[1].qText}<br>${p.properties.label}`
-              p.tooltipClass = 'websy-map-tooltip'
+            if (p) {       
+              if (this.options.geoAutoFill === true) {
+                p.fillColor = this.options.geoFillColor
+                p.fillOpacity = 0.4 + ((r[1].qNum / layout.qHyperCube.qMeasureInfo[0].qMax) * 0.6)
+              }
+              if (r[1].qAttrExps && r[1].qAttrExps.qValues && r[1].qAttrExps.qValues[0] && r[1].qAttrExps.qValues[0].qText) {
+                p.fillColor = r[1].qAttrExps.qValues[0].qText
+              }                     
+              if (this.options.geoShowTooltip === true) {
+                p.tooltip = `${r[1].qText}<br>${p.properties.label}`
+                p.tooltipClass = 'websy-map-tooltip' 
+              }              
               geoJSON.features.push(p)
             }            
           })

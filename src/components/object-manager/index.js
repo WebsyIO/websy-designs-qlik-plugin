@@ -18,6 +18,7 @@ class ObjectManager {
       helpEvent: 'mouseover',
       applySelections: false,
       actions: [],
+      retryCount: 5,
       initialActions: [],
       visualisationPlugins: [
         {
@@ -208,8 +209,11 @@ class ObjectManager {
         el.addEventListener(this.options.actions[a].event, () => {                                
           for (let i = 0; i < this.options.actions[a].items.length; i++) {
             let item = this.options.actions[a].items[i]
+            if (typeof item.params === 'undefined') {
+              item.params = []
+            }
             if (item.field) {
-              this.app.getField(item.field).then(field => {
+              this.app.getField(item.field).then(field => {                
                 field[item.method](...item.params)
               })
             }
@@ -321,7 +325,7 @@ class ObjectManager {
           }
         }
         else {
-          this.sessionOnNotification(data)
+          this.sessionOnNotification(data, eventName)
         }
       })
       session.on('suspended', this.sessionSuspended.bind(this))
@@ -399,7 +403,9 @@ class ObjectManager {
       if (this.options.views[view].prepped !== true) {
         this.prep(view)
       }
+      console.log('Running Actions', view)
       this.executeActions(view).then(() => {    
+        console.log('Actions complete', view)
         if ((this.globalObjectsLoaded === false || this.options.alwaysLoadGlobal === true) && view !== 'global') {
           this.loadObjects('global', force)
           this.globalObjectsLoaded = true
@@ -413,6 +419,9 @@ class ObjectManager {
   }
   executeAction (index, actionList, callbackFn) {
     let item = actionList[index]
+    if (typeof item.params === 'undefined') {
+      item.params = []
+    }
     if (item.field) {
       this.app.getField(item.field).then(field => {
         field[item.method](...item.params).then(() => {
@@ -460,6 +469,7 @@ class ObjectManager {
     })
   }
   loadObjects (view, force) {
+    console.log('Loading objects', view)
     if (typeof force === 'undefined') {
       force = false
     }
@@ -496,6 +506,9 @@ class ObjectManager {
     }
   }
   closeObjects (view) {
+    this.closeView(view)
+  }
+  closeView (view) {
     if (view === '' || !this.options.views[view]) {
       return
     }
@@ -530,7 +543,11 @@ class ObjectManager {
     }
   }
   createObjectFromDefinition (objectConfig) {
+    if (objectConfig.retries) {
+      objectConfig.retries = 0
+    }    
     if (objectConfig.definition && this.app) {
+      console.log('Creating object', objectConfig.definition.qInfo)
       let method = 'createSessionObject'
       let params = objectConfig.definition
       if (objectConfig.definition.qField) {
@@ -564,6 +581,16 @@ class ObjectManager {
             }
           })
         }
+      }, err => {
+        console.log('Error creating object', err)
+        if (objectConfig.retries < this.options.retryCount) {
+          console.log('retrying')
+          objectConfig.retries++
+          this.createObjectFromDefinition(objectConfig) 
+        }        
+        else {
+          console.log('Max retries reached.')
+        }
       })
     }
     else if (objectConfig.type) {
@@ -585,9 +612,9 @@ class ObjectManager {
   normalizeId (id) {
     return id.replace(/\s:\\\//, '-')
   }
-  sessionOnNotification (event) {    
+  sessionOnNotification (data, eventName) {    
     if (this.options.sessionOnNotification) {
-      this.options.sessionOnNotification(event)
+      this.options.sessionOnNotification(data, eventName)
     }
   }
   sessionOnTraffic (event) {    
