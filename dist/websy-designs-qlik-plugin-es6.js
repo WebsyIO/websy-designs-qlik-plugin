@@ -1,5 +1,14 @@
 "use strict";
 
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports["default"] = void 0;
+
+var _websyDesignsEs = _interopRequireDefault(require("@websy/websy-designs/dist/websy-designs-es6"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { _defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
@@ -25,19 +34,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
-
-/* global
-  include
-  WebsyDesigns
-  Chart
-  Table
-  Table2
-  GeoMap
-  Dropdown
-  DatePicker
-  KPI
-  ObjectManager
-*/
 
 /* global WebsyDesigns createIdentity d3 */
 var Chart = /*#__PURE__*/function () {
@@ -69,7 +65,7 @@ var Chart = /*#__PURE__*/function () {
         series: []
       }
     };
-    this.chart = new WebsyDesigns.WebsyChart(elementId);
+    this.chart = new _websyDesignsEs["default"].WebsyChart(elementId);
     window.addEventListener('resize', function () {
       return _this.chart.render();
     });
@@ -150,7 +146,7 @@ var Chart = /*#__PURE__*/function () {
         // if (d.toReduced(decimals, isPercentage, true) % 1 === 0) {
         //   decimals = 0
         // }
-        d = WebsyDesigns.Utils.toReduced(d, decimals, isPercentage, false, options.max);
+        d = _websyDesignsEs["default"].Utils.toReduced(d, decimals, isPercentage, false, options.max);
 
         if (options.showAsCurrency === true) {
           d = d.toCurrency();
@@ -551,7 +547,7 @@ var DatePicker = /*#__PURE__*/function () {
     };
     this.elementId = elementId;
     this.options = _extends({}, DEFAULTS, options);
-    this.picker = new WebsyDesigns.WebsyDatePicker(elementId, _extends({}, options, {
+    this.picker = new _websyDesignsEs["default"].WebsyDatePicker(elementId, _extends({}, options, {
       onChange: this.onChange.bind(this)
     }));
     this.listening = true;
@@ -827,7 +823,7 @@ var Dropdown = /*#__PURE__*/function () {
       onCancelSearch: this.cancelSearch.bind(this),
       onScroll: this.handleScroll.bind(this)
     });
-    this.dropdown = new WebsyDesigns.WebsyDropdown(elementId, this.dropdownOptions);
+    this.dropdown = new _websyDesignsEs["default"].WebsyDropdown(elementId, this.dropdownOptions);
     this.render();
   }
 
@@ -1025,7 +1021,7 @@ var KPI = /*#__PURE__*/function () {
     this.elementId = elementId;
     this.options = _extends({}, options);
     this.kpiOptions = {};
-    this.kpi = new WebsyDesigns.WebsyKPI(elementId, this.kpiOptions);
+    this.kpi = new _websyDesignsEs["default"].WebsyKPI(elementId, this.kpiOptions);
     this.render();
   }
 
@@ -1116,15 +1112,15 @@ var GeoMap = /*#__PURE__*/function () {
     this.options = _extends({}, DEFAULTS, options, options.def.options);
 
     if (this.options.geoJSON && typeof this.options.geoJSON === 'string') {
-      WebsyDesigns.service.get(this.options.geoJSON).then(function (geoJSON) {
+      _websyDesignsEs["default"].service.get(this.options.geoJSON).then(function (geoJSON) {
         _this17.geoJSON = geoJSON;
         delete _this17.options.geoJSON;
-        _this17.map = new WebsyDesigns.WebsyMap(elementId, _this17.options);
+        _this17.map = new _websyDesignsEs["default"].WebsyMap(elementId, _this17.options);
 
         _this17.render();
       });
     } else {
-      this.map = new WebsyDesigns.WebsyMap(elementId, this.options);
+      this.map = new _websyDesignsEs["default"].WebsyMap(elementId, this.options);
       this.render();
     }
   }
@@ -1248,7 +1244,7 @@ var Table = /*#__PURE__*/function () {
     this.retryFn = null;
     this.pivotIndent = false;
     this.busy = false;
-    this.table = new WebsyDesigns.WebsyTable(this.elementId, _extends({}, {
+    this.table = new _websyDesignsEs["default"].WebsyTable(this.elementId, _extends({}, {
       onClick: this.handleClick.bind(this),
       onScroll: this.handleScroll.bind(this),
       onSort: this.handleSort.bind(this),
@@ -1893,7 +1889,7 @@ var Table2 = /*#__PURE__*/function () {
     this.busy = false;
     this.dimensionWidth = 0;
     this.dropdowns = [];
-    this.table = new WebsyDesigns.WebsyTable2(this.elementId, _extends({}, {
+    this.table = new _websyDesignsEs["default"].WebsyTable2(this.elementId, _extends({}, {
       onClick: this.handleClick.bind(this),
       onScroll: this.handleScroll.bind(this),
       onSort: this.handleSort.bind(this),
@@ -2106,7 +2102,7 @@ var Table2 = /*#__PURE__*/function () {
 
       this.table.options.columns.forEach(function (c, i) {
         if (c.searchable === true && c.searchField && _this25.layout[c.searchField] && _this25.layout[c.searchField].qListObject) {
-          _this25.dropdowns[c.searchField] = new WebsyDesigns.QlikPlugins.Dropdown("".concat(_this25.elementId, "_columnSearch_").concat(i), {
+          _this25.dropdowns[c.searchField] = new _websyDesignsEs["default"].QlikPlugins.Dropdown("".concat(_this25.elementId, "_columnSearch_").concat(i), {
             model: _this25.options.model,
             path: "".concat(c.searchField)
           });
@@ -2690,17 +2686,16 @@ var Table2 = /*#__PURE__*/function () {
   return Table2;
 }();
 
-if (typeof WebsyDesigns !== 'undefined') {
-  WebsyDesigns.QlikPlugins = {
-    Chart: Chart,
-    Table: Table,
-    Table2: Table2,
-    GeoMap: GeoMap,
-    Dropdown: Dropdown,
-    DatePicker: DatePicker,
-    KPI: KPI
-  };
-  /* 
+var WebsyDesignsQlikPlugins = {
+  Chart: Chart,
+  Table: Table,
+  Table2: Table2,
+  GeoMap: GeoMap,
+  Dropdown: Dropdown,
+  DatePicker: DatePicker,
+  KPI: KPI
+};
+/* 
   global
   include
   enigma
@@ -2713,470 +2708,448 @@ if (typeof WebsyDesigns !== 'undefined') {
   Dropdown
   DatePicker
   KPI
-  */
+*/
 
-  var ObjectManager = /*#__PURE__*/function () {
-    function ObjectManager(options) {
-      _classCallCheck(this, ObjectManager);
+var ObjectManager = /*#__PURE__*/function () {
+  function ObjectManager(options) {
+    _classCallCheck(this, ObjectManager);
 
-      var defaults = {
-        helpEvent: 'mouseover',
-        applySelections: false,
-        actions: [],
-        retryCount: 5,
-        initialActions: [],
-        visualisationPlugins: [{
-          id: 'kpi',
-          definition: KPI
-        }, {
-          id: 'table',
-          definition: Table
-        }, {
-          id: 'chart',
-          definition: Chart
-        }, {
-          id: 'map',
-          definition: GeoMap
-        }, {
-          id: 'dropdown',
-          definition: Dropdown
-        }, {
-          id: 'datepicker',
-          definition: DatePicker
-        }]
-      };
-      this.app = null;
+    var defaults = {
+      helpEvent: 'mouseover',
+      applySelections: false,
+      actions: [],
+      retryCount: 5,
+      initialActions: [],
+      visualisationPlugins: [{
+        id: 'kpi',
+        definition: KPI
+      }, {
+        id: 'table',
+        definition: Table
+      }, {
+        id: 'chart',
+        definition: Chart
+      }, {
+        id: 'map',
+        definition: GeoMap
+      }, {
+        id: 'dropdown',
+        definition: Dropdown
+      }, {
+        id: 'datepicker',
+        definition: DatePicker
+      }]
+    };
+    this.app = null;
+    this.paused = false;
+    this.supportedChartTypes = [];
+    this.activeViews = [];
+    this.chartLibrary = {};
+    this.globalObjectsLoaded = false;
+    this.options = this.mergeObjects({}, defaults, options); // this.options = Object.assign({}, defaults, options)            
+
+    if (this.options.visualisationPlugins && this.options.visualisationPlugins.length > 0) {
+      for (var i = 0; i < this.options.visualisationPlugins.length; i++) {
+        this.registerVisualisation(this.options.visualisationPlugins[i].id, this.options.visualisationPlugins[i].definition);
+      }
+    }
+  }
+
+  _createClass(ObjectManager, [{
+    key: "buildChildElement",
+    value: function buildChildElement(elementId, text) {
+      var el = document.getElementById("".concat(elementId, "_vis"));
+
+      if (el) {
+        return '';
+      }
+
+      var html = "\n      <article id='".concat(elementId, "_vis' class='websy-vis-article'></article>\n      <div id='").concat(elementId, "_loading' class='websy-loading-container'><div class='websy-ripple'><div></div><div></div></div></div>\n    ");
+
+      if (text && text !== '') {
+        html += "\n        <i class='websy-vis-help-listener' data-element='".concat(elementId, "'></i>\n        <div id='").concat(elementId, "_help' class='websy-vis-help'><span>").concat(text || '', "</span></div>        \n      ");
+      }
+
+      return html;
+    }
+  }, {
+    key: "mergeObjects",
+    value: function mergeObjects() {
+      // Variables
+      var extended = {};
+      var deep = false;
+      var i = 0; // Check if a deep merge
+
+      if (typeof arguments[0] === 'boolean') {
+        deep = arguments[0];
+        i++;
+      } // Merge the object into the extended object
+
+
+      var merge = function merge(obj) {
+        for (var prop in obj) {
+          if (obj.hasOwnProperty(prop)) {
+            if (deep && Object.prototype.toString.call(obj[prop]) === '[object Object]') {
+              // If we're doing a deep merge and the property is an object
+              extended[prop] = this.mergeObjects(true, extended[prop], obj[prop]);
+            } else {
+              // Otherwise, do a regular merge
+              if (Array.isArray(extended[prop]) && Array.isArray(obj[prop])) {
+                extended[prop] = extended[prop].concat(obj[prop]);
+              } else {
+                extended[prop] = obj[prop];
+              }
+            }
+          }
+        }
+      }; // Loop through each object and conduct a merge
+
+
+      for (; i < arguments.length; i++) {
+        merge(arguments[i]);
+      }
+
+      return extended;
+    }
+  }, {
+    key: "init",
+    value: function init() {
+      var _this29 = this;
+
+      return new Promise(function (resolve, reject) {
+        _this29.prep('global');
+
+        _this29.connectToApp().then(function () {
+          _this29.executeAction(0, _this29.options.initialActions, function () {
+            _this29.selectFromUrl(function () {
+              resolve();
+            });
+          });
+        }, reject);
+      });
+    }
+  }, {
+    key: "pause",
+    value: function pause() {
+      this.paused = true;
+    }
+  }, {
+    key: "play",
+    value: function play(resume, excludeViews) {
+      if (typeof excludeViews === 'undefined') {
+        excludeViews = [];
+      }
+
       this.paused = false;
-      this.supportedChartTypes = [];
-      this.activeViews = [];
-      this.chartLibrary = {};
-      this.globalObjectsLoaded = false;
-      this.options = this.mergeObjects({}, defaults, options); // this.options = Object.assign({}, defaults, options)            
 
-      if (this.options.visualisationPlugins && this.options.visualisationPlugins.length > 0) {
-        for (var i = 0; i < this.options.visualisationPlugins.length; i++) {
-          this.registerVisualisation(this.options.visualisationPlugins[i].id, this.options.visualisationPlugins[i].definition);
+      if (resume === true) {
+        if (excludeViews.indexOf('global') === -1) {
+          this.loadObjects('global');
+        }
+
+        for (var i = 0; i < this.activeViews.length; i++) {
+          if (excludeViews.indexOf(this.activeViews[i]) === -1) {
+            this.loadObjects(this.activeViews[i]);
+          }
         }
       }
     }
+  }, {
+    key: "request",
+    value: function request(method, url, data, responseType) {
+      return new Promise(function (resolve, reject) {
+        var xhr = new XMLHttpRequest();
+        xhr.open(method, url);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.responseType = 'text';
 
-    _createClass(ObjectManager, [{
-      key: "buildChildElement",
-      value: function buildChildElement(elementId, text) {
-        var el = document.getElementById("".concat(elementId, "_vis"));
-
-        if (el) {
-          return '';
+        if (responseType) {
+          xhr.responseType = responseType;
         }
 
-        var html = "\n      <article id='".concat(elementId, "_vis' class='websy-vis-article'></article>\n      <div id='").concat(elementId, "_loading' class='websy-loading-container'><div class='websy-ripple'><div></div><div></div></div></div>\n    ");
+        xhr.withCredentials = true;
 
-        if (text && text !== '') {
-          html += "\n        <i class='websy-vis-help-listener' data-element='".concat(elementId, "'></i>\n        <div id='").concat(elementId, "_help' class='websy-vis-help'><span>").concat(text || '', "</span></div>        \n      ");
-        }
+        xhr.onload = function () {
+          var response = xhr.responseType === 'text' ? xhr.responseText : xhr.response;
 
-        return html;
-      }
-    }, {
-      key: "mergeObjects",
-      value: function mergeObjects() {
-        // Variables
-        var extended = {};
-        var deep = false;
-        var i = 0; // Check if a deep merge
-
-        if (typeof arguments[0] === 'boolean') {
-          deep = arguments[0];
-          i++;
-        } // Merge the object into the extended object
-
-
-        var merge = function merge(obj) {
-          for (var prop in obj) {
-            if (obj.hasOwnProperty(prop)) {
-              if (deep && Object.prototype.toString.call(obj[prop]) === '[object Object]') {
-                // If we're doing a deep merge and the property is an object
-                extended[prop] = this.mergeObjects(true, extended[prop], obj[prop]);
-              } else {
-                // Otherwise, do a regular merge
-                if (Array.isArray(extended[prop]) && Array.isArray(obj[prop])) {
-                  extended[prop] = extended[prop].concat(obj[prop]);
-                } else {
-                  extended[prop] = obj[prop];
-                }
-              }
+          if (response !== '' && response !== 'null') {
+            try {
+              response = JSON.parse(response);
+            } catch (e) {// Either a bad Url or a string has been returned
             }
-          }
-        }; // Loop through each object and conduct a merge
-
-
-        for (; i < arguments.length; i++) {
-          merge(arguments[i]);
-        }
-
-        return extended;
-      }
-    }, {
-      key: "init",
-      value: function init() {
-        var _this29 = this;
-
-        return new Promise(function (resolve, reject) {
-          _this29.prep('global');
-
-          _this29.connectToApp().then(function () {
-            _this29.executeAction(0, _this29.options.initialActions, function () {
-              _this29.selectFromUrl(function () {
-                resolve();
-              });
-            });
-          }, reject);
-        });
-      }
-    }, {
-      key: "pause",
-      value: function pause() {
-        this.paused = true;
-      }
-    }, {
-      key: "play",
-      value: function play(resume, excludeViews) {
-        if (typeof excludeViews === 'undefined') {
-          excludeViews = [];
-        }
-
-        this.paused = false;
-
-        if (resume === true) {
-          if (excludeViews.indexOf('global') === -1) {
-            this.loadObjects('global');
-          }
-
-          for (var i = 0; i < this.activeViews.length; i++) {
-            if (excludeViews.indexOf(this.activeViews[i]) === -1) {
-              this.loadObjects(this.activeViews[i]);
-            }
-          }
-        }
-      }
-    }, {
-      key: "request",
-      value: function request(method, url, data, responseType) {
-        return new Promise(function (resolve, reject) {
-          var xhr = new XMLHttpRequest();
-          xhr.open(method, url);
-          xhr.setRequestHeader('Content-Type', 'application/json');
-          xhr.responseType = 'text';
-
-          if (responseType) {
-            xhr.responseType = responseType;
-          }
-
-          xhr.withCredentials = true;
-
-          xhr.onload = function () {
-            var response = xhr.responseType === 'text' ? xhr.responseText : xhr.response;
-
-            if (response !== '' && response !== 'null') {
-              try {
-                response = JSON.parse(response);
-              } catch (e) {// Either a bad Url or a string has been returned
-              }
-            } else {
-              response = null;
-            }
-
-            if (response.err) {
-              reject(JSON.stringify(response));
-            } else {
-              resolve(response);
-            }
-          };
-
-          xhr.onerror = function () {
-            return reject(xhr.statusText);
-          };
-
-          if (data) {
-            xhr.send(JSON.stringify(data));
           } else {
-            xhr.send();
+            response = null;
           }
-        });
-      }
-    }, {
-      key: "prep",
-      value: function prep(view) {
-        var _this30 = this;
 
-        // for (let view in this.options.views) {
-        // sort out the elements in each view
-        for (var o = 0; o < this.options.views[view].objects.length; o++) {
-          var config = this.options.views[view].objects[o];
-          var el = document.getElementById(config.elementId);
-
-          if (el) {
-            el.innerHTML += this.buildChildElement(config.elementId, config.help);
-
-            if (config.help && config.help !== '') {
-              el.addEventListener(this.options.helpEvent, this.handleEvent.bind(this));
-              el.addEventListener('mouseout', this.handleEvent.bind(this));
-            }
-          }
-        } // }    
-        // setup  the event listeners for the actions
-        // actions should not have a visualisation in the same property structure
-
-
-        var _loop = function _loop(a) {
-          var el = document.getElementById(_this30.options.actions[a].elementId);
-
-          if (el) {
-            el.addEventListener(_this30.options.actions[a].event, function () {
-              var _loop2 = function _loop2(i) {
-                var item = _this30.options.actions[a].items[i];
-
-                if (typeof item.params === 'undefined') {
-                  item.params = [];
-                }
-
-                if (item.field) {
-                  _this30.app.getField(item.field).then(function (field) {
-                    field[item.method].apply(field, _toConsumableArray(item.params));
-                  });
-                } else {
-                  var _this30$app;
-
-                  (_this30$app = _this30.app)[item.method].apply(_this30$app, _toConsumableArray(item.params));
-                }
-              };
-
-              for (var i = 0; i < _this30.options.actions[a].items.length; i++) {
-                _loop2(i);
-              }
-            });
+          if (response.err) {
+            reject(JSON.stringify(response));
+          } else {
+            resolve(response);
           }
         };
 
-        for (var a = 0; a < this.options.actions.length; a++) {
-          _loop(a);
+        xhr.onerror = function () {
+          return reject(xhr.statusText);
+        };
+
+        if (data) {
+          xhr.send(JSON.stringify(data));
+        } else {
+          xhr.send();
+        }
+      });
+    }
+  }, {
+    key: "prep",
+    value: function prep(view) {
+      var _this30 = this;
+
+      // for (let view in this.options.views) {
+      // sort out the elements in each view
+      for (var o = 0; o < this.options.views[view].objects.length; o++) {
+        var config = this.options.views[view].objects[o];
+        var el = document.getElementById(config.elementId);
+
+        if (el) {
+          el.innerHTML += this.buildChildElement(config.elementId, config.help);
+
+          if (config.help && config.help !== '') {
+            el.addEventListener(this.options.helpEvent, this.handleEvent.bind(this));
+            el.addEventListener('mouseout', this.handleEvent.bind(this));
+          }
+        }
+      } // }    
+      // setup  the event listeners for the actions
+      // actions should not have a visualisation in the same property structure
+
+
+      var _loop = function _loop(a) {
+        var el = document.getElementById(_this30.options.actions[a].elementId);
+
+        if (el) {
+          el.addEventListener(_this30.options.actions[a].event, function () {
+            var _loop2 = function _loop2(i) {
+              var item = _this30.options.actions[a].items[i];
+
+              if (typeof item.params === 'undefined') {
+                item.params = [];
+              }
+
+              if (item.field) {
+                _this30.app.getField(item.field).then(function (field) {
+                  field[item.method].apply(field, _toConsumableArray(item.params));
+                });
+              } else {
+                var _this30$app;
+
+                (_this30$app = _this30.app)[item.method].apply(_this30$app, _toConsumableArray(item.params));
+              }
+            };
+
+            for (var i = 0; i < _this30.options.actions[a].items.length; i++) {
+              _loop2(i);
+            }
+          });
+        }
+      };
+
+      for (var a = 0; a < this.options.actions.length; a++) {
+        _loop(a);
+      }
+
+      this.options.views[view].prepped = true;
+    }
+  }, {
+    key: "connectToApp",
+    value: function connectToApp() {
+      var _this31 = this;
+
+      return new Promise(function (resolve, reject) {
+        // check for enigma.js      
+        var originalId = _this31.options.enigmaConfig.app;
+
+        if (_this31.options.enigmaConfig.app) {
+          _this31.options.enigmaConfig.app = _this31.normalizeId(_this31.options.enigmaConfig.app);
         }
 
-        this.options.views[view].prepped = true;
-      }
-    }, {
-      key: "connectToApp",
-      value: function connectToApp() {
-        var _this31 = this;
+        if (typeof enigma === 'undefined') {
+          reject({
+            error: 'Enigma.js not found.'
+          });
+          return;
+        }
 
-        return new Promise(function (resolve, reject) {
-          // check for enigma.js      
-          var originalId = _this31.options.enigmaConfig.app;
+        if (typeof _this31.options.enigmaSchema === 'undefined') {
+          reject({
+            error: 'enigmaSchema property not found.'
+          });
+          return;
+        }
 
-          if (_this31.options.enigmaConfig.app) {
-            _this31.options.enigmaConfig.app = _this31.normalizeId(_this31.options.enigmaConfig.app);
+        var url = _this31.options.enigmaConfig.url;
+
+        if (_this31.options.enigmaConfig.ticket) {
+          if (url.indexOf('?') === -1) {
+            url += '?';
+          } else {
+            url += '&';
           }
 
-          if (typeof enigma === 'undefined') {
-            reject({
-              error: 'Enigma.js not found.'
-            });
-            return;
-          }
+          url += "qlikTicket=".concat(_this31.options.enigmaConfig.ticket);
+        }
 
-          if (typeof _this31.options.enigmaSchema === 'undefined') {
-            reject({
-              error: 'enigmaSchema property not found.'
-            });
-            return;
-          }
+        var config = {
+          schema: _this31.options.enigmaSchema,
+          url: url
+        };
+        var session = enigma.create(config);
+        _this31.session = session;
+        session.open().then(function (global) {
+          _this31.global = global;
+          global.getActiveDoc().then(function (app) {
+            if (app) {
+              _this31.app = app;
 
-          var url = _this31.options.enigmaConfig.url;
-
-          if (_this31.options.enigmaConfig.ticket) {
-            if (url.indexOf('?') === -1) {
-              url += '?';
-            } else {
-              url += '&';
-            }
-
-            url += "qlikTicket=".concat(_this31.options.enigmaConfig.ticket);
-          }
-
-          var config = {
-            schema: _this31.options.enigmaSchema,
-            url: url
-          };
-          var session = enigma.create(config);
-          _this31.session = session;
-          session.open().then(function (global) {
-            _this31.global = global;
-            global.getActiveDoc().then(function (app) {
-              if (app) {
-                _this31.app = app;
-
-                if (_this31.options.views.global) {
-                  _this31.executeActions('global').then(function () {
-                    resolve();
-                  });
-                } else {
+              if (_this31.options.views.global) {
+                _this31.executeActions('global').then(function () {
                   resolve();
-                }
-              } else {
-                return _this31.openApp(originalId).then(function () {
-                  resolve();
-                });
-              }
-            }, function (err) {
-              var e = err;
-
-              if (originalId) {
-                return _this31.openApp(originalId).then(function () {
-                  resolve();
-                }, function (err) {
-                  _this31.sessionOnNotification({
-                    err: err
-                  });
                 });
               } else {
                 resolve();
               }
-            });
-
-            if (_this31.options.keepAlive === true) {
-              _this31.keepAlive();
+            } else {
+              return _this31.openApp(originalId).then(function () {
+                resolve();
+              });
             }
           }, function (err) {
-            reject(err);
-          });
-          session.on('traffic:received', function (data) {
-            if (typeof data.suspend !== 'undefined') {
-              _this31.sessionSuspended();
-            }
-          });
-          session.on('notification:*', function (eventName, data) {
-            if (eventName === 'OnAuthenticationInformation') {
-              if (data.mustAuthenticate === true) {
-                if (_this31.options.enigmaConfig.authUrl) {
-                  window.location = _this31.options.enigmaConfig.authUrl + window.location.search.replace('?', '%3F').replace('=', '%3D');
-                } else if (_this31.options.enigmaConfig.onMustAuthenticate) {
-                  _this31.options.enigmaConfig.onMustAuthenticate();
-                } else if (data.loginUri) {
-                  window.location = data.loginUri;
-                }
-              } else if (data.mustAuthenticate === false) {
-                _this31.user = {
-                  userDirectory: data.userDirectory,
-                  userId: data.userId
-                };
-              }
-            } else {
-              _this31.sessionOnNotification(data, eventName);
-            }
-          });
-          session.on('suspended', _this31.sessionSuspended.bind(_this31));
-          session.on('resumed', _this31.sessionResumed.bind(_this31));
-          session.on('closed', _this31.sessionClosed.bind(_this31));
-        });
-      }
-    }, {
-      key: "closeApp",
-      value: function closeApp() {
-        this.session.close();
-        this.app = null;
+            var e = err;
 
-        for (var view in this.options.views) {
-          this.options.views[view].objects.forEach(function (o) {
-            delete o.objectId;
-            delete o.vis;
-            o.attached = false;
-          });
-          delete this.options.views[view];
-        }
-      }
-    }, {
-      key: "keepAlive",
-      value: function keepAlive() {
-        var _this32 = this;
-
-        this.global.engineVersion();
-        setTimeout(function () {
-          _this32.keepAlive();
-        }, 59000);
-      }
-    }, {
-      key: "openApp",
-      value: function openApp(appId) {
-        var _this33 = this;
-
-        return new Promise(function (resolve, reject) {
-          _this33.global.openDoc(appId).then(function (app) {
-            _this33.app = app;
-
-            if (_this33.options.views.global) {
-              _this33.executeActions('global').then(function () {
+            if (originalId) {
+              return _this31.openApp(originalId).then(function () {
                 resolve();
+              }, function (err) {
+                _this31.sessionOnNotification({
+                  err: err
+                });
               });
             } else {
               resolve();
             }
-          }, function (err) {
-            reject(err);
           });
+
+          if (_this31.options.keepAlive === true) {
+            _this31.keepAlive();
+          }
+        }, function (err) {
+          reject(err);
         });
-      }
-    }, {
-      key: "loadView",
-      value: function loadView(view, force) {
-        var _this34 = this;
-
-        if (typeof force === 'undefined') {
-          force = false;
-        }
-
-        if (this.paused === true && force === false) {
-          return;
-        }
-
-        if (view === '' || !this.options.views[view]) {
-          return;
-        }
-
-        if (this.activeViews.indexOf(view) === -1 && view !== 'global') {
-          this.activeViews.push(view);
-        }
-
-        if (this.options.views[view].controller && this.options.views[view].initialized !== true) {
-          this.options.views[view].controller.init(function () {
-            _this34.options.views[view].initialized = true;
-
-            if (_this34.options.views[view].prepped !== true) {
-              _this34.prep(view);
+        session.on('traffic:received', function (data) {
+          if (typeof data.suspend !== 'undefined') {
+            _this31.sessionSuspended();
+          }
+        });
+        session.on('notification:*', function (eventName, data) {
+          if (eventName === 'OnAuthenticationInformation') {
+            if (data.mustAuthenticate === true) {
+              if (_this31.options.enigmaConfig.authUrl) {
+                window.location = _this31.options.enigmaConfig.authUrl + window.location.search.replace('?', '%3F').replace('=', '%3D');
+              } else if (_this31.options.enigmaConfig.onMustAuthenticate) {
+                _this31.options.enigmaConfig.onMustAuthenticate();
+              } else if (data.loginUri) {
+                window.location = data.loginUri;
+              }
+            } else if (data.mustAuthenticate === false) {
+              _this31.user = {
+                userDirectory: data.userDirectory,
+                userId: data.userId
+              };
             }
+          } else {
+            _this31.sessionOnNotification(data, eventName);
+          }
+        });
+        session.on('suspended', _this31.sessionSuspended.bind(_this31));
+        session.on('resumed', _this31.sessionResumed.bind(_this31));
+        session.on('closed', _this31.sessionClosed.bind(_this31));
+      });
+    }
+  }, {
+    key: "closeApp",
+    value: function closeApp() {
+      this.session.close();
+      this.app = null;
 
-            _this34.executeActions(view).then(function () {
-              if ((_this34.globalObjectsLoaded === false || _this34.options.alwaysLoadGlobal === true) && view !== 'global') {
-                _this34.loadObjects('global', force);
+      for (var view in this.options.views) {
+        this.options.views[view].objects.forEach(function (o) {
+          delete o.objectId;
+          delete o.vis;
+          o.attached = false;
+        });
+        delete this.options.views[view];
+      }
+    }
+  }, {
+    key: "keepAlive",
+    value: function keepAlive() {
+      var _this32 = this;
 
-                _this34.globalObjectsLoaded = true;
-              }
+      this.global.engineVersion();
+      setTimeout(function () {
+        _this32.keepAlive();
+      }, 59000);
+    }
+  }, {
+    key: "openApp",
+    value: function openApp(appId) {
+      var _this33 = this;
 
-              _this34.loadObjects(view, force);
+      return new Promise(function (resolve, reject) {
+        _this33.global.openDoc(appId).then(function (app) {
+          _this33.app = app;
 
-              if (view === 'global') {
-                _this34.globalObjectsLoaded = true;
-              }
+          if (_this33.options.views.global) {
+            _this33.executeActions('global').then(function () {
+              resolve();
             });
-          });
-        } else {
-          if (this.options.views[view].prepped !== true) {
-            this.prep(view);
+          } else {
+            resolve();
+          }
+        }, function (err) {
+          reject(err);
+        });
+      });
+    }
+  }, {
+    key: "loadView",
+    value: function loadView(view, force) {
+      var _this34 = this;
+
+      if (typeof force === 'undefined') {
+        force = false;
+      }
+
+      if (this.paused === true && force === false) {
+        return;
+      }
+
+      if (view === '' || !this.options.views[view]) {
+        return;
+      }
+
+      if (this.activeViews.indexOf(view) === -1 && view !== 'global') {
+        this.activeViews.push(view);
+      }
+
+      if (this.options.views[view].controller && this.options.views[view].initialized !== true) {
+        this.options.views[view].controller.init(function () {
+          _this34.options.views[view].initialized = true;
+
+          if (_this34.options.views[view].prepped !== true) {
+            _this34.prep(view);
           }
 
-          console.log('Running Actions', view);
-          this.executeActions(view).then(function () {
-            console.log('Actions complete', view);
-
+          _this34.executeActions(view).then(function () {
             if ((_this34.globalObjectsLoaded === false || _this34.options.alwaysLoadGlobal === true) && view !== 'global') {
               _this34.loadObjects('global', force);
 
@@ -3189,33 +3162,46 @@ if (typeof WebsyDesigns !== 'undefined') {
               _this34.globalObjectsLoaded = true;
             }
           });
+        });
+      } else {
+        if (this.options.views[view].prepped !== true) {
+          this.prep(view);
         }
+
+        console.log('Running Actions', view);
+        this.executeActions(view).then(function () {
+          console.log('Actions complete', view);
+
+          if ((_this34.globalObjectsLoaded === false || _this34.options.alwaysLoadGlobal === true) && view !== 'global') {
+            _this34.loadObjects('global', force);
+
+            _this34.globalObjectsLoaded = true;
+          }
+
+          _this34.loadObjects(view, force);
+
+          if (view === 'global') {
+            _this34.globalObjectsLoaded = true;
+          }
+        });
       }
-    }, {
-      key: "executeAction",
-      value: function executeAction(index, actionList, callbackFn) {
-        var _this35 = this;
+    }
+  }, {
+    key: "executeAction",
+    value: function executeAction(index, actionList, callbackFn) {
+      var _this35 = this;
 
-        var item = actionList[index];
+      var item = actionList[index];
 
-        if (typeof item.params === 'undefined') {
-          item.params = [];
-        }
+      if (typeof item.params === 'undefined') {
+        item.params = [];
+      }
 
-        if (item.field) {
-          this.app.getField(item.field).then(function (field) {
-            field[item.method].apply(field, _toConsumableArray(item.params)).then(function () {
-              if (item.lock === true) {
-                field.lock().then(function () {
-                  index++;
-
-                  if (index === actionList.length) {
-                    callbackFn();
-                  } else {
-                    _this35.executeAction(index, actionList, callbackFn);
-                  }
-                });
-              } else {
+      if (item.field) {
+        this.app.getField(item.field).then(function (field) {
+          field[item.method].apply(field, _toConsumableArray(item.params)).then(function () {
+            if (item.lock === true) {
+              field.lock().then(function () {
                 index++;
 
                 if (index === actionList.length) {
@@ -3223,415 +3209,425 @@ if (typeof WebsyDesigns !== 'undefined') {
                 } else {
                   _this35.executeAction(index, actionList, callbackFn);
                 }
-              }
-            });
-          });
-        } else {
-          var _this$app;
-
-          (_this$app = this.app)[item.method].apply(_this$app, _toConsumableArray(item.params)).then(function () {
-            index++;
-
-            if (index === actionList.length) {
-              callbackFn();
+              });
             } else {
-              _this35.executeAction(index, actionList, callbackFn);
+              index++;
+
+              if (index === actionList.length) {
+                callbackFn();
+              } else {
+                _this35.executeAction(index, actionList, callbackFn);
+              }
             }
           });
-        }
-      }
-    }, {
-      key: "executeActions",
-      value: function executeActions(view) {
-        var _this36 = this;
+        });
+      } else {
+        var _this$app;
 
-        return new Promise(function (resolve, reject) {
-          if (!_this36.options.views[view] || !_this36.options.views[view].actions || _this36.options.views[view].actions.length === 0) {
-            resolve();
+        (_this$app = this.app)[item.method].apply(_this$app, _toConsumableArray(item.params)).then(function () {
+          index++;
+
+          if (index === actionList.length) {
+            callbackFn();
+          } else {
+            _this35.executeAction(index, actionList, callbackFn);
           }
-
-          _this36.executeAction(0, _this36.options.views[view].actions, resolve);
         });
       }
-    }, {
-      key: "loadObjects",
-      value: function loadObjects(view, force) {
-        var _this37 = this;
+    }
+  }, {
+    key: "executeActions",
+    value: function executeActions(view) {
+      var _this36 = this;
 
-        console.log('Loading objects', view);
-
-        if (typeof force === 'undefined') {
-          force = false;
+      return new Promise(function (resolve, reject) {
+        if (!_this36.options.views[view] || !_this36.options.views[view].actions || _this36.options.views[view].actions.length === 0) {
+          resolve();
         }
 
-        if (this.paused === true && force === false) {
-          return;
-        }
+        _this36.executeAction(0, _this36.options.views[view].actions, resolve);
+      });
+    }
+  }, {
+    key: "loadObjects",
+    value: function loadObjects(view, force) {
+      var _this37 = this;
 
-        var objList = this.options.views[view].objects;
+      console.log('Loading objects', view);
 
-        if (objList && objList.length > 0) {
-          var _loop3 = function _loop3(i) {
-            if (objList[i].objectId) {
-              objList[i].attached = true;
+      if (typeof force === 'undefined') {
+        force = false;
+      }
 
-              if (objList[i].vis && objList[i].vis.render) {
-                objList[i].vis.render();
-              } else if (objList[i].render) {
-                objList[i].render(objList[i], objList[i].model);
-              }
-            } else if (objList[i].definition) {
-              if (typeof objList[i].definition === 'string' && objList[i].definition.toLowerCase().indexOf('.json') !== -1) {
-                _this37.request('GET', objList[i].definition).then(function (def) {
-                  objList[i].definition = def;
+      if (this.paused === true && force === false) {
+        return;
+      }
 
-                  _this37.createObjectFromDefinition(objList[i]);
-                });
-              } else {
+      var objList = this.options.views[view].objects;
+
+      if (objList && objList.length > 0) {
+        var _loop3 = function _loop3(i) {
+          if (objList[i].objectId) {
+            objList[i].attached = true;
+
+            if (objList[i].vis && objList[i].vis.render) {
+              objList[i].vis.render();
+            } else if (objList[i].render) {
+              objList[i].render(objList[i], objList[i].model);
+            }
+          } else if (objList[i].definition) {
+            if (typeof objList[i].definition === 'string' && objList[i].definition.toLowerCase().indexOf('.json') !== -1) {
+              _this37.request('GET', objList[i].definition).then(function (def) {
+                objList[i].definition = def;
+
                 _this37.createObjectFromDefinition(objList[i]);
-              }
+              });
             } else {
               _this37.createObjectFromDefinition(objList[i]);
             }
-          };
-
-          for (var i = 0; i < objList.length; i++) {
-            _loop3(i);
+          } else {
+            _this37.createObjectFromDefinition(objList[i]);
           }
+        };
+
+        for (var i = 0; i < objList.length; i++) {
+          _loop3(i);
         }
       }
-    }, {
-      key: "closeObjects",
-      value: function closeObjects(view) {
-        this.closeView(view);
+    }
+  }, {
+    key: "closeObjects",
+    value: function closeObjects(view) {
+      this.closeView(view);
+    }
+  }, {
+    key: "closeView",
+    value: function closeView(view) {
+      if (view === '' || !this.options.views[view]) {
+        return;
       }
-    }, {
-      key: "closeView",
-      value: function closeView(view) {
-        if (view === '' || !this.options.views[view]) {
-          return;
-        }
 
-        var viewIsActive = this.activeViews.indexOf(view);
+      var viewIsActive = this.activeViews.indexOf(view);
 
-        if (viewIsActive !== -1) {
-          this.activeViews.splice(viewIsActive, 1);
-        }
+      if (viewIsActive !== -1) {
+        this.activeViews.splice(viewIsActive, 1);
+      }
 
-        var objList = this.options.views[view].objects;
+      var objList = this.options.views[view].objects;
 
-        if (objList && objList.length > 0) {
-          for (var i = 0; i < objList.length; i++) {
-            if (objList[i].vis) {
-              objList[i].attached = false;
+      if (objList && objList.length > 0) {
+        for (var i = 0; i < objList.length; i++) {
+          if (objList[i].vis) {
+            objList[i].attached = false;
 
-              if (objList[i].vis.close) {
-                objList[i].vis.close();
-              }
-            } else if (objList[i].objectId) {
-              if (objList[i].close) {
-                objList[i].close();
-              }
-
-              this.destroyObjectFromId(objList[i]);
+            if (objList[i].vis.close) {
+              objList[i].vis.close();
             }
+          } else if (objList[i].objectId) {
+            if (objList[i].close) {
+              objList[i].close();
+            }
+
+            this.destroyObjectFromId(objList[i]);
           }
         }
       }
-    }, {
-      key: "handleEvent",
-      value: function handleEvent(event) {
-        if (event.target.classList.contains('websy-vis-help-listener')) {
-          var elementId = event.target.attributes['data-element'];
+    }
+  }, {
+    key: "handleEvent",
+    value: function handleEvent(event) {
+      if (event.target.classList.contains('websy-vis-help-listener')) {
+        var elementId = event.target.attributes['data-element'];
 
-          if (elementId.value) {
-            this.toggleHelp("".concat(elementId.value, "_help"));
-          }
+        if (elementId.value) {
+          this.toggleHelp("".concat(elementId.value, "_help"));
         }
       }
-    }, {
-      key: "createObjectFromDefinition",
-      value: function createObjectFromDefinition(objectConfig) {
-        var _this38 = this;
+    }
+  }, {
+    key: "createObjectFromDefinition",
+    value: function createObjectFromDefinition(objectConfig) {
+      var _this38 = this;
 
-        if (objectConfig.retries) {
-          objectConfig.retries = 0;
+      if (objectConfig.retries) {
+        objectConfig.retries = 0;
+      }
+
+      if (objectConfig.definition && this.app) {
+        console.log('Creating object', objectConfig.definition.qInfo);
+        var method = 'createSessionObject';
+        var params = objectConfig.definition;
+
+        if (objectConfig.definition.qField) {
+          method = 'getField';
+          params = objectConfig.definition.qField;
         }
 
-        if (objectConfig.definition && this.app) {
-          console.log('Creating object', objectConfig.definition.qInfo);
-          var method = 'createSessionObject';
-          var params = objectConfig.definition;
-
-          if (objectConfig.definition.qField) {
-            method = 'getField';
-            params = objectConfig.definition.qField;
-          }
-
-          this.app[method](params).then(function (model) {
-            objectConfig.objectId = model.id;
-            objectConfig.attached = true;
-
-            if (_this38.supportedChartTypes.indexOf(objectConfig.definition.qInfo.qType) !== -1) {
-              var options = _extends({}, objectConfig.options, {
-                model: model,
-                def: objectConfig.definition,
-                app: _this38.app
-              });
-
-              objectConfig.vis = new _this38.chartLibrary[objectConfig.definition.qInfo.qType]("".concat(objectConfig.elementId, "_vis"), options);
-              model.on('changed', function () {
-                if (objectConfig.attached === true && _this38.paused === false) {
-                  objectConfig.vis.render();
-                }
-              });
-            } else if (objectConfig.render && typeof objectConfig.render === 'function') {
-              objectConfig.vis = {};
-              objectConfig.attached = true;
-              objectConfig.model = model;
-              objectConfig.render(objectConfig, model);
-              model.on('changed', function () {
-                if (objectConfig.attached === true && _this38.paused === false) {
-                  objectConfig.render(objectConfig, model);
-                }
-              });
-            }
-          }, function (err) {
-            console.log('Error creating object', err);
-
-            if (objectConfig.retries < _this38.options.retryCount) {
-              console.log('retrying');
-              objectConfig.retries++;
-
-              _this38.createObjectFromDefinition(objectConfig);
-            } else {
-              console.log('Max retries reached.');
-            }
-          });
-        } else if (objectConfig.type) {
-          objectConfig.objectId = objectConfig.elementId;
+        this.app[method](params).then(function (model) {
+          objectConfig.objectId = model.id;
           objectConfig.attached = true;
-          objectConfig.vis = new this.chartLibrary[objectConfig.type]("".concat(objectConfig.elementId, "_vis"), objectConfig.options || {});
-        }
-      }
-    }, {
-      key: "destroyObjectFromId",
-      value: function destroyObjectFromId(objectConfig) {
-        var hostEl = document.getElementById("".concat(objectConfig.elementId, "_vis"));
 
-        if (hostEl) {
-          hostEl.innerHTML = '';
-        }
+          if (_this38.supportedChartTypes.indexOf(objectConfig.definition.qInfo.qType) !== -1) {
+            var options = _extends({}, objectConfig.options, {
+              model: model,
+              def: objectConfig.definition,
+              app: _this38.app
+            });
 
-        this.app.destroySessionObject(objectConfig.objectId);
-      }
-    }, {
-      key: "detachObject",
-      value: function detachObject(objectConfig) {
-        objectConfig.attached = false;
-      }
-    }, {
-      key: "normalizeId",
-      value: function normalizeId(id) {
-        return id.replace(/\s:\\\//, '-');
-      }
-    }, {
-      key: "sessionOnNotification",
-      value: function sessionOnNotification(data, eventName) {
-        if (this.options.sessionOnNotification) {
-          this.options.sessionOnNotification(data, eventName);
-        }
-      }
-    }, {
-      key: "sessionOnTraffic",
-      value: function sessionOnTraffic(event) {
-        if (this.options.sessionOnTraffic) {
-          this.options.sessionOnTraffic(event);
-        }
-      }
-    }, {
-      key: "sessionResumed",
-      value: function sessionResumed(event) {
-        if (this.options.sessionResumed) {
-          this.options.sessionResumed(event);
-        }
-      }
-    }, {
-      key: "sessionSuspended",
-      value: function sessionSuspended(event) {
-        if (this.options.sessionSuspended) {
-          this.options.sessionSuspended(event);
-        }
-      }
-    }, {
-      key: "sessionClosed",
-      value: function sessionClosed(event) {
-        if (this.options.sessionClosed) {
-          this.options.sessionClosed(event);
-        }
-      }
-    }, {
-      key: "showHelp",
-      value: function showHelp(elementId) {
-        var el = document.getElementById(elementId);
-
-        if (el) {
-          el.classList.add('active');
-        }
-      }
-    }, {
-      key: "hideHelp",
-      value: function hideHelp(elementId) {
-        var el = document.getElementById(elementId);
-
-        if (el) {
-          el.classList.remove('active');
-        }
-      }
-    }, {
-      key: "toggleHelp",
-      value: function toggleHelp(elementId) {
-        var el = document.getElementById(elementId);
-
-        if (el) {
-          el.classList.toggle('active');
-        }
-      }
-    }, {
-      key: "onError",
-      value: function onError(err) {
-        console.log(err);
-      }
-    }, {
-      key: "onClose",
-      value: function onClose(msg) {}
-    }, {
-      key: "resize",
-      value: function resize() {
-        for (var i = 0; i < this.activeViews.length; i++) {
-          this.resizeObjects(this.activeViews[i]);
-        }
-      }
-    }, {
-      key: "resizeObjects",
-      value: function resizeObjects(view) {
-        if (view === '') {
-          return;
-        }
-
-        var objList = this.options.views[view].objects;
-
-        if (objList && objList.length > 0) {
-          for (var i = 0; i < objList.length; i++) {
-            if (objList[i].objectId) {
-              if (objList[i].vis && objList[i].vis.resize) {
-                objList[i].vis.resize();
-              } else if (objList[i].resize) {
-                objList[i].resize();
+            objectConfig.vis = new _this38.chartLibrary[objectConfig.definition.qInfo.qType]("".concat(objectConfig.elementId, "_vis"), options);
+            model.on('changed', function () {
+              if (objectConfig.attached === true && _this38.paused === false) {
+                objectConfig.vis.render();
               }
+            });
+          } else if (objectConfig.render && typeof objectConfig.render === 'function') {
+            objectConfig.vis = {};
+            objectConfig.attached = true;
+            objectConfig.model = model;
+            objectConfig.render(objectConfig, model);
+            model.on('changed', function () {
+              if (objectConfig.attached === true && _this38.paused === false) {
+                objectConfig.render(objectConfig, model);
+              }
+            });
+          }
+        }, function (err) {
+          console.log('Error creating object', err);
+
+          if (objectConfig.retries < _this38.options.retryCount) {
+            console.log('retrying');
+            objectConfig.retries++;
+
+            _this38.createObjectFromDefinition(objectConfig);
+          } else {
+            console.log('Max retries reached.');
+          }
+        });
+      } else if (objectConfig.type) {
+        objectConfig.objectId = objectConfig.elementId;
+        objectConfig.attached = true;
+        objectConfig.vis = new this.chartLibrary[objectConfig.type]("".concat(objectConfig.elementId, "_vis"), objectConfig.options || {});
+      }
+    }
+  }, {
+    key: "destroyObjectFromId",
+    value: function destroyObjectFromId(objectConfig) {
+      var hostEl = document.getElementById("".concat(objectConfig.elementId, "_vis"));
+
+      if (hostEl) {
+        hostEl.innerHTML = '';
+      }
+
+      this.app.destroySessionObject(objectConfig.objectId);
+    }
+  }, {
+    key: "detachObject",
+    value: function detachObject(objectConfig) {
+      objectConfig.attached = false;
+    }
+  }, {
+    key: "normalizeId",
+    value: function normalizeId(id) {
+      return id.replace(/\s:\\\//, '-');
+    }
+  }, {
+    key: "sessionOnNotification",
+    value: function sessionOnNotification(data, eventName) {
+      if (this.options.sessionOnNotification) {
+        this.options.sessionOnNotification(data, eventName);
+      }
+    }
+  }, {
+    key: "sessionOnTraffic",
+    value: function sessionOnTraffic(event) {
+      if (this.options.sessionOnTraffic) {
+        this.options.sessionOnTraffic(event);
+      }
+    }
+  }, {
+    key: "sessionResumed",
+    value: function sessionResumed(event) {
+      if (this.options.sessionResumed) {
+        this.options.sessionResumed(event);
+      }
+    }
+  }, {
+    key: "sessionSuspended",
+    value: function sessionSuspended(event) {
+      if (this.options.sessionSuspended) {
+        this.options.sessionSuspended(event);
+      }
+    }
+  }, {
+    key: "sessionClosed",
+    value: function sessionClosed(event) {
+      if (this.options.sessionClosed) {
+        this.options.sessionClosed(event);
+      }
+    }
+  }, {
+    key: "showHelp",
+    value: function showHelp(elementId) {
+      var el = document.getElementById(elementId);
+
+      if (el) {
+        el.classList.add('active');
+      }
+    }
+  }, {
+    key: "hideHelp",
+    value: function hideHelp(elementId) {
+      var el = document.getElementById(elementId);
+
+      if (el) {
+        el.classList.remove('active');
+      }
+    }
+  }, {
+    key: "toggleHelp",
+    value: function toggleHelp(elementId) {
+      var el = document.getElementById(elementId);
+
+      if (el) {
+        el.classList.toggle('active');
+      }
+    }
+  }, {
+    key: "onError",
+    value: function onError(err) {
+      console.log(err);
+    }
+  }, {
+    key: "onClose",
+    value: function onClose(msg) {}
+  }, {
+    key: "resize",
+    value: function resize() {
+      for (var i = 0; i < this.activeViews.length; i++) {
+        this.resizeObjects(this.activeViews[i]);
+      }
+    }
+  }, {
+    key: "resizeObjects",
+    value: function resizeObjects(view) {
+      if (view === '') {
+        return;
+      }
+
+      var objList = this.options.views[view].objects;
+
+      if (objList && objList.length > 0) {
+        for (var i = 0; i < objList.length; i++) {
+          if (objList[i].objectId) {
+            if (objList[i].vis && objList[i].vis.resize) {
+              objList[i].vis.resize();
+            } else if (objList[i].resize) {
+              objList[i].resize();
             }
           }
         }
       }
-    }, {
-      key: "registerVisualisation",
-      value: function registerVisualisation(name, classDef) {
-        if (name.indexOf(/\s/) !== -1) {
-          console.log('Failed to register Chart Extension. Chart name must not contain spaces.');
-          return;
-        }
-
-        if (this.supportedChartTypes.indexOf(name) !== -1) {
-          console.log('Failed to register Chart Extension. Chart name already exists.');
-          return;
-        }
-
-        this.supportedChartTypes.push(name);
-        this.chartLibrary[name] = classDef;
+    }
+  }, {
+    key: "registerVisualisation",
+    value: function registerVisualisation(name, classDef) {
+      if (name.indexOf(/\s/) !== -1) {
+        console.log('Failed to register Chart Extension. Chart name must not contain spaces.');
+        return;
       }
-    }, {
-      key: "select",
-      value: function select(index, selections, callbackFn) {
-        var _this39 = this;
 
-        if (index === selections.length) {
-          callbackFn();
-          return;
-        }
+      if (this.supportedChartTypes.indexOf(name) !== -1) {
+        console.log('Failed to register Chart Extension. Chart name already exists.');
+        return;
+      }
 
-        if (selections[index].param === 'select') {
-          this.app.getField(selections[index].field, selections[index].state).then(function (f) {
-            var values = selections[index].values.map(function (v) {
-              var numRep = +v;
+      this.supportedChartTypes.push(name);
+      this.chartLibrary[name] = classDef;
+    }
+  }, {
+    key: "select",
+    value: function select(index, selections, callbackFn) {
+      var _this39 = this;
 
-              if (!isNaN(numRep)) {
+      if (index === selections.length) {
+        callbackFn();
+        return;
+      }
+
+      if (selections[index].param === 'select') {
+        this.app.getField(selections[index].field, selections[index].state).then(function (f) {
+          var values = selections[index].values.map(function (v) {
+            var numRep = +v;
+
+            if (!isNaN(numRep)) {
+              return {
+                qNumber: numRep,
+                qIsNumeric: true
+              };
+            } else {
+              var dateRep = new Date(v);
+
+              if (!isNaN(dateRep.getDate())) {
                 return {
-                  qNumber: numRep,
+                  qNumber: _websyDesignsEs["default"].Utils.toQlikDate(dateRep),
                   qIsNumeric: true
                 };
               } else {
-                var dateRep = new Date(v);
-
-                if (!isNaN(dateRep.getDate())) {
-                  return {
-                    qNumber: WebsyDesigns.Utils.toQlikDate(dateRep),
-                    qIsNumeric: true
-                  };
-                } else {
-                  return {
-                    qText: decodeURI(v)
-                  };
-                }
+                return {
+                  qText: decodeURI(v)
+                };
               }
-            });
-            f.selectValues(values).then(function () {
-              index++;
-
-              _this39.select(index, selections, callbackFn);
-            });
-          }, function (err) {
-            console.log('field for selection not found', err);
+            }
+          });
+          f.selectValues(values).then(function () {
             index++;
 
             _this39.select(index, selections, callbackFn);
           });
-        }
+        }, function (err) {
+          console.log('field for selection not found', err);
+          index++;
+
+          _this39.select(index, selections, callbackFn);
+        });
       }
-    }, {
-      key: "selectFromUrl",
-      value: function selectFromUrl(callbackFn) {
-        if (this.options.applySelections === true && location.search !== '') {
-          var selections = location.search.replace('?', '').split('&');
-          selections = selections.map(function (s) {
-            var parts = s.split('=');
-            var parts2 = parts[1].split(',');
-            var field = parts2.shift().replace(/%20/g, ' ');
-            var state = '$';
+    }
+  }, {
+    key: "selectFromUrl",
+    value: function selectFromUrl(callbackFn) {
+      if (this.options.applySelections === true && location.search !== '') {
+        var selections = location.search.replace('?', '').split('&');
+        selections = selections.map(function (s) {
+          var parts = s.split('=');
+          var parts2 = parts[1].split(',');
+          var field = parts2.shift().replace(/%20/g, ' ');
+          var state = '$';
 
-            if (field.indexOf('::') !== -1) {
-              // selection has a defined state
-              state = field.split('::')[0];
-              field = field.split('::')[1];
-            }
+          if (field.indexOf('::') !== -1) {
+            // selection has a defined state
+            state = field.split('::')[0];
+            field = field.split('::')[1];
+          }
 
-            return {
-              param: parts[0],
-              field: field,
-              state: state,
-              values: parts2
-            };
-          }).filter(function (s) {
-            return s.param === 'select' || s.param === 'setvariable';
-          });
-          this.select(0, selections, callbackFn);
-        } else {
-          callbackFn();
-        }
+          return {
+            param: parts[0],
+            field: field,
+            state: state,
+            values: parts2
+          };
+        }).filter(function (s) {
+          return s.param === 'select' || s.param === 'setvariable';
+        });
+        this.select(0, selections, callbackFn);
+      } else {
+        callbackFn();
       }
-    }]);
+    }
+  }]);
 
-    return ObjectManager;
-  }();
+  return ObjectManager;
+}();
 
-  WebsyDesigns.QlikObjectManager = ObjectManager;
-}
+WebsyDesignsQlikPlugins.QlikObjectManager = ObjectManager;
+var _default = WebsyDesignsQlikPlugins;
+exports["default"] = _default;

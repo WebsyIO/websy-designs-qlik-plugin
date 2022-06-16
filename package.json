@@ -40,5 +40,8 @@
     "grunt-minify-html": "^3.0.0",
     "grunt-stylelint": "^0.10.0",
     "stylelint": "^9.4.0"
+  },
+  "dependencies": {
+    "@websy/websy-designs": "^1.0.4"
   }
 }

@@ -11,6 +11,8 @@
   ObjectManager
 */ 
 
+import WebsyDesigns from '@websy/websy-designs/dist/websy-designs-es6'
+
 /* global WebsyDesigns createIdentity d3 */ 
 class Chart {
   constructor (elementId, options) {
@@ -2105,17 +2107,16 @@ class Table2 {
 }
 
 
-if (typeof WebsyDesigns !== 'undefined') {
-  WebsyDesigns.QlikPlugins = {
-    Chart,
-    Table,
-    Table2,
-    GeoMap,
-    Dropdown,
-    DatePicker,
-    KPI
-  }
-  /* 
+const WebsyDesignsQlikPlugins = {
+  Chart,
+  Table,
+  Table2,
+  GeoMap,
+  Dropdown,
+  DatePicker,
+  KPI
+}
+/* 
   global
   include
   enigma
@@ -2887,5 +2888,6 @@ class ObjectManager {
   }
 }
 
-  WebsyDesigns.QlikObjectManager = ObjectManager
-}
+WebsyDesignsQlikPlugins.QlikObjectManager = ObjectManager
+
+export default WebsyDesignsQlikPlugins

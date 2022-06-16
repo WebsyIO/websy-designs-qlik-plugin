@@ -35,6 +35,24 @@ class Chart {
       input[key] = options[key]
     }
   }
+  checkForData () {
+    return new Promise((resolve, reject) => {
+      if (this.layout.qHyperCube.qDataPages[0] && this.layout.qHyperCube.qDataPages[0].qMatrix) {
+        resolve()
+      }
+      else {
+        this.options.model.getHyperCubeData('/qHyperCubeDef', [{
+          qTop: 0,
+          qLeft: 0,
+          qWidth: this.layout.qHyperCube.qSize.qcx,
+          qHeight: Math.floor(10000 / this.layout.qHyperCube.qSize.qcx)
+        }]).then(pages => {
+          this.layout.qHyperCube.qDataPages = pages
+          resolve()
+        })
+      }
+    })
+  }
   close () {
     this.chart.close()
   }
@@ -73,22 +91,22 @@ class Chart {
   render () {
     this.options.model.getLayout().then(layout => {
       this.layout = layout
-      console.log(this.layout)
-      let options = {}
-      if (layout.qHyperCube.qDimensionInfo.length === 1 && layout.qHyperCube.qMeasureInfo.length === 1) {
-        // options = this.transformBasic()
-        options = this.transformMultiMeasure()
-      }
-      else if (layout.qHyperCube.qDimensionInfo.length === 1 && layout.qHyperCube.qMeasureInfo.length > 1) {
-        options = this.transformMultiMeasure()
-      }
-      else if (layout.qHyperCube.qDimensionInfo.length > 1) {
-        options = this.transformMultiDimensions()
-      }
-      else if (layout.qHyperCube.qDimensionInfo.length === 0 && layout.qHyperCube.qMeasureInfo.length > 0) {
-        options = this.transformNoDimensions()
-      }
-      this.chart.render(options)
+      this.checkForData().then(() => {
+        let options = {}
+        if (layout.qHyperCube.qDimensionInfo.length === 1 && layout.qHyperCube.qMeasureInfo.length === 1) {        
+          options = this.transformMultiMeasure()
+        }
+        else if (layout.qHyperCube.qDimensionInfo.length === 1 && layout.qHyperCube.qMeasureInfo.length > 1) {
+          options = this.transformMultiMeasure()
+        }
+        else if (layout.qHyperCube.qDimensionInfo.length > 1) {
+          options = this.transformMultiDimensions()
+        }
+        else if (layout.qHyperCube.qDimensionInfo.length === 0 && layout.qHyperCube.qMeasureInfo.length > 0) {
+          options = this.transformNoDimensions()
+        }
+        this.chart.render(options)
+      })      
     })
   }
   resize () {

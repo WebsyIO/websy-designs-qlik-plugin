@@ -77,6 +77,9 @@ module.exports = function (grunt) {
         files: [
           {
             'dist/websy-designs-qlik-plugin.js': 'temp/main.js'
+          },
+          {
+            'dist/websy-designs-qlik-plugin-es6.js': 'temp/main-es6.js'
           }
         ]
       }
@@ -91,6 +94,9 @@ module.exports = function (grunt) {
         files: [
           {
             'dist/websy-designs-qlik-plugin.min.js': ['dist/websy-designs-qlik-plugin.js']
+          },
+          {
+            'dist/websy-designs-qlik-plugin-es6.min.js': ['dist/websy-designs-qlik-plugin-es6.js']
           }
         ]
       }
@@ -101,6 +107,10 @@ module.exports = function (grunt) {
           {
             src: ['temp/main.js'],
             dest: 'dist/websy-designs-qlik-plugin.debug.js'
+          },
+          {
+            src: ['temp/main-es6.js'],
+            dest: 'dist/websy-designs-qlik-plugin-es6.debug.js'
           }     
         ]
       }

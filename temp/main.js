@@ -3,6 +3,7 @@
   WebsyDesigns
   Chart
   Table
+  Table2
   GeoMap
   Dropdown
   DatePicker
@@ -47,6 +48,24 @@ class Chart {
       input[key] = options[key]
     }
   }
+  checkForData () {
+    return new Promise((resolve, reject) => {
+      if (this.layout.qHyperCube.qDataPages[0] && this.layout.qHyperCube.qDataPages[0].qMatrix) {
+        resolve()
+      }
+      else {
+        this.options.model.getHyperCubeData('/qHyperCubeDef', [{
+          qTop: 0,
+          qLeft: 0,
+          qWidth: this.layout.qHyperCube.qSize.qcx,
+          qHeight: Math.floor(10000 / this.layout.qHyperCube.qSize.qcx)
+        }]).then(pages => {
+          this.layout.qHyperCube.qDataPages = pages
+          resolve()
+        })
+      }
+    })
+  }
   close () {
     this.chart.close()
   }
@@ -85,22 +104,22 @@ class Chart {
   render () {
     this.options.model.getLayout().then(layout => {
       this.layout = layout
-      console.log(this.layout)
-      let options = {}
-      if (layout.qHyperCube.qDimensionInfo.length === 1 && layout.qHyperCube.qMeasureInfo.length === 1) {
-        // options = this.transformBasic()
-        options = this.transformMultiMeasure()
-      }
-      else if (layout.qHyperCube.qDimensionInfo.length === 1 && layout.qHyperCube.qMeasureInfo.length > 1) {
-        options = this.transformMultiMeasure()
-      }
-      else if (layout.qHyperCube.qDimensionInfo.length > 1) {
-        options = this.transformMultiDimensions()
-      }
-      else if (layout.qHyperCube.qDimensionInfo.length === 0 && layout.qHyperCube.qMeasureInfo.length > 0) {
-        options = this.transformNoDimensions()
-      }
-      this.chart.render(options)
+      this.checkForData().then(() => {
+        let options = {}
+        if (layout.qHyperCube.qDimensionInfo.length === 1 && layout.qHyperCube.qMeasureInfo.length === 1) {        
+          options = this.transformMultiMeasure()
+        }
+        else if (layout.qHyperCube.qDimensionInfo.length === 1 && layout.qHyperCube.qMeasureInfo.length > 1) {
+          options = this.transformMultiMeasure()
+        }
+        else if (layout.qHyperCube.qDimensionInfo.length > 1) {
+          options = this.transformMultiDimensions()
+        }
+        else if (layout.qHyperCube.qDimensionInfo.length === 0 && layout.qHyperCube.qMeasureInfo.length > 0) {
+          options = this.transformNoDimensions()
+        }
+        this.chart.render(options)
+      })      
     })
   }
   resize () {
@@ -378,17 +397,40 @@ class Chart {
 /*
   global
   WebsyDesigns
-  objectManager
 */
 class DatePicker {
   constructor (elementId, options) {
-    this.elementId = elementId
-    this.options = Object.assign({}, options)
-    this.picker = new WebsyDesigns.WebsyDatePicker(elementId, {
+    const DEFAULTS = {
+      mode: 'date',
+      pageSize: 1000
+    }
+    this.elementId = elementId    
+    this.options = Object.assign({}, DEFAULTS, options)
+    this.picker = new WebsyDesigns.WebsyDatePicker(elementId, Object.assign({}, options, {
       onChange: this.onChange.bind(this)
-    })
+    }))
     this.listening = true
     this.render()
+  }
+  checkForData () {
+    return new Promise((resolve, reject) => {
+      if (this.listening === true) {
+        this.listening = false
+        this.options.model.getListObjectData('/qListObjectDef', [{
+          qTop: 0,
+          qLeft: 0,
+          qWidth: 1,
+          qHeight: this.options.pageSize
+        }]).then(pages => {          
+          this.layout.qListObject.qDataPages = [pages[0]]
+          this.listening = true
+          resolve()
+        }, err => {
+          this.listening = true
+          reject(err)
+        })
+      }
+    })    
   }
   floorDate (d) {
     if (typeof d === 'number') {
@@ -407,7 +449,7 @@ class DatePicker {
         resolve(this.field)
       }
       else {
-        objectManager.app.getField(f).then(field => {
+        this.options.app.getField(f).then(field => {
           if (field) {
             this.field = field
             resolve(this.field)
@@ -432,73 +474,137 @@ class DatePicker {
   toQlikDateNum (d) {
     return Math.floor((d.getTime() / 86400000 + 25569))
   }
-  onChange (data) {
-    let start = this.toQlikDate(data[0])
-    let end
-    if (data[1] && (data[0].getTime() !== data[1].getTime())) {
-      end = this.toQlikDate(data[1])
+  onChange (data, isRange) {
+    console.log(data)
+    let start    
+    let end    
+    let valueList = data.map(d => {
+      if (this.options.mode === 'date') {
+        return this.toQlikDate(d)
+      }
+      else {
+        return d
+      }  
+    })
+    let query = ''      
+    if (isRange) {
+      query = `${valueList[0]}`
+      if (valueList.length > 1) {
+        query = `>=${valueList[0]}<=${valueList[valueList.length - 1]}`  
+      }
+    }    
+    else {
+      query = valueList.join(' ')
     }
-    let query = `${start}`
-    if (end) {
-      query = `>=${start}<=${end}`
-    }
-    this.getField('Date').then(field => {
-      // set listening to false to stop Qlik from updating the state of the datepicker
-      this.listening = false
-      field.select(query)
-    })    
+    // this.getField(this.options.selectField).then(field => {
+    // set listening to false to stop Qlik from updating the state of the datepicker
+    // this.listening = false
+    // this.options.model.beginSelections('/qListObjectDef').then(() => {
+    this.options.model.searchListObjectFor('/qListObjectDef', query).then(() => {
+      this.options.model.acceptListObjectSearch('/qListObjectDef', false).then()
+    })
+    // })    
+    // })    
   }
   render () {
     this.options.model.getLayout().then(layout => {
-      let disabledDates = []
-      let min
-      let max
-      let selectedMin
-      let selectedMax
-      let selectedRange = []
-      if (layout.qListObject.qDataPages[0] && this.listening === true) {
-        // ensure we have a complete calendar
-        const completeDateList = {}
-        let oneDay = (1000 * 60 * 60 * 24)
-        let start = this.fromQlikDate(layout.qListObject.qDataPages[0].qMatrix[0][0].qNum).getTime()
-        let end = this.fromQlikDate(layout.qListObject.qDataPages[0].qMatrix[layout.qListObject.qDataPages[0].qMatrix.length - 1][0].qNum).getTime()
-        let diff = (end - start) / oneDay        
-        for (let i = 0; i < diff + 1; i++) {
-          let temp = new Date(start + (i * oneDay))
-          temp.setHours(0, 0, 0)      
-          completeDateList[temp.getTime()] = {
-            qNum: this.toQlikDateNum(temp),
-            qState: 'Z'
+      this.layout = layout
+      this.checkForData().then(() => {
+        let disabledDates = []
+        let min
+        let max
+        let selectedMin
+        let selectedMax
+        let selectedRange = []
+        if (layout.qListObject.qDataPages[0] && this.listening === true) {
+          // ensure we have a complete calendar
+          const completeDateList = {}
+          let oneDay = (1000 * 60 * 60 * 24)
+          let start
+          let end
+          if (this.options.mode === 'date') {
+            start = this.fromQlikDate(layout.qListObject.qDataPages[0].qMatrix[0][0].qNum).getTime()
+            end = this.fromQlikDate(layout.qListObject.qDataPages[0].qMatrix[layout.qListObject.qDataPages[0].qMatrix.length - 1][0].qNum).getTime()
           }
+          else if (this.options.mode === 'year') {
+            start = layout.qListObject.qDataPages[0].qMatrix[0][0].qNum
+            end = layout.qListObject.qDataPages[0].qMatrix[layout.qListObject.qDataPages[0].qMatrix.length - 1][0].qNum
+            if (start > end) {
+              end = layout.qListObject.qDataPages[0].qMatrix[0][0].qNum
+              start = layout.qListObject.qDataPages[0].qMatrix[layout.qListObject.qDataPages[0].qMatrix.length - 1][0].qNum
+              this.options.sortDirection = 'desc'
+              this.picker.options.sortDirection = 'desc'
+            }
+            min = start
+            max = end
+            this.picker.options.minAllowedYear = start
+            this.picker.options.maxAllowedYear = end
+          }
+          let diff = (end - start)
+          if (this.options.mode === 'date') {
+            diff = diff / oneDay
+          }        
+          for (let i = 0; i < diff + 1; i++) {
+            if (this.options.mode === 'date') {
+              let temp = new Date(start + (i * oneDay))
+              temp.setHours(0, 0, 0)      
+              completeDateList[temp.getTime()] = {
+                qNum: this.toQlikDateNum(temp),
+                qState: 'Z'
+              } 
+            }
+            else if (this.options.mode === 'year') {
+              completeDateList[start + i] = {
+                qNum: start + i,
+                qState: 'Z'
+              }
+            }        
+          }
+          layout.qListObject.qDataPages[0].qMatrix.forEach((r, i, arr) => {
+            if (this.options.mode === 'date') {
+              if (completeDateList[this.fromQlikDate(r[0].qNum).getTime()]) {
+                completeDateList[this.fromQlikDate(r[0].qNum).getTime()] = r[0]
+              }
+              if (i === 0) {
+                min = this.fromQlikDate(r[0].qNum)
+              }
+              else if (i === arr.length - 1) {
+                max = this.fromQlikDate(r[0].qNum)
+              }   
+            }    
+            else if (this.options.mode === 'year') {
+              if (completeDateList[r[0].qNum]) {
+                completeDateList[r[0].qNum] = r[0]
+              }
+              // if (i === 0) {
+              //   min = r[0].qNum
+              // }
+              // if (i === arr.length - 1) {
+              //   max = r[0].qNum
+              // } 
+            }              
+          })
+          const completeDateListArr = Object.values(completeDateList)
+          completeDateListArr.forEach(d => {
+            if (d.qState === 'S') {            
+              selectedRange.push(this.options.mode === 'date' ? this.fromQlikDate(d.qNum) : d.qNum)
+            }
+            // if (['X', 'XS', 'XL'].indexOf(d.qState) !== -1) {
+            if (['Z'].indexOf(d.qState) !== -1) {
+              disabledDates.push(this.options.mode === 'date' ? this.fromQlikDate(d.qNum) : d.qNum)
+            }
+          })
+          this.picker.setDateBounds([min, max])
+          if (selectedRange.length !== layout.qListObject.qDataPages[0].qMatrix.length) {
+            // do nothing because all values are selected
+          }
+          else if (selectedRange.length > 0) {
+            this.picker.selectCustomRange([selectedRange[0], selectedRange[selectedRange.length - 1] || selectedRange[0]])
+          }
+          this.picker.render(disabledDates)
+          this.listening = true
         }
-        layout.qListObject.qDataPages[0].qMatrix.forEach((r, i, arr) => {
-          if (completeDateList[this.fromQlikDate(r[0].qNum).getTime()]) {
-            completeDateList[this.fromQlikDate(r[0].qNum).getTime()] = r[0]
-          }
-          if (i === 0) {
-            min = this.fromQlikDate(r[0].qNum)
-          }
-          else if (i === arr.length - 1) {
-            max = this.fromQlikDate(r[0].qNum)
-          }          
-        })
-        const completeDateListArr = Object.values(completeDateList)
-        completeDateListArr.forEach(d => {
-          if (d.qState === 'S') {
-            selectedRange.push(this.fromQlikDate(d.qNum))
-          }
-          // if (['X', 'XS', 'XL'].indexOf(d.qState) !== -1) {
-          if (['Z'].indexOf(d.qState) !== -1) {
-            disabledDates.push(this.fromQlikDate(d.qNum))
-          }
-        })
-        this.picker.setDateBounds([min, max])
-        if (selectedRange.length > 0) {
-          this.picker.selectCustomRange([selectedRange[0], selectedRange[selectedRange.length - 1] || selectedRange[0]])
-        }
-        this.picker.render(disabledDates)
-        this.listening = true
-      }
+      })       
     })
   }
 }
@@ -511,72 +617,155 @@ class Dropdown {
   constructor (elementId, options) {
     this.elementId = elementId
     const DEFAULTS = {
-      pageSize: 100
+      pageSize: 100,
+      path: '',
+      useVariable: false
     }
     this.options = Object.assign({}, DEFAULTS, options)
-    this.dropdownOptions = Object.assign({}, options.def.options, {
+    if (!options.def) {
+      options.def = { options: {} }
+    }
+    this.busy = false
+    this.dropdownOptions = Object.assign({}, options.def.options || {}, {
       onItemSelected: this.itemSelected.bind(this),
       onClearSelected: this.clearSelected.bind(this),
       onSearch: this.search.bind(this),      
-      onCancelSearch: this.cancelSearch.bind(this)
+      onCancelSearch: this.cancelSearch.bind(this),
+      onScroll: this.handleScroll.bind(this)
     })
     this.dropdown = new WebsyDesigns.WebsyDropdown(elementId, this.dropdownOptions)
     this.render()
   }
   cancelSearch (value) {
-    this.options.model.abortListObjectSearch('/qListObjectDef')
+    this.options.model.abortListObjectSearch(`/${this.options.path}/qListObjectDef`.replace(/\/\//g, '/'))
   }  
-  checkForData (layout) {
+  checkForData () {
     return new Promise((resolve, reject) => {
-      this.options.model.getListObjectData('/qListObjectDef', [{
-        qTop: 0,
-        qLeft: 0,
-        qWidth: 1,
-        qHeight: this.options.pageSize
-      }]).then(pages => {
-        layout.qListObject.qDataPages = pages
-        resolve(layout)
-      }, reject)
+      if (this.busy === false) {
+        this.busy = true
+        this.options.model.getListObjectData(`/${this.options.path}/qListObjectDef`.replace(/\/\//g, '/'), [{
+          qTop: this.rowsLoaded,
+          qLeft: 0,
+          qWidth: 1,
+          qHeight: this.options.pageSize
+        }]).then(pages => {
+          if (this.options.path !== '') {
+            this.layout[this.options.path].qListObject.qDataPages[0].qMatrix = this.layout[this.options.path].qListObject.qDataPages[0].qMatrix.concat((pages[0] || {qMatrix: []}).qMatrix)
+            this.rowsLoaded = this.layout[this.options.path].qListObject.qDataPages[0].qMatrix.length
+          }                           
+          else {
+            if (!this.layout.qListObject.qDataPages[0]) {
+              this.layout.qListObject.qDataPages[0] = {
+                qMatrix: []
+              }
+            }
+            this.layout.qListObject.qDataPages[0].qMatrix = this.layout.qListObject.qDataPages[0].qMatrix.concat((pages[0] || {qMatrix: []}).qMatrix)
+            this.rowsLoaded = this.layout.qListObject.qDataPages[0].qMatrix.length
+          }          
+          this.busy = false 
+          resolve()
+        }, err => {
+          this.busy = false
+          reject(err)
+        })
+      }
     })    
   }
+  checkForVariable () {
+    return new Promise((resolve, reject) => {
+      if (this.options.useVariable === true && this.options.variable && this.options.app) {
+        this.options.app.getVariableByName(this.options.variable).then(v => {
+          v.getLayout().then(layout => {            
+            resolve(layout)
+          })
+        })
+      }
+      else {
+        resolve()
+      }
+    })
+  }
   clearSelected () {
-    this.options.model.clearSelections('/qListObjectDef')
+    this.options.model.clearSelections(`/${this.options.path}/qListObjectDef`.replace(/\/\//g, '/'))
+  }
+  handleScroll (event) {    
+    if (event.target.scrollTop / (event.target.scrollHeight - event.target.clientHeight) > 0.7) {
+      this.checkForData().then(() => {
+        this.dropdown.data = this.transformData()
+      })
+    }
   }
   itemSelected (item, selectedIndexes, items) {    
-    this.options.model.selectListObjectValues('/qListObjectDef', [item.qElemNumber], this.dropdown.options.multiSelect === true)
+    if (this.options.useVariable === true && this.options.variable && this.options.app) {
+      this.options.app.getVariableByName(this.options.variable).then(v => {
+        if (item.qNum === 'NaN') {
+          v.setStringValue(item.qText)
+        }
+        else {
+          v.setNumValue(item.qNum)
+        }
+      })
+    }
+    else {
+      this.options.model.selectListObjectValues(`/${this.options.path}/qListObjectDef`.replace(/\/\//g, '/'), [item.qElemNumber], this.dropdown.options.multiSelect === true)
+    }
+  }
+  open () {
+    this.dropdown.open()
   }
   render () {
+    this.rowsLoaded = 0    
     this.options.model.getLayout().then(layout => {
-      this.checkForData(layout).then(layout => {
-        if (layout.qListObject.qDataPages[0]) {
-          this.dropdown.options.label = layout.qListObject.qDimensionInfo.qFallbackTitle
-          const indexes = {}
-          if (this.options.hideExcluded === true) {
-            layout.qListObject.qDataPages[0].qMatrix = layout.qListObject.qDataPages[0].qMatrix.filter(r => ['X', 'XS', 'XL'].indexOf(r[0].qState) === -1) 
-          }        
-          layout.qListObject.qDataPages[0].qMatrix.forEach((r, i) => {
-            if (!indexes[r[0].qState]) {
-              indexes[r[0].qState] = []
-            }
-            indexes[r[0].qState].push(i)
-          })        
-          if (indexes.S && indexes.S.length > 0) {
-            this.dropdown.selectedItems = indexes.S
-          }
-          else if (indexes.S && indexes.S.length === 0 && indexes.O && indexes.O.length === 1) {
-            this.dropdown.selectedItems = indexes.O 
-          }
-          else {
-            this.dropdown.selectedItems = []
-          }        
-          const data = layout.qListObject.qDataPages[0].qMatrix.map(r => (Object.assign(r[0], {label: r[0].qText || '-', classes: [`state-${r[0].qState}`]})))
-          this.dropdown.data = data
+      this.layout = layout
+      this.checkForVariable().then(variableValue => {
+        let listObject = this.options.path !== '' ? this.layout[this.options.path].qListObject : this.layout.qListObject
+        if (!listObject.qDataPages || listObject.qDataPages.length === 0) {
+          listObject.qDataPages = [{qMatrix: []}]
         }
+        this.rowsLoaded = listObject.qDataPages[0].qMatrix.length
+        this.checkForData().then(() => {        
+          if (listObject.qDataPages[0]) {
+            this.dropdown.options.label = listObject.qDimensionInfo.qFallbackTitle                    
+            this.dropdown.data = this.transformData(variableValue)
+          }
+        })
       })      
     })
   }
   search (value) {
-    this.options.model.searchListObjectFor('/qListObjectDef', `*${value}*`)
+    this.options.model.searchListObjectFor(`/${this.options.path}/qListObjectDef`.replace(/\/\//g, '/'), `*${value}*`)
+  }
+  transformData (variableValue) {
+    const indexes = {}
+    let listObject = this.options.path !== '' ? this.layout[this.options.path].qListObject : this.layout.qListObject
+    const flatList = listObject.qDataPages[0].qMatrix.map(r => r[0].qText)
+    if (this.options.hideExcluded === true) {
+      listObject.qDataPages[0].qMatrix = listObject.qDataPages[0].qMatrix.filter(r => ['X', 'XS', 'XL'].indexOf(r[0].qState) === -1) 
+    }
+    if (variableValue) {
+      const index = flatList.indexOf(variableValue.qText)
+      if (index !== -1) {
+        this.dropdown.selectedItems = [index]
+      }
+    }
+    else {
+      listObject.qDataPages[0].qMatrix.forEach((r, i) => {
+        if (!indexes[r[0].qState]) {
+          indexes[r[0].qState] = []
+        }
+        indexes[r[0].qState].push(i)
+      })        
+      if (indexes.S && indexes.S.length > 0) {
+        this.dropdown.selectedItems = indexes.S
+      }
+      else if (indexes.S && indexes.S.length === 0 && indexes.O && indexes.O.length === 1) {
+        this.dropdown.selectedItems = indexes.O 
+      }
+      else {
+        this.dropdown.selectedItems = []
+      }       
+    }   
+    return listObject.qDataPages[0].qMatrix.map(r => (Object.assign(r[0], {label: r[0].qText || '-', classes: [`state-${r[0].qState}`]})))                    
   }
 }
 
@@ -742,14 +931,19 @@ class Table {
     this.elementId = elementId    
     this.options = Object.assign({}, DEFAULTS, options)
     this.rowCount = 0
+    this.pageNum = 0
+    this.pageCount = 0
     this.errorCount = 0    
     this.retryFn = null
+    this.pivotIndent = false
     this.busy = false
-    this.table = new WebsyDesigns.WebsyTable(this.elementId, {
+    this.table = new WebsyDesigns.WebsyTable(this.elementId, Object.assign({}, {
       onClick: this.handleClick.bind(this),
       onScroll: this.handleScroll.bind(this),      
-      onSort: this.handleSort.bind(this)
-    })
+      onSort: this.handleSort.bind(this),
+      onChangePageSize: this.setPageSize.bind(this),
+      onSetPage: this.setPageNum.bind(this)
+    }, this.options))
     const el = document.getElementById(this.elementId)
     if (el) {
       el.addEventListener('click', this.handleClick.bind(this))
@@ -823,6 +1017,29 @@ class Table {
       }
     }
   }
+  getFontColor (c) {
+    let colorParts
+    let red
+    let green
+    let blue
+    if (c.indexOf('#') !== -1) {
+      // hex color
+      colorParts = c.toLowerCase().replace('#', '')
+      colorParts = colorParts.split('')
+      red = parseInt(colorParts[0] + colorParts[1], 16)
+      green = parseInt(colorParts[2] + colorParts[3], 16)
+      blue = parseInt(colorParts[4] + colorParts[5], 16)
+    }
+    else if (c.toLowerCase().indexOf('rgb') !== -1) {
+      // rgb color
+      colorParts = c.toLowerCase().replace('rgb(', '').replace(')', '')
+      colorParts = colorParts.split(',')
+      red = colorParts[0]
+      green = colorParts[1]
+      blue = colorParts[2]
+    }
+    return (red * 0.299 + green * 0.587 + blue * 0.114) > 186 ? '#000000' : '#ffffff'
+  }
   handleClick (event, cell, row, column) {
     if (event.target.classList.contains('table-try-again')) {
       this.render()
@@ -852,13 +1069,24 @@ class Table {
       qPath: `/qHyperCubeDef/${sortType}/${sortIndex}/qDef/qReverseSort`,
       qValue: JSON.stringify(reverse)
     })
-    this.options.model.applyPatches(patchDefs)
+    this.options.model.applyPatches(patchDefs, true)
   }
-  render () {    
-    this.options.model.getLayout().then(layout => {      
+  render (pageNum = 0) {    
+    this.table.showLoading({message: 'Loading...'})
+    this.options.model.getLayout().then(layout => {     
+      console.log(layout)
       this.layout = layout
-      this.rowCount = 0
+      this.rowCount = pageNum * this.options.pageSize
       this.errorCount = 0
+      this.pageNum = pageNum      
+      this.pageCount = Math.ceil(layout.qHyperCube.qSize.qcy / this.options.pageSize)
+      this.table.options.pageNum = this.pageNum
+      this.table.options.pageCount = this.pageCount
+      if (layout.qHyperCube.qError && layout.qHyperCube.qCalcCondMsg) {
+        this.table.hideLoading()
+        this.table.showError({message: this.options.customError || layout.qHyperCube.qCalcCondMsg})
+        return
+      }
       this.dataWidth = this.layout.qHyperCube.qSize.qcx
       this.columnOrder = this.layout.qHyperCube.qColumnOrder
       if (typeof this.columnOrder === 'undefined') {
@@ -892,6 +1120,7 @@ class Table {
       this.getData(page => {
         this.table.options.columns = columns
         this.table.options.activeSort = activeSort
+        this.table.hideLoading()
         this.table.render()
         if (page.err) {
           const tableEl = document.getElementById(`${this.elementId}_foot`)
@@ -915,6 +1144,649 @@ class Table {
         }, 300)               
       }      
     })
+  }
+  setPageNum (page) {
+    this.render(page)
+  }
+  setPageSize (size) {
+    this.options.pageSize = size
+    this.render()
+  }
+  transformData (page) {
+    console.log('page', page)
+    if (this.layout.qHyperCube.qMode === 'S') {      
+      return page.map(r => {
+        return r.map((c, i) => {
+          if (this.table.options.columns[i].showAsLink === true || this.table.options.columns[i].showAsNavigatorLink === true) {
+            if (c.qAttrExps && c.qAttrExps.qValues && c.qAttrExps.qValues[0].qText) {
+              c.value = c.qAttrExps.qValues[0].qText
+              if (c.value.indexOf('https://') === -1) {
+                c.value = `https://${c.value}`
+              }
+              c.displayText = c.qText || '-'
+            }
+            else {
+              c.value = c.qText || '-'
+            }
+          } 
+          else {
+            c.value = c.qText || '-'
+          }        
+          if (c.qAttrExps && c.qAttrExps.qValues) {
+            let t = 'qDimensionInfo'
+            let tIndex = i
+            if (i > this.layout.qHyperCube.qDimensionInfo.length - 1) {
+              t = 'qMeasureInfo'
+              tIndex -= this.layout.qHyperCube.qDimensionInfo.length
+            }
+            c.qAttrExps.qValues.forEach((a, aI) => {
+              if (a.qText && a.qText !== '') {
+                if (this.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                  c.color = a.qText
+                }
+                else if (this.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                  c.backgroundColor = a.qText
+                }
+              }
+            })
+          }
+          return c
+        })
+      })
+    }
+    else {
+      let data = this.transformPivotTable(page)
+      // let columns = [{ name: this.layout.qHyperCube.qDimensionInfo[0].qFallbackTitle }]
+      // columns = columns.concat(page.qTop.map(c => ({ name: c.qText ? c.qText : c.qType === 'T' ? 'Total' : '-' })))
+      // this.table.options.columns = columns        
+      this.table.options.columns = data.shift()
+      this.table.render()
+      return data
+      // let rows = []
+      // page.qData.forEach((r, i) => {
+      //   rows.push([{ value: page.qLeft[i].qText, ...page.qLeft[i] }, ...r.map(c => {
+      //     c.value = c.qText || '-'        
+      //     if (c.qAttrExps && c.qAttrExps.qValues && c.qAttrExps.qValues[0].qText) {
+      //       c.backgroundColor = c.qAttrExps.qValues[0].qText
+      //       let colorParts
+      //       let red
+      //       let green
+      //       let blue
+      //       if (c.backgroundColor.indexOf('#') !== -1) {
+      //         // hex color
+      //         colorParts = c.qAttrExps.qValues[0].qText.toLowerCase().replace('#', '')
+      //         colorParts = colorParts.split('')
+      //         red = parseInt(colorParts[0] + colorParts[1], 16)
+      //         green = parseInt(colorParts[2] + colorParts[3], 16)
+      //         blue = parseInt(colorParts[4] + colorParts[5], 16)
+      //       }
+      //       else if (c.backgroundColor.toLowerCase().indexOf('rgb') !== -1) {
+      //         // rgb color
+      //         colorParts = c.qAttrExps.qValues[0].qText.toLowerCase().replace('rgb(', '').replace(')', '')
+      //         colorParts = colorParts.split(',')
+      //         red = colorParts[0]
+      //         green = colorParts[1]
+      //         blue = colorParts[2]
+      //       }
+      //       c.color = (red * 0.299 + green * 0.587 + blue * 0.114) > 186 ? '#000000' : '#ffffff'
+      //     }
+      //     return c
+      //   })])
+      // })
+      // return rows  
+    }
+  }
+  transformPivotTable (page) {    
+    let output = []
+    let leftNodes = []
+    let topNodes = []
+    let topNodesTransposed = []
+    let topCounter = 0
+    let accCellSpan = 0
+    let visibleLeftCount = 0    
+    let visibleTopCount = 0   
+    let visibleColCount = 0 
+    let tempNode = []
+    for (let i = 0; i < page.qLeft.length; i++) {
+      expandLeft.call(this, page.qLeft[i], 0, 0, null, [])
+    }              
+    for (let i = 0; i < page.qTop.length; i++) {
+      expandTop.call(this, page.qTop[i], 0, i)
+    }
+    for (let r = 0; r < page.qData.length; r++) {
+      let row = page.qData[r]
+      for (let c = 0; c < row.length; c++) {
+        row[c].pos = 'Data'          
+        if (row[c].qAttrExps && row[c].qAttrExps.qValues && row[c].qAttrExps.qValues[0] && row[c].qAttrExps.qValues[0].qText) {
+          row[c].backgroundColor = row[c].qAttrExps.qValues[0].qText
+          row[c].color = this.getFontColor(row[c].qAttrExps.qValues[0].qText)
+        }
+        if (row[c].qAttrExps && row[c].qAttrExps.qValues && row[c].qAttrExps.qValues[1] && row[c].qAttrExps.qValues[1].qText) {
+          row[c].color = this.getFontColor(row[c].qAttrExps.qValues[1].qText)
+        }
+        let lastTop = topNodesTransposed[topNodesTransposed.length - 1][c]
+        if (['T', 'E'].indexOf(row[c].qType) !== -1 || ['T'].indexOf(lastTop.qType) !== -1) {
+          row[c].qType = 'T'
+        }                           
+        row[c].value = row[c].qText                
+      }
+      if (leftNodes[r]) {
+        row = leftNodes[r].concat(row)
+      }
+      output.push(row)
+    }
+    let additionalTopCells = []
+    let additionalCellCount = visibleLeftCount
+    for (let i = 0; i < additionalCellCount; i++) {
+      additionalTopCells.push({
+        rowspan: 1,
+        colSpan: 1,
+        level: 0,
+        qText: '',
+        qType: 'V'
+      })
+    }
+    if (visibleLeftCount !== 0) {                
+      for (let i = 0; i < topNodesTransposed.length; i++) {
+        if (i === topNodesTransposed.length - 1) {
+          topNodesTransposed[i] = (this.layout.qHyperCube.qDimensionInfo.filter(d => !d.qError).filter((d, dI) => dI < visibleLeftCount).map(d => {
+            return {
+              name: d.qFallbackTitle
+            }
+          })).concat(topNodesTransposed[i])
+        } 
+        else {
+          topNodesTransposed[i] = additionalTopCells.concat(topNodesTransposed[i])
+        }
+      }
+    }
+    visibleColCount = topNodesTransposed[topNodesTransposed.length - 1]
+    output = topNodesTransposed.concat(output)
+    // This function is used to convert the qLeft structure from a parent/child hierarchy
+    // into a 2 dimensions array    
+    function expandLeft (input, level, index, parent, chain) {
+      let o = Object.assign({}, input)
+      o.level = level
+      o.pos = 'Left'
+      o.value = o.qText
+      input.value = input.qText
+      visibleLeftCount = Math.max(visibleLeftCount, level + 1)
+      o.childCount = o.qSubNodes.length      
+      if (o.qAttrExps && o.qAttrExps.qValues && o.qAttrExps.qValues[0] && o.qAttrExps.qValues[0].qText) {
+        o.backgroundColor = o.qAttrExps.qValues[0].qText
+        o.color = this.getFontColor(o.qAttrExps.qValues[0].qText)
+      }
+      if (o.qAttrExps && o.qAttrExps.qValues && o.qAttrExps.qValues[1] && o.qAttrExps.qValues[1].qText) {
+        o.color = this.getFontColor(o.qAttrExps.qValues[1].qText)
+      }
+      delete o.qSubNodes  
+      if (typeof o.qText === 'undefined') {
+        if (o.qElemNo === -1) {
+          o.qText = 'Totals??'
+        } 
+        else if (o.qElemNo === -4) {
+          o.qText = ''
+          o.qType = 'T'
+        }
+      }
+      o.rowspan = Math.max(1, input.qSubNodes.length)
+      input.rowspan = Math.max(1, input.qSubNodes.length)
+      if (input.qSubNodes.length === 0) {        
+        leftNodes.push(tempNode.concat([o])) 
+        tempNode = []
+      } 
+      else {
+        tempNode.push(o)                  
+        for (let i = 0; i < input.qSubNodes.length; i++) {
+          expandLeft.call(this, input.qSubNodes[i], level + 1, i, input, [...chain, o])
+        }
+        let s = 0
+        for (let i = 0; i < input.qSubNodes.length; i++) {
+          s += input.qSubNodes[i].rowspan
+        }
+        input.rowspan = s
+        o.rowspan = s
+      }                
+    }
+    // This function is used to convert the qTop structure from a parent/child hierarchy
+    // into a 2 dimensions array
+    function expandTop (input, level, index, parent) {
+      if (typeof topNodesTransposed[level] === 'undefined') {
+        topNodesTransposed[level] = []
+      }
+      let o = Object.assign({}, input)
+      o.level = level
+      o.pos = 'Top'
+      o.rowIndex = topCounter
+      o.topNode = true
+      o.isHeader = true
+      o.name = o.qText
+      if (!o.font) {
+        o.font = {}
+      }
+      input.value = input.qText
+      if (o.qType === 'P') {
+        o.qElemNo = -99
+      }
+      o.childCount = o.qSubNodes.length
+      visibleTopCount = Math.max(visibleTopCount, level + 1)      
+      if (o.qAttrExps && o.qAttrExps.qValues && o.qAttrExps.qValues[0] && o.qAttrExps.qValues[0].qText) {
+        o.backgroundColor = o.qAttrExps.qValues[0].qText
+        o.color = this.getFontColor(o.qAttrExps.qValues[0].qText)
+      }
+      if (o.qAttrExps && o.qAttrExps.qValues && o.qAttrExps.qValues[1] && o.qAttrExps.qValues[1].qText) {
+        o.color = this.getFontColor(o.qAttrExps.qValues[1].qText)
+      }
+      delete o.qSubNodes
+      if (['T', 'E'].indexOf(o.qType) === -1) {
+        o.qType = 'B'
+      }
+      if (typeof parent !== 'undefined') {
+        if (parent.qType === 'T') {
+          o.qType = parent.qType
+          input.qType = parent.qType
+        }
+      }
+      if (typeof o.qText === 'undefined') {
+        if (o.qElemNo === -1) {
+          o.qText = this.layout.tableTotalsLabel
+        } 
+        else if (o.qElemNo === -4) {
+          o.qText = ''
+          o.qType = 'T'
+          input.qType = 'T'
+        }
+      }      
+      o.colSpan = Math.max(1, input.qSubNodes.length)
+      input.colSpan = Math.max(1, input.qSubNodes.length)
+      if (input.qSubNodes.length === 0) {                  
+        if (o.qElemNo === -99 && o.qCanCollapse === true) {
+          accCellSpan++
+        }
+      } 
+      else {                  
+        for (let i = 0; i < input.qSubNodes.length; i++) {
+          expandTop.call(this, input.qSubNodes[i], level + 1, i, input)
+        }
+        let s = 0
+        for (let i = 0; i < input.qSubNodes.length; i++) {
+          s += input.qSubNodes[i].colSpan
+        }
+        o.rowIndex = topCounter
+        topCounter += s
+        o.colSpan = s
+        input.colSpan = s
+        if (o.qType === 'T' && o.qElemNo === -1) {
+          accCellSpan += s
+        }
+        if (o.qElemNo === -99) {
+          accCellSpan++
+        }
+        if (input.qCanExpand === true || input.qCanCollapse === true) {
+          if (input.qSubNodes.length > 0 && input.qCanCollapse === true && typeof input.qSubNodes[0].rowIndex !== 'undefined') {
+            input.rowIndex = input.qSubNodes[0].rowIndex
+            o.rowIndex = input.qSubNodes[0].rowIndex
+          } 
+          else {
+            input.rowIndex = accCellSpan
+            o.rowIndex = accCellSpan
+            accCellSpan += o.colSpan
+          }
+        }
+      }
+      let toPush = [o]
+      if (o.colSpan > 1) {
+        toPush = new Array(o.colSpan).fill({ ...o })
+      }
+      topNodesTransposed[level].push(...toPush)   
+    }
+    return output
+  }
+}
+
+/* global WebsyDesigns getAllData */ 
+class Table2 {
+  constructor (elementId, options) {
+    const DEFAULTS = {
+      pageSize: 50,
+      cellHeight: 35,
+      virtualScroll: false,
+      columnOverrides: []
+    }
+    this.elementId = elementId    
+    this.options = Object.assign({}, DEFAULTS, options)
+    this.rowCount = 0
+    this.pageNum = 0
+    this.pageCount = 0
+    this.errorCount = 0
+    this.leftDataCol = 0
+    this.topDataRow = 0
+    this.retryFn = null
+    this.pivotIndent = false
+    this.busy = false
+    this.dimensionWidth = 0
+    this.dropdowns = []
+    this.table = new WebsyDesigns.WebsyTable2(this.elementId, Object.assign({}, {
+      onClick: this.handleClick.bind(this),
+      onScroll: this.handleScroll.bind(this),      
+      onSort: this.handleSort.bind(this),
+      onChangePageSize: this.setPageSize.bind(this),
+      onSetPage: this.setPageNum.bind(this),
+      onScrollX: this.handleVirtualScrollX.bind(this)
+    }, this.options))
+    const el = document.getElementById(this.elementId)
+    if (el) {
+      el.addEventListener('click', this.handleClick.bind(this))
+    }
+    this.render()
+  }
+  appendRows (data) {    
+    this.table.appendRows(data)
+  }
+  getData (callbackFn) {
+    if (this.busy === false) {
+      this.busy = true
+      if (this.options.getAllData === true) {
+        getAllData('qHyperCube', this.options.model, this.layout, layout => {
+          this.rowCount = layout.qHyperCube.qDataPages[0].qMatrix.length
+          this.busy = false
+          if (callbackFn) {
+            callbackFn(layout.qHyperCube.qDataPages[0].qMatrix)  
+          }
+        })
+      }
+      else {
+        const pageDefs = [{
+          qTop: this.rowCount,
+          qLeft: 0,
+          qWidth: this.dataWidth,
+          qHeight: this.dataWidth * this.options.pageSize > 10000 ? Math.floor(10000 / this.dataWidth) : this.options.pageSize
+        }]
+        if (this.rowCount < this.layout.qHyperCube.qSize.qcy) {
+          let method = 'getHyperCubeData'
+          if (this.layout.qHyperCube.qMode === 'P') {
+            method = 'getHyperCubePivotData'
+          }
+          this.options.model[method]('/qHyperCubeDef', pageDefs).then(pages => {
+            if (pages && pages[0]) {
+              if (this.layout.qHyperCube.qMode === 'P') {
+                this.layout.qHyperCube.qPivotDataPages.push(pages[0])
+                this.rowCount += pages[0].qData.length
+              }
+              else {
+                pages[0].qMatrix = pages[0].qMatrix.filter(r => r[0].qText !== '-')
+                this.layout.qHyperCube.qDataPages.push(pages[0])
+                this.rowCount += pages[0].qMatrix.length
+              }
+              this.busy = false
+              if (callbackFn) {
+                if (this.layout.qHyperCube.qMode === 'P') {
+                  callbackFn(pages[0])  
+                }
+                else {
+                  callbackFn(pages[0].qMatrix)  
+                }
+              }
+            }
+          }, err => {
+            let e = err          
+            if (this.errorCount < 50) {
+              this.errorCount++
+              console.log('error getting data, attempt', this.errorCount)
+              clearTimeout(this.retryFn)
+              this.retryFn = setTimeout(() => {
+                this.getData(callbackFn)
+              }, 300)        
+            } 
+            // callbackFn({err})
+          })
+        } 
+        else {
+          this.busy = false
+        }
+      }
+    }
+  }
+  getFontColor (c) {
+    let colorParts
+    let red
+    let green
+    let blue
+    if (c.indexOf('#') !== -1) {
+      // hex color
+      colorParts = c.toLowerCase().replace('#', '')
+      colorParts = colorParts.split('')
+      red = parseInt(colorParts[0] + colorParts[1], 16)
+      green = parseInt(colorParts[2] + colorParts[3], 16)
+      blue = parseInt(colorParts[4] + colorParts[5], 16)
+    }
+    else if (c.toLowerCase().indexOf('rgb') !== -1) {
+      // rgb color
+      colorParts = c.toLowerCase().replace('rgb(', '').replace(')', '')
+      colorParts = colorParts.split(',')
+      red = colorParts[0]
+      green = colorParts[1]
+      blue = colorParts[2]
+    }
+    return (red * 0.299 + green * 0.587 + blue * 0.114) > 186 ? '#000000' : '#ffffff'
+  }
+  handleClick (event, cell, row, column) {
+    if (event.target.classList.contains('table-try-again')) {
+      this.render()
+    }
+    else if (cell && cell.qElemNumber) {
+      this.options.model.selectHyperCubeValues('/qHyperCubeDef', 0, [cell.qElemNumber], false)
+    }
+  }
+  handleScroll (event) {    
+    if (event.target.scrollTop / (event.target.scrollHeight - event.target.clientHeight) > 0.7) {
+      this.getData(page => {
+        this.appendRows(this.transformData(page))
+      })
+    }
+  }
+  handleSearch (event, column) {
+    console.log(event, column)
+    if (this.dropdowns[column.searchField]) {
+      let el = document.getElementById(`${this.elementId}_columnSearch_${event.target.getAttribute('data-col-index')}`)
+      if (el) {
+        el.classList.toggle('active')
+        el.style.top = `${event.pageY}px`
+        el.style.right = `calc(100vw - ${event.pageX + event.target.offsetWidth}px)`
+        this.dropdowns[column.searchField].open()
+      }
+    }
+  }
+  handleSort (event, column, colIndex) {
+    const reverse = column.reverseSort === true
+    const patchDefs = [{
+      qOp: 'replace',
+      qPath: '/qHyperCubeDef/qInterColumnSortOrder',
+      qValue: JSON.stringify([colIndex])
+    }]
+    let sortType = colIndex < this.layout.qHyperCube.qDimensionInfo.length ? 'qDimensions' : 'qMeasures'
+    let sortIndex = colIndex < this.layout.qHyperCube.qDimensionInfo.length ? colIndex : colIndex - this.layout.qHyperCube.qDimensionInfo.length    
+    patchDefs.push({
+      qOp: 'replace',
+      qPath: `/qHyperCubeDef/${sortType}/${sortIndex}/qDef/qReverseSort`,
+      qValue: JSON.stringify(reverse)
+    })
+    this.options.model.applyPatches(patchDefs, true)
+  }
+  handleVirtualScrollX (startPoint) {
+    let handleWidth = (this.columnParams.scrollableWidth) * (this.columnParams.scrollableWidth / this.totalWidth)
+    // let withoutScroll = this.columnParams.scrollableWidth - handleWidth
+    // let realLeft = startPoint / withoutScroll * (this.totalWidth - handleWidth)
+    let realLeft = (startPoint / this.columnParams.scrollableWidth) * this.totalWidth
+    let accWidth = 0
+    let leftDims = (this.options.freezeColumns || this.layout.qHyperCube.qNoOfLeftDims)
+    this.leftDataCol = 0
+    for (let i = leftDims; i < this.fullColumnList.length; i++) {      
+      if (realLeft >= (+this.fullColumnList[i].width.replace('px', '') + accWidth)) {
+        accWidth += +this.fullColumnList[i].width.replace('px', '')
+        this.leftDataCol = i // - leftDims
+      }
+      else {
+        break
+      }            
+    }
+    if (this.fullColumnList.length - this.leftDataCol < this.columnsToRender) {
+      this.leftDataCol = (this.fullColumnList.length - this.columnsToRender) + 1
+    }
+    // console.log('col', startPoint / withoutScroll, realLeft, this.totalWidth, this.leftDataCol)
+    this.resize()
+  }
+  prepDropdowns () {
+    this.table.options.columns.forEach((c, i) => {
+      if (c.searchable === true && c.searchField && this.layout[c.searchField] && this.layout[c.searchField].qListObject) {
+        this.dropdowns[c.searchField] = new WebsyDesigns.QlikPlugins.Dropdown(`${this.elementId}_columnSearch_${i}`, {
+          model: this.options.model,
+          path: `${c.searchField}`
+        })
+      }
+    })
+  }
+  render (pageNum = 0) {    
+    this.table.showLoading({message: 'Loading...'})
+    this.options.model.getLayout().then(layout => {    
+      console.log('table layout', layout)      
+      this.layout = layout
+      this.rowCount = pageNum * this.options.pageSize
+      if (this.layout.qHyperCube.qPivotDataPages[0]) {
+        this.layout.qHyperCube.qPivotDataPages = []
+      }
+      this.errorCount = 0
+      this.pageNum = pageNum      
+      this.pageCount = Math.ceil(layout.qHyperCube.qSize.qcy / this.options.pageSize)
+      this.table.options.pageNum = this.pageNum
+      if (this.layout.qHyperCube.qNoOfLeftDims) {
+        this.table.options.leftColumns = (this.options.freezeColumns || this.layout.qHyperCube.qNoOfLeftDims)
+      }
+      this.table.options.pageCount = this.pageCount
+      if (layout.qHyperCube.qError && layout.qHyperCube.qCalcCondMsg) {
+        this.table.hideLoading()
+        this.table.showError({message: this.options.customError || layout.qHyperCube.qCalcCondMsg})
+        return
+      }
+      this.table.hideError()
+      this.dataWidth = this.layout.qHyperCube.qSize.qcx
+      this.columnOrder = this.layout.qHyperCube.qColumnOrder
+      if (typeof this.columnOrder === 'undefined') {
+        this.columnOrder = (new Array(this.layout.qHyperCube.qSize.qcx)).fill({}).map((r, i) => i)
+      }
+      this.layout.qHyperCube.qDimensionInfo = this.layout.qHyperCube.qDimensionInfo.map((c, i) => {
+        if (this.options.columnOverrides[i]) {
+          c = {...c, ...this.options.columnOverrides[i]}
+        }
+        return c
+      })
+      this.layout.qHyperCube.qMeasureInfo = this.layout.qHyperCube.qMeasureInfo.map((c, i) => {
+        if (this.options.columnOverrides[this.layout.qHyperCube.qDimensionInfo.length + i]) {
+          c = {...c, ...this.options.columnOverrides[this.layout.qHyperCube.qDimensionInfo.length + i]}
+        }
+        return c
+      })
+      let columns = this.layout.qHyperCube.qDimensionInfo.concat(this.layout.qHyperCube.qMeasureInfo)
+      let activeSort = this.layout.qHyperCube.qEffectiveInterColumnSortOrder[0]      
+      columns = columns.map((c, i) => {
+        c.colIndex = this.columnOrder.indexOf(i)
+        c.name = c.qFallbackTitle
+        if (c.tooltip) {
+          c.name += `
+          <div class="websy-info websy-info-dock-right" data-info="${c.tooltip}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 512 512"><path d="M256,56C145.72,56,56,145.72,56,256s89.72,200,200,200,200-89.72,200-200S366.28,56,256,56Zm0,82a26,26,0,1,1-26,26A26,26,0,0,1,256,138Zm48,226H216a16,16,0,0,1,0-32h28V244H228a16,16,0,0,1,0-32h32a16,16,0,0,1,16,16V332h28a16,16,0,0,1,0,32Z"/></svg>
+          </div>
+          `
+        }
+        c.reverseSort = activeSort === i && c.qReverseSort !== true
+        c.activeSort = activeSort === i
+        if (c.qSortIndicator === 'A') {
+          c.sort = 'asc'
+        }
+        else if (c.qSortIndicator === 'D') {
+          c.sort = 'desc'
+        }
+        // if (this.options.columnOverrides[i]) {
+        //   c = {...c, ...this.options.columnOverrides[i]}
+        // }
+        if (c.searchable === true) {
+          if (!c.onSearch) {
+            c.onSearch = this.handleSearch.bind(this)
+          }
+        }
+        return c
+      })
+      columns.sort((a, b) => {
+        return a.colIndex - b.colIndex
+      })       
+      if (this.layout.qHyperCube.qMode === 'P') {
+        columns = columns.filter((c, i) => i < this.layout.qHyperCube.qNoOfLeftDims)
+      }
+      columns = columns.filter(c => !c.qError)
+      this.table.options.columns = columns
+      let activeDimensions = this.layout.qHyperCube.qDimensionInfo        
+        .filter(c => !c.qError)        
+      let columnParamValues = activeDimensions
+        .filter((c, i) => (this.layout.qHyperCube.qMode === 'S' || i < this.layout.qHyperCube.qNoOfLeftDims))
+        .map(c => ({ 
+          value: new Array(c.qApprMaxGlyphCount).fill('x').join(''),
+          width: c.width || null
+        }))
+      let measureLabel = activeDimensions.pop()
+      // const maxMValue = this.layout.qHyperCube.qMeasureInfo.reduce((a, b) => a.qApprMaxGlyphCount > b.qApprMaxGlyphCount ? a : b)
+      // columnParamValues.push({ value: new Array(maxMValue.qApprMaxGlyphCount).fill('x').join(''), width)
+      columnParamValues = columnParamValues.concat(this.layout.qHyperCube.qMeasureInfo        
+        .filter(c => !c.qError)
+        .map(c => ({ 
+          value: new Array(this.layout.qHyperCube.qMode === 'S' ? c.qApprMaxGlyphCount : Math.max(c.qApprMaxGlyphCount, measureLabel.qApprMaxGlyphCount)).fill('x').join(''),
+          width: this.layout.qHyperCube.qMode === 'S' ? c.width || null : c.width || measureLabel.width || null
+        })))
+      this.columnParams = this.table.getColumnParameters(columnParamValues)     
+      for (let i = 0; i < columns.length; i++) {        
+        columns[i].width = `${this.columnParams.cellWidths[i] || this.columnParams.cellWidths[this.columnParams.cellWidths.length - 1]}px`                           
+      }      
+      // this.columnsToRender = Math.ceil(this.columnParams.availableWidth / this.columnParams.cellWidth)
+      this.rowsToRender = Math.ceil(this.columnParams.availableHeight / this.columnParams.cellHeight)      
+      this.getData(page => {        
+        this.table.options.activeSort = activeSort
+        this.table.hideLoading()
+        if (this.layout.qHyperCube.qMode === 'S') {
+          this.table.render()
+          this.prepDropdowns()
+        }        
+        if (page.err) {
+          const tableEl = document.getElementById(`${this.elementId}_foot`)
+          tableEl.innerHTML = `
+            <div class='request-abort-error'>Could not fetch data. Click <strong class='table-try-again'>here</strong> to try again</div>
+          ` 
+        }
+        else {
+          this.fullData = page
+          this.resize()          
+        }
+      })
+    }, err => {
+      // try again      
+      let e = err      
+      if (this.errorCount < 50) {
+        this.errorCount++
+        console.log('error getting layout, attempt', this.errorCount)
+        clearTimeout(this.retryFn)
+        this.retryFn = setTimeout(() => {
+          this.render()
+        }, 300)               
+      }      
+    })
+  }
+  resize () {
+    this.appendRows(this.transformData(this.fullData))
+  }
+  setPageNum (page) {
+    this.render(page)
+  }
+  setPageSize (size) {
+    this.options.pageSize = size
+    this.render()
   }
   transformData (page) {
     if (this.layout.qHyperCube.qMode === 'S') {      
@@ -940,43 +1812,295 @@ class Table {
       })
     }
     else {
-      let columns = [{ name: this.layout.qHyperCube.qDimensionInfo[0].qFallbackTitle }]
-      columns = columns.concat(page.qTop.map(c => ({ name: c.qText ? c.qText : c.qType === 'T' ? 'Total' : '-' })))
-      this.table.options.columns = columns        
-      this.table.render()
-      let rows = []
-      page.qData.forEach((r, i) => {
-        rows.push([{ value: page.qLeft[i].qText, ...page.qLeft[i] }, ...r.map(c => {
-          c.value = c.qText || '-'        
-          if (c.qAttrExps && c.qAttrExps.qValues && c.qAttrExps.qValues[0].qText) {
-            c.backgroundColor = c.qAttrExps.qValues[0].qText
-            let colorParts
-            let red
-            let green
-            let blue
-            if (c.backgroundColor.indexOf('#') !== -1) {
-              // hex color
-              colorParts = c.qAttrExps.qValues[0].qText.toLowerCase().replace('#', '')
-              colorParts = colorParts.split('')
-              red = parseInt(colorParts[0] + colorParts[1], 16)
-              green = parseInt(colorParts[2] + colorParts[3], 16)
-              blue = parseInt(colorParts[4] + colorParts[5], 16)
-            }
-            else if (c.backgroundColor.toLowerCase().indexOf('rgb') !== -1) {
-              // rgb color
-              colorParts = c.qAttrExps.qValues[0].qText.toLowerCase().replace('rgb(', '').replace(')', '')
-              colorParts = colorParts.split(',')
-              red = colorParts[0]
-              green = colorParts[1]
-              blue = colorParts[2]
-            }
-            c.color = (red * 0.299 + green * 0.587 + blue * 0.114) > 186 ? '#000000' : '#ffffff'
-          }
-          return c
-        })])
+      let data = this.transformPivotTable(page)      
+      // let columns = [{ name: this.layout.qHyperCube.qDimensionInfo[0].qFallbackTitle }]
+      // columns = columns.concat(page.qTop.map(c => ({ name: c.qText ? c.qText : c.qType === 'T' ? 'Total' : '-' })))
+      // this.table.options.columns = columns   
+      this.fullColumnList = data.shift()
+      let visibleColumns = []
+      let visibleStart = (this.options.freezeColumns || this.layout.qHyperCube.qNoOfLeftDims)
+      for (let i = 0; i < this.fullColumnList.length; i++) {
+        if (i < visibleStart) {
+          visibleColumns.push(this.fullColumnList[i])
+        }
+        else if (i >= visibleStart + this.leftDataCol && i < (visibleStart + this.leftDataCol + this.columnsToRender)) {
+          visibleColumns.push(this.fullColumnList[i])
+        }        
+      }      
+      this.table.options.columns = visibleColumns      
+      let renderedWidth = 0
+      visibleColumns.forEach(c => {
+        renderedWidth += +(c.width.toString()).replace('px', '')
       })
-      return rows  
+      this.table.setWidth(renderedWidth)
+      this.table.render()
+      this.prepDropdowns()
+      return data
+      // let rows = []
+      // page.qData.forEach((r, i) => {
+      //   rows.push([{ value: page.qLeft[i].qText, ...page.qLeft[i] }, ...r.map(c => {
+      //     c.value = c.qText || '-'        
+      //     if (c.qAttrExps && c.qAttrExps.qValues && c.qAttrExps.qValues[0].qText) {
+      //       c.backgroundColor = c.qAttrExps.qValues[0].qText
+      //       let colorParts
+      //       let red
+      //       let green
+      //       let blue
+      //       if (c.backgroundColor.indexOf('#') !== -1) {
+      //         // hex color
+      //         colorParts = c.qAttrExps.qValues[0].qText.toLowerCase().replace('#', '')
+      //         colorParts = colorParts.split('')
+      //         red = parseInt(colorParts[0] + colorParts[1], 16)
+      //         green = parseInt(colorParts[2] + colorParts[3], 16)
+      //         blue = parseInt(colorParts[4] + colorParts[5], 16)
+      //       }
+      //       else if (c.backgroundColor.toLowerCase().indexOf('rgb') !== -1) {
+      //         // rgb color
+      //         colorParts = c.qAttrExps.qValues[0].qText.toLowerCase().replace('rgb(', '').replace(')', '')
+      //         colorParts = colorParts.split(',')
+      //         red = colorParts[0]
+      //         green = colorParts[1]
+      //         blue = colorParts[2]
+      //       }
+      //       c.color = (red * 0.299 + green * 0.587 + blue * 0.114) > 186 ? '#000000' : '#ffffff'
+      //     }
+      //     return c
+      //   })])
+      // })
+      // return rows  
     }
+  }
+  transformPivotTable (page) {    
+    let output = []
+    let leftNodes = []
+    let topNodes = []
+    let topNodesTransposed = []
+    let topCounter = 0
+    let accCellSpan = 0
+    let visibleLeftCount = 0    
+    let visibleTopCount = 0   
+    let visibleColCount = 0 
+    let tempNode = []
+    for (let i = 0; i < page.qLeft.length; i++) {
+      expandLeft.call(this, page.qLeft[i], 0, 0, null, [])
+    }              
+    for (let i = 0; i < page.qTop.length; i++) {
+      expandTop.call(this, page.qTop[i], 0, i)
+    }
+    leftNodes[0] && leftNodes[0].forEach((c, i) => {
+      c.width = this.columnParams.cellWidths[i]
+    })
+    let scrollableColumns = this.layout.qHyperCube.qSize.qcx // - (this.options.freezeColumns || this.layout.qHyperCube.qNoOfLeftDims)
+    this.totalWidth = 0    
+    let accWidth = 0
+    this.columnsToRender = 0
+    for (let i = 0; i < scrollableColumns; i++) {      
+      if (i >= this.leftDataCol && accWidth < this.columnParams.scrollableWidth) {
+        accWidth += this.columnParams.cellWidths[(this.options.freezeColumns || this.layout.qHyperCube.qNoOfLeftDims) + i] || this.columnParams.cellWidths[this.columnParams.cellWidths.length - 1]
+        this.columnsToRender++
+      }
+      this.totalWidth += this.columnParams.cellWidths[(this.options.freezeColumns || this.layout.qHyperCube.qNoOfLeftDims) + i] || this.columnParams.cellWidths[this.columnParams.cellWidths.length - 1]
+    }    
+    this.table.setHorizontalScroll({
+      width: this.columnParams.scrollableWidth * (this.columnParams.scrollableWidth / this.totalWidth),
+      left: 0
+    })
+    topNodesTransposed[topNodesTransposed.length - 1].forEach((c, i) => {
+      c.width = `${this.columnParams.cellWidths[(this.options.freezeColumns || this.layout.qHyperCube.qNoOfLeftDims) + i] || this.columnParams.cellWidths[this.columnParams.cellWidths.length - 1]}px`
+    })
+    for (let r = 0; r < page.qData.length; r++) {
+      let row = []
+      for (let i = this.leftDataCol; i < (this.leftDataCol + this.columnsToRender); i++) {
+        row.push(page.qData[r][i])
+      }      
+      for (let c = 0; c < row.length; c++) {
+        row[c].pos = 'Data'         
+        row[c].width = `${this.columnParams.cellWidths[(this.options.freezeColumns || this.layout.qHyperCube.qNoOfLeftDims) + c] || this.columnParams.cellWidths[this.columnParams.cellWidths.length - 1]}px`
+        if (row[c].qAttrExps && row[c].qAttrExps.qValues && row[c].qAttrExps.qValues[0] && row[c].qAttrExps.qValues[0].qText) {
+          row[c].backgroundColor = row[c].qAttrExps.qValues[0].qText
+          row[c].color = this.getFontColor(row[c].qAttrExps.qValues[0].qText)
+        }
+        if (row[c].qAttrExps && row[c].qAttrExps.qValues && row[c].qAttrExps.qValues[1] && row[c].qAttrExps.qValues[1].qText) {
+          row[c].color = this.getFontColor(row[c].qAttrExps.qValues[1].qText)
+        }
+        let lastTop = topNodesTransposed[topNodesTransposed.length - 1][c]
+        if (['T', 'E'].indexOf(row[c].qType) !== -1 || ['T'].indexOf(lastTop.qType) !== -1) {
+          row[c].qType = 'T'
+        }                           
+        row[c].value = row[c].qText                
+      }
+      if (leftNodes[r]) {
+        row = leftNodes[r].concat(row)
+      }
+      output.push(row)
+    }    
+    let additionalTopCells = []
+    let additionalCellCount = visibleLeftCount
+    for (let i = 0; i < additionalCellCount; i++) {
+      additionalTopCells.push({
+        rowspan: 1,
+        colSpan: 1,
+        level: 0,
+        qText: '',
+        qType: 'V'
+      })
+    }
+    if (visibleLeftCount !== 0) {                
+      for (let i = 0; i < topNodesTransposed.length; i++) {
+        if (i === topNodesTransposed.length - 1) {
+          topNodesTransposed[i] = (this.layout.qHyperCube.qDimensionInfo.filter(d => !d.qError).filter((d, dI) => dI < visibleLeftCount).map((d, dI) => {
+            return Object.assign({}, d, {
+              name: d.qFallbackTitle,
+              width: `${this.columnParams.cellWidths[dI] || this.columnParams.cellWidths[this.columnParams.cellWidths.length - 1]}px`
+            })
+          })).concat(topNodesTransposed[i])
+        } 
+        else {
+          topNodesTransposed[i] = additionalTopCells.concat(topNodesTransposed[i])
+        }
+      }
+    }
+    visibleColCount = topNodesTransposed[topNodesTransposed.length - 1]
+    output = topNodesTransposed.concat(output)
+    // This function is used to convert the qLeft structure from a parent/child hierarchy
+    // into a 2 dimensions array    
+    function expandLeft (input, level, index, parent, chain) {
+      let o = Object.assign({}, input)
+      o.level = level
+      o.pos = 'Left'
+      o.value = o.qText
+      input.value = input.qText
+      visibleLeftCount = Math.max(visibleLeftCount, level + 1)
+      o.childCount = o.qSubNodes.length      
+      if (o.qAttrExps && o.qAttrExps.qValues && o.qAttrExps.qValues[0] && o.qAttrExps.qValues[0].qText) {
+        o.backgroundColor = o.qAttrExps.qValues[0].qText
+        o.color = this.getFontColor(o.qAttrExps.qValues[0].qText)
+      }
+      if (o.qAttrExps && o.qAttrExps.qValues && o.qAttrExps.qValues[1] && o.qAttrExps.qValues[1].qText) {
+        o.color = this.getFontColor(o.qAttrExps.qValues[1].qText)
+      }
+      delete o.qSubNodes  
+      if (typeof o.qText === 'undefined') {
+        if (o.qElemNo === -1) {
+          o.qText = 'Totals??'
+        } 
+        else if (o.qElemNo === -4) {
+          o.qText = ''
+          o.qType = 'T'
+        }
+      }
+      o.rowspan = Math.max(1, input.qSubNodes.length)
+      input.rowspan = Math.max(1, input.qSubNodes.length)
+      if (input.qSubNodes.length === 0) {        
+        leftNodes.push(tempNode.concat([o])) 
+        tempNode = []
+      } 
+      else {
+        tempNode.push(o)                  
+        for (let i = 0; i < input.qSubNodes.length; i++) {
+          expandLeft.call(this, input.qSubNodes[i], level + 1, i, input, [...chain, o])
+        }
+        let s = 0
+        for (let i = 0; i < input.qSubNodes.length; i++) {
+          s += input.qSubNodes[i].rowspan
+        }
+        input.rowspan = s
+        o.rowspan = s
+      }                
+    }
+    // This function is used to convert the qTop structure from a parent/child hierarchy
+    // into a 2 dimensions array
+    function expandTop (input, level, index, parent) {
+      if (typeof topNodesTransposed[level] === 'undefined') {
+        topNodesTransposed[level] = []
+      }
+      let o = Object.assign({}, input)
+      o.level = level
+      o.pos = 'Top'
+      o.rowIndex = topCounter
+      o.topNode = true
+      o.isHeader = true
+      o.name = o.qText
+      if (!o.font) {
+        o.font = {}
+      }
+      input.value = input.qText
+      if (o.qType === 'P') {
+        o.qElemNo = -99
+      }
+      o.childCount = o.qSubNodes.length
+      visibleTopCount = Math.max(visibleTopCount, level + 1)      
+      if (o.qAttrExps && o.qAttrExps.qValues && o.qAttrExps.qValues[0] && o.qAttrExps.qValues[0].qText) {
+        o.backgroundColor = o.qAttrExps.qValues[0].qText
+        o.color = this.getFontColor(o.qAttrExps.qValues[0].qText)
+      }
+      if (o.qAttrExps && o.qAttrExps.qValues && o.qAttrExps.qValues[1] && o.qAttrExps.qValues[1].qText) {
+        o.color = this.getFontColor(o.qAttrExps.qValues[1].qText)
+      }
+      delete o.qSubNodes
+      if (['T', 'E'].indexOf(o.qType) === -1) {
+        o.qType = 'B'
+      }
+      if (typeof parent !== 'undefined') {
+        if (parent.qType === 'T') {
+          o.qType = parent.qType
+          input.qType = parent.qType
+        }
+      }
+      if (typeof o.qText === 'undefined') {
+        if (o.qElemNo === -1) {
+          o.qText = this.layout.tableTotalsLabel
+        } 
+        else if (o.qElemNo === -4) {
+          o.qText = ''
+          o.qType = 'T'
+          input.qType = 'T'
+        }
+      }      
+      o.colSpan = Math.max(1, input.qSubNodes.length)
+      input.colSpan = Math.max(1, input.qSubNodes.length)
+      if (input.qSubNodes.length === 0) {                  
+        if (o.qElemNo === -99 && o.qCanCollapse === true) {
+          accCellSpan++
+        }
+      } 
+      else {                  
+        for (let i = 0; i < input.qSubNodes.length; i++) {
+          expandTop.call(this, input.qSubNodes[i], level + 1, i, input)
+        }
+        let s = 0
+        for (let i = 0; i < input.qSubNodes.length; i++) {
+          s += input.qSubNodes[i].colSpan
+        }
+        o.rowIndex = topCounter
+        topCounter += s
+        o.colSpan = s
+        input.colSpan = s
+        if (o.qType === 'T' && o.qElemNo === -1) {
+          accCellSpan += s
+        }
+        if (o.qElemNo === -99) {
+          accCellSpan++
+        }
+        if (input.qCanExpand === true || input.qCanCollapse === true) {
+          if (input.qSubNodes.length > 0 && input.qCanCollapse === true && typeof input.qSubNodes[0].rowIndex !== 'undefined') {
+            input.rowIndex = input.qSubNodes[0].rowIndex
+            o.rowIndex = input.qSubNodes[0].rowIndex
+          } 
+          else {
+            input.rowIndex = accCellSpan
+            o.rowIndex = accCellSpan
+            accCellSpan += o.colSpan
+          }
+        }
+      }
+      let toPush = [o]
+      if (o.colSpan > 1) {
+        toPush = new Array(o.colSpan).fill({ ...o })
+      }
+      topNodesTransposed[level].push(...toPush)   
+    }
+    return output
   }
 }
 
@@ -985,6 +2109,7 @@ if (typeof WebsyDesigns !== 'undefined') {
   WebsyDesigns.QlikPlugins = {
     Chart,
     Table,
+    Table2,
     GeoMap,
     Dropdown,
     DatePicker,
