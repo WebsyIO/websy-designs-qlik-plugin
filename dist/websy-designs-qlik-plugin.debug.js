@@ -626,7 +626,7 @@ class Dropdown {
       options.def = { options: {} }
     }
     this.busy = false
-    this.dropdownOptions = Object.assign({}, options.def.options || {}, {
+    this.dropdownOptions = Object.assign({}, options, options.def.options || {}, {
       onItemSelected: this.itemSelected.bind(this),
       onClearSelected: this.clearSelected.bind(this),
       onSearch: this.search.bind(this),      
@@ -1444,7 +1444,7 @@ class Table {
   }
 }
 
-/* global WebsyDesigns getAllData */ 
+/* global WebsyDesigns WebsyDesignsQlikPlugins:true Dropdown getAllData */ 
 class Table2 {
   constructor (elementId, options) {
     const DEFAULTS = {
@@ -1452,6 +1452,12 @@ class Table2 {
       cellHeight: 35,
       virtualScroll: false,
       columnOverrides: []
+    }
+    if (Dropdown) {
+      if (!WebsyDesignsQlikPlugins) {
+        WebsyDesignsQlikPlugins = {}
+      }
+      WebsyDesignsQlikPlugins.Dropdown = Dropdown
     }
     this.elementId = elementId    
     this.options = Object.assign({}, DEFAULTS, options)
@@ -1466,6 +1472,7 @@ class Table2 {
     this.busy = false
     this.dimensionWidth = 0
     this.dropdowns = []
+    this.searchPrepped = false
     this.table = new WebsyDesigns.WebsyTable2(this.elementId, Object.assign({}, {
       onClick: this.handleClick.bind(this),
       onScroll: this.handleScroll.bind(this),      
@@ -1637,20 +1644,56 @@ class Table2 {
     this.resize()
   }
   prepDropdowns () {
-    this.table.options.columns.forEach((c, i) => {
-      if (c.searchable === true && c.searchField && this.layout[c.searchField] && this.layout[c.searchField].qListObject) {
-        this.dropdowns[c.searchField] = new WebsyDesigns.QlikPlugins.Dropdown(`${this.elementId}_columnSearch_${i}`, {
+    // this.table.options.columns.forEach((c, i) => {
+    //   if (c.searchable === true && c.searchField && this.layout[c.searchField] && this.layout[c.searchField].qListObject) {
+    //     this.dropdowns[c.searchField] = new WebsyDesigns.QlikPlugins.Dropdown(`${this.elementId}_columnSearch_${i}`, {
+    //       model: this.options.model,
+    //       path: `${c.searchField}`
+    //     })
+    //   }
+    // })
+    this.layout.qHyperCube.qDimensionInfo.forEach((d, i) => {
+      if (!this.dropdowns[`dim${i}`]) {
+        this.dropdowns[`dim${i}`] = new WebsyDesignsQlikPlugins.Dropdown(`${this.elementId}_columnSearch_${i}`, {
           model: this.options.model,
-          path: `${c.searchField}`
-        })
-      }
+          path: `dim${i}`
+        }) 
+      }      
     })
   }
+  prepSearch () {
+    this.busy = true
+    this.options.model.getProperties().then(props => {
+      console.log('props', props)
+      const patches = []
+      props.qHyperCubeDef.qDimensions.forEach((d, i) => {
+        patches.push({
+          qOp: 'add',
+          qPath: `/dim${i}`,
+          qValue: JSON.stringify({
+            qListObjectDef: {
+              qDef: d.qDef,
+              qLibraryId: d.qLibraryId
+            }
+          })
+        })
+      })
+      this.options.model.applyPatches(patches, true).then(() => {
+        this.busy = false
+        this.searchPrepped = true
+        this.render()
+      })
+    }) 
+  }
   render (pageNum = 0) {    
-    this.table.showLoading({message: 'Loading...'})
+    if (this.searchPrepped === false) {
+      this.prepSearch()
+      return 
+    }
+    this.table.showLoading({message: 'Loading...'})    
     this.options.model.getLayout().then(layout => {    
-      console.log('table layout', layout)      
       this.layout = layout
+      console.log('table layout', layout)      
       this.rowCount = pageNum * this.options.pageSize
       if (this.layout.qHyperCube.qPivotDataPages[0]) {
         this.layout.qHyperCube.qPivotDataPages = []
@@ -1678,6 +1721,9 @@ class Table2 {
         if (this.options.columnOverrides[i]) {
           c = {...c, ...this.options.columnOverrides[i]}
         }
+        c.searchable = true
+        c.searchField = `dim${i}`
+        c.onSearch = this.handleSearch.bind(this)
         return c
       })
       this.layout.qHyperCube.qMeasureInfo = this.layout.qHyperCube.qMeasureInfo.map((c, i) => {
@@ -1806,6 +1852,24 @@ class Table2 {
           } 
           else {
             c.value = c.qText || '-'
+          }
+          if (c.qAttrExps && c.qAttrExps.qValues) {
+            let t = 'qDimensionInfo'
+            let tIndex = i
+            if (i > this.layout.qHyperCube.qDimensionInfo.length - 1) {
+              t = 'qMeasureInfo'
+              tIndex -= this.layout.qHyperCube.qDimensionInfo.length
+            }
+            c.qAttrExps.qValues.forEach((a, aI) => {
+              if (a.qText && a.qText !== '') {
+                if (this.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                  c.color = a.qText
+                }
+                else if (this.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                  c.backgroundColor = a.qText
+                }
+              }
+            })
           }        
           return c
         })
@@ -2107,6 +2171,15 @@ class Table2 {
 
 if (typeof WebsyDesigns !== 'undefined') {
   WebsyDesigns.QlikPlugins = {
+    Chart,
+    Table,
+    Table2,
+    GeoMap,
+    Dropdown,
+    DatePicker,
+    KPI
+  }
+  window.WebsyDesignsQlikPlugins = {
     Chart,
     Table,
     Table2,

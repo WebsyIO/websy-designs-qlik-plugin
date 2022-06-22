@@ -15,7 +15,7 @@ class Dropdown {
       options.def = { options: {} }
     }
     this.busy = false
-    this.dropdownOptions = Object.assign({}, options.def.options || {}, {
+    this.dropdownOptions = Object.assign({}, options, options.def.options || {}, {
       onItemSelected: this.itemSelected.bind(this),
       onClearSelected: this.clearSelected.bind(this),
       onSearch: this.search.bind(this),      

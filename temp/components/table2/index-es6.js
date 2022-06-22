@@ -1,3 +1,6 @@
+/* global include Table2 */ 
+import Dropdown from '../dropdown'
+
 /* global WebsyDesigns WebsyDesignsQlikPlugins:true Dropdown getAllData */ 
 class Table2 {
   constructor (elementId, options) {
@@ -721,3 +724,6 @@ class Table2 {
     return output
   }
 }
+
+
+export default Table2

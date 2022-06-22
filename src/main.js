@@ -29,6 +29,15 @@ if (typeof WebsyDesigns !== 'undefined') {
     DatePicker,
     KPI
   }
+  window.WebsyDesignsQlikPlugins = {
+    Chart,
+    Table,
+    Table2,
+    GeoMap,
+    Dropdown,
+    DatePicker,
+    KPI
+  }
   include('./components/object-manager/index.js')
   WebsyDesigns.QlikObjectManager = ObjectManager
 }
