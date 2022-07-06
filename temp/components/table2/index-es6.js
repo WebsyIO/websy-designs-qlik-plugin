@@ -161,6 +161,10 @@ class Table2 {
       }
     }
   }
+  handleCloseSearch (id) {
+    let el = document.getElementById(id)
+    el.classList.remove('active')
+  }
   handleSort (event, column, colIndex) {
     const reverse = column.reverseSort === true
     const patchDefs = [{
@@ -213,7 +217,8 @@ class Table2 {
       if (!this.dropdowns[`dim${i}`]) {
         this.dropdowns[`dim${i}`] = new WebsyDesignsQlikPlugins.Dropdown(`${this.elementId}_columnSearch_${i}`, {
           model: this.options.model,
-          path: `dim${i}`
+          path: `dim${i}`,
+          onClose: this.handleCloseSearch
         }) 
       }      
     })
@@ -276,11 +281,16 @@ class Table2 {
       }
       this.layout.qHyperCube.qDimensionInfo = this.layout.qHyperCube.qDimensionInfo.map((c, i) => {
         if (this.options.columnOverrides[i]) {
-          c = {...c, ...this.options.columnOverrides[i]}
-        }
-        c.searchable = true
+          c = {
+            ...c, 
+            searchable: true, 
+            onSearch: this.handleSearch.bind(this),
+            onCloseSearch: this.handleCloseSearch.bind(this),
+            ...this.options.columnOverrides[i]
+          }
+        }        
         c.searchField = `dim${i}`
-        c.onSearch = this.handleSearch.bind(this)
+        
         return c
       })
       this.layout.qHyperCube.qMeasureInfo = this.layout.qHyperCube.qMeasureInfo.map((c, i) => {

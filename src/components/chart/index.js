@@ -164,9 +164,13 @@ class Chart {
     this.layout.qHyperCube.qDataPages[0].qMatrix.forEach(r => {
       let seriesIndex = seriesKeys.indexOf(r[0].qText)
       let bottomIndex = bottomKeys.indexOf(r[1].qText)
-      if (bottomIndex === -1) {
-        bottomKeys.push(r[1].qText)
-        r[1].value = r[1].qText
+      let v = r[1].qText
+      if ((this.layout.qHyperCube.qDimensionInfo[1].options || {}).scale === 'Time') {
+        v = this.fromQlikDate(r[1].qNum)
+      }
+      if (bottomIndex === -1) {        
+        bottomKeys.push(v)
+        r[1].value = v
         options.data.bottom.data.push(r[1])
       }
       if (seriesIndex === -1) {
@@ -185,12 +189,14 @@ class Chart {
       c.tooltipLabel = r[0].qText
       c.tooltipValue = c.qText
       series[seriesIndex].data.push({
-        x: { value: r[1].qText },
+        x: { value: v },
         y: c
       })      
     })
     options.data.series = series
-    console.log(options)
+    options.data.bottom.min = options.data.bottom.data[0].value
+    options.data.bottom.max = options.data.bottom.data[options.data.bottom.data.length - 1].value
+    console.log('multi dimension options', options)
     return options   
   }
   transformNoDimensions () {
@@ -376,7 +382,7 @@ class Chart {
       options.data[y2Axis].min = 0 // may need to revisit this to think about negative numbers
       options.data[y2Axis].max = Math.max(...xTotals)
     }
-    console.log('options', options, xTotals)  
+    console.log('multi measure options', options, xTotals)  
     return options
   }
 }

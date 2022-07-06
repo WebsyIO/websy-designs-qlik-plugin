@@ -262,10 +262,15 @@ var Chart = /*#__PURE__*/function () {
       this.layout.qHyperCube.qDataPages[0].qMatrix.forEach(function (r) {
         var seriesIndex = seriesKeys.indexOf(r[0].qText);
         var bottomIndex = bottomKeys.indexOf(r[1].qText);
+        var v = r[1].qText;
+
+        if ((_this5.layout.qHyperCube.qDimensionInfo[1].options || {}).scale === 'Time') {
+          v = _this5.fromQlikDate(r[1].qNum);
+        }
 
         if (bottomIndex === -1) {
-          bottomKeys.push(r[1].qText);
-          r[1].value = r[1].qText;
+          bottomKeys.push(v);
+          r[1].value = v;
           options.data.bottom.data.push(r[1]);
         }
 
@@ -287,13 +292,15 @@ var Chart = /*#__PURE__*/function () {
         c.tooltipValue = c.qText;
         series[seriesIndex].data.push({
           x: {
-            value: r[1].qText
+            value: v
           },
           y: c
         });
       });
       options.data.series = series;
-      console.log(options);
+      options.data.bottom.min = options.data.bottom.data[0].value;
+      options.data.bottom.max = options.data.bottom.data[options.data.bottom.data.length - 1].value;
+      console.log('multi dimension options', options);
       return options;
     }
   }, {
@@ -528,7 +535,7 @@ var Chart = /*#__PURE__*/function () {
         options.data[y2Axis].max = Math.max.apply(Math, xTotals);
       }
 
-      console.log('options', options, xTotals);
+      console.log('multi measure options', options, xTotals);
       return options;
     }
   }]);
@@ -2065,6 +2072,12 @@ var Table2 = /*#__PURE__*/function () {
       }
     }
   }, {
+    key: "handleCloseSearch",
+    value: function handleCloseSearch(id) {
+      var el = document.getElementById(id);
+      el.classList.remove('active');
+    }
+  }, {
     key: "handleSort",
     value: function handleSort(event, column, colIndex) {
       var reverse = column.reverseSort === true;
@@ -2126,7 +2139,8 @@ var Table2 = /*#__PURE__*/function () {
         if (!_this25.dropdowns["dim".concat(i)]) {
           _this25.dropdowns["dim".concat(i)] = new WebsyDesignsQlikPlugins.Dropdown("".concat(_this25.elementId, "_columnSearch_").concat(i), {
             model: _this25.options.model,
-            path: "dim".concat(i)
+            path: "dim".concat(i),
+            onClose: _this25.handleCloseSearch
           });
         }
       });
@@ -2219,12 +2233,14 @@ var Table2 = /*#__PURE__*/function () {
 
         _this27.layout.qHyperCube.qDimensionInfo = _this27.layout.qHyperCube.qDimensionInfo.map(function (c, i) {
           if (_this27.options.columnOverrides[i]) {
-            c = _objectSpread(_objectSpread({}, c), _this27.options.columnOverrides[i]);
+            c = _objectSpread(_objectSpread({}, c), {}, {
+              searchable: true,
+              onSearch: _this27.handleSearch.bind(_this27),
+              onCloseSearch: _this27.handleCloseSearch.bind(_this27)
+            }, _this27.options.columnOverrides[i]);
           }
 
-          c.searchable = true;
           c.searchField = "dim".concat(i);
-          c.onSearch = _this27.handleSearch.bind(_this27);
           return c;
         });
         _this27.layout.qHyperCube.qMeasureInfo = _this27.layout.qHyperCube.qMeasureInfo.map(function (c, i) {
