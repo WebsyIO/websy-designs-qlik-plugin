@@ -466,6 +466,7 @@ class Table {
       if (typeof o.qText === 'undefined') {
         if (o.qElemNo === -1) {
           o.qText = this.layout.tableTotalsLabel
+          o.name = this.layout.tableTotalsLabel
         } 
         else if (o.qElemNo === -4) {
           o.qText = ''

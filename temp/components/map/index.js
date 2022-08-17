@@ -36,8 +36,8 @@ class GeoMap {
     } 
     this.options.model.getLayout().then(layout => {
       if (layout.options) {
-        this.options = Object.assign({}, layout.options)
-        this.map.options = Object.assign({}, this.map.options, layout.options)
+        this.options = Object.assign({}, this.options, layout.options)
+        // this.map.options = Object.assign({}, this.options, this.map.options, layout.options)
       }
       if (layout.qHyperCube.qDataPages[0]) {
         if (this.geoJSON) {

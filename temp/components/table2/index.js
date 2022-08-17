@@ -310,12 +310,14 @@ class Table2 {
         }
         c.reverseSort = activeSort === i && c.qReverseSort !== true
         c.activeSort = activeSort === i
-        if (c.qSortIndicator === 'A') {
-          c.sort = 'asc'
-        }
-        else if (c.qSortIndicator === 'D') {
-          c.sort = 'desc'
-        }
+        if (this.layout.qHyperCube.qMode === 'S') {
+          if (c.qSortIndicator === 'A') {
+            c.sort = 'asc'
+          }
+          else if (c.qSortIndicator === 'D') {
+            c.sort = 'desc'
+          }
+        }        
         // if (this.options.columnOverrides[i]) {
         //   c = {...c, ...this.options.columnOverrides[i]}
         // }

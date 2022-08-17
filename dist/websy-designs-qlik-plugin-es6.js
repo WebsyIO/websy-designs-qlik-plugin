@@ -830,7 +830,9 @@ var Dropdown = /*#__PURE__*/function () {
       onClearSelected: this.clearSelected.bind(this),
       onSearch: this.search.bind(this),
       onCancelSearch: this.cancelSearch.bind(this),
-      onScroll: this.handleScroll.bind(this)
+      onScroll: this.handleScroll.bind(this),
+      onOpen: this.onOpen.bind(this),
+      onClose: this.onClose.bind(this)
     });
     this.dropdown = new _websyDesignsEs["default"].WebsyDropdown(elementId, this.dropdownOptions);
     this.render();
@@ -906,6 +908,11 @@ var Dropdown = /*#__PURE__*/function () {
       this.options.model.clearSelections("/".concat(this.options.path, "/qListObjectDef").replace(/\/\//g, '/'));
     }
   }, {
+    key: "onClose",
+    value: function onClose(elementId) {
+      this.options.model.endSelections(true);
+    }
+  }, {
     key: "handleScroll",
     value: function handleScroll(event) {
       var _this14 = this;
@@ -930,6 +937,12 @@ var Dropdown = /*#__PURE__*/function () {
       } else {
         this.options.model.selectListObjectValues("/".concat(this.options.path, "/qListObjectDef").replace(/\/\//g, '/'), [item.qElemNumber], this.dropdown.options.multiSelect === true);
       }
+    }
+  }, {
+    key: "onOpen",
+    value: function onOpen() {
+      console.log('dropdown open');
+      this.options.model.beginSelections(["/".concat(this.options.path, "/qListObjectDef").replace(/\/\//g, '/')]);
     }
   }, {
     key: "open",
@@ -1158,8 +1171,7 @@ var GeoMap = /*#__PURE__*/function () {
 
       this.options.model.getLayout().then(function (layout) {
         if (layout.options) {
-          _this18.options = _extends({}, layout.options);
-          _this18.map.options = _extends({}, _this18.map.options, layout.options);
+          _this18.options = _extends({}, _this18.options, layout.options); // this.map.options = Object.assign({}, this.options, this.map.options, layout.options)
         }
 
         if (layout.qHyperCube.qDataPages[0]) {
@@ -1807,6 +1819,7 @@ var Table = /*#__PURE__*/function () {
         if (typeof o.qText === 'undefined') {
           if (o.qElemNo === -1) {
             o.qText = this.layout.tableTotalsLabel;
+            o.name = this.layout.tableTotalsLabel;
           } else if (o.qElemNo === -4) {
             o.qText = '';
             o.qType = 'T';
@@ -2263,10 +2276,12 @@ var Table2 = /*#__PURE__*/function () {
           c.reverseSort = activeSort === i && c.qReverseSort !== true;
           c.activeSort = activeSort === i;
 
-          if (c.qSortIndicator === 'A') {
-            c.sort = 'asc';
-          } else if (c.qSortIndicator === 'D') {
-            c.sort = 'desc';
+          if (_this27.layout.qHyperCube.qMode === 'S') {
+            if (c.qSortIndicator === 'A') {
+              c.sort = 'asc';
+            } else if (c.qSortIndicator === 'D') {
+              c.sort = 'desc';
+            }
           } // if (this.options.columnOverrides[i]) {
           //   c = {...c, ...this.options.columnOverrides[i]}
           // }

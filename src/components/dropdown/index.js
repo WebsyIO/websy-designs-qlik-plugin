@@ -20,7 +20,9 @@ class Dropdown {
       onClearSelected: this.clearSelected.bind(this),
       onSearch: this.search.bind(this),      
       onCancelSearch: this.cancelSearch.bind(this),
-      onScroll: this.handleScroll.bind(this)
+      onScroll: this.handleScroll.bind(this),
+      onOpen: this.onOpen.bind(this),
+      onClose: this.onClose.bind(this)
     })
     this.dropdown = new WebsyDesigns.WebsyDropdown(elementId, this.dropdownOptions)
     this.render()
@@ -77,6 +79,9 @@ class Dropdown {
   clearSelected () {
     this.options.model.clearSelections(`/${this.options.path}/qListObjectDef`.replace(/\/\//g, '/'))
   }
+  onClose (elementId) {
+    this.options.model.endSelections(true)
+  }
   handleScroll (event) {    
     if (event.target.scrollTop / (event.target.scrollHeight - event.target.clientHeight) > 0.7) {
       this.checkForData().then(() => {
@@ -99,7 +104,11 @@ class Dropdown {
       this.options.model.selectListObjectValues(`/${this.options.path}/qListObjectDef`.replace(/\/\//g, '/'), [item.qElemNumber], this.dropdown.options.multiSelect === true)
     }
   }
-  open () {
+  onOpen () {
+    console.log('dropdown open')    
+    this.options.model.beginSelections([`/${this.options.path}/qListObjectDef`.replace(/\/\//g, '/')])
+  }
+  open () {    
     this.dropdown.open()
   }
   render () {
@@ -114,7 +123,7 @@ class Dropdown {
         this.rowsLoaded = listObject.qDataPages[0].qMatrix.length
         this.checkForData().then(() => {        
           if (listObject.qDataPages[0]) {
-            this.dropdown.options.label = listObject.qDimensionInfo.qFallbackTitle                    
+            this.dropdown.options.label = listObject.qDimensionInfo.qFallbackTitle                                
             this.dropdown.data = this.transformData(variableValue)
           }
         })
