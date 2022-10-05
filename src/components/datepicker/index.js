@@ -63,6 +63,9 @@ class DatePicker {
     })
   }
   toQlikDate (d) {
+    if (typeof d === 'number') {
+      d = new Date(d)
+    }
     let day = d.getDate()
     if (day.toString().length === 1) {
       day = `0${day}`

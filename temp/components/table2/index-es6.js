@@ -343,8 +343,8 @@ class Table2 {
         .filter(c => !c.qError)        
       let columnParamValues = activeDimensions
         .filter((c, i) => (this.layout.qHyperCube.qMode === 'S' || i < this.layout.qHyperCube.qNoOfLeftDims))
-        .map(c => ({ 
-          value: new Array(c.qApprMaxGlyphCount).fill('x').join(''),
+        .map((c, i) => ({ 
+          value: new Array(Math.max(c.qApprMaxGlyphCount, this.layout.qHyperCube.qDimensionInfo[i].qFallbackTitle.length)).fill('x').join(''),
           width: c.width || null
         }))
       let measureLabel = activeDimensions.pop()
@@ -547,7 +547,8 @@ class Table2 {
         row.push(page.qData[r][i])
       }      
       for (let c = 0; c < row.length; c++) {
-        row[c].pos = 'Data'         
+        row[c].pos = 'Data'  
+        row[c].style = 'text-align: right;'       
         row[c].width = `${this.columnParams.cellWidths[(this.options.freezeColumns || this.layout.qHyperCube.qNoOfLeftDims) + c] || this.columnParams.cellWidths[this.columnParams.cellWidths.length - 1]}px`
         if (row[c].qAttrExps && row[c].qAttrExps.qValues && row[c].qAttrExps.qValues[0] && row[c].qAttrExps.qValues[0].qText) {
           row[c].backgroundColor = row[c].qAttrExps.qValues[0].qText
@@ -560,7 +561,7 @@ class Table2 {
         if (['T', 'E'].indexOf(row[c].qType) !== -1 || ['T'].indexOf(lastTop.qType) !== -1) {
           row[c].qType = 'T'
         }                           
-        row[c].value = row[c].qText                
+        row[c].value = row[c].qText || ''            
       }
       if (leftNodes[r]) {
         row = leftNodes[r].concat(row)
@@ -601,8 +602,8 @@ class Table2 {
       let o = Object.assign({}, input)
       o.level = level
       o.pos = 'Left'
-      o.value = o.qText
-      input.value = input.qText
+      o.value = o.qText || ''
+      input.value = input.qText || ''
       visibleLeftCount = Math.max(visibleLeftCount, level + 1)
       o.childCount = o.qSubNodes.length      
       if (o.qAttrExps && o.qAttrExps.qValues && o.qAttrExps.qValues[0] && o.qAttrExps.qValues[0].qText) {
@@ -615,7 +616,7 @@ class Table2 {
       delete o.qSubNodes  
       if (typeof o.qText === 'undefined') {
         if (o.qElemNo === -1) {
-          o.qText = 'Totals??'
+          o.qText = 'Totals'
         } 
         else if (o.qElemNo === -4) {
           o.qText = ''
@@ -653,7 +654,8 @@ class Table2 {
       o.rowIndex = topCounter
       o.topNode = true
       o.isHeader = true
-      o.name = o.qText
+      o.style = 'text-align: center;'       
+      o.name = o.qText || ''
       if (!o.font) {
         o.font = {}
       }

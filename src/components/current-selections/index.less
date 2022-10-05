@@ -1,0 +1,59 @@
+.websy-selection-bar {
+  box-sizing: border-box;
+  display: flex;
+  flex-flow: row nowrap;
+  width: 100%;
+  height: 40px;
+  background-color: rgb(250, 250, 250);
+  border-bottom: 1px solid rgba(0, 0, 0, .15);
+  .left-group {
+    display: flex;
+    justify-content: space-between;
+  }
+  .back, .forward, .clear-all {
+    background-color: #ffffff;
+    width: 40px;
+    height: 39px;
+    border-right: 1px solid #cccccc;
+    text-align: center;
+    &:hover {
+      background-color: #f2f2f2;
+    }
+    svg {
+      pointer-events: none;
+      width: 20px;
+      height: 20px;
+      position: relative;
+      top: 10px;
+    }
+  }
+  .clear-all {
+    svg {
+      width: 25px;
+      height: 25px;
+      top: 8px;
+    }
+  }
+  .no-selections {
+    display: none;
+    height: 40px;
+    line-height: 40px;
+    padding-left: 15px;
+    &.active {
+      display: block;
+    }
+  }
+  .selection-tabs {
+    width: 180px;
+    padding: 0 5px;
+    box-sizing: border-box;
+    background-color: #ffffff;
+    border-right: 1px solid #cccccc;
+  }
+  .selections-group {
+    display: none;
+    &.active {
+      display: flex;
+    }
+  }
+}

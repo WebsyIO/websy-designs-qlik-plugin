@@ -29,7 +29,9 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 /* global
   include
   WebsyDesigns
+  Bookmarks
   Chart
+  CurrentSelections
   Table
   Table2
   GeoMap
@@ -39,10 +41,440 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
   ObjectManager
 */
 
+/* global Bookmark */
+var Bookmarks = /*#__PURE__*/function () {
+  function Bookmarks(elementId, options) {
+    _classCallCheck(this, Bookmarks);
+
+    this.elementId = elementId;
+    var DEFAULTS = {};
+    this.options = _extends({}, DEFAULTS, options);
+    var el = document.getElementById(this.elementId);
+
+    if (el) {
+      el.addEventListener('click', this.handleClick.bind(this));
+      el.addEventListener('keyup', this.handleKeyUp.bind(this));
+      el.addEventListener('change', this.handleChange.bind(this));
+      el.addEventListener('contextmenu', this.handleContextMenu.bind(this));
+      var html = "<div>\n      <svg xmlns='http://www.w3.org/2000/svg' class='bookmarkBtn' viewBox='0 0 512 512'>\n        <title>Bookmark</title>\n        <path d='M352 48H160a48 48 0 00-48 48v368l144-128 144 128V96a48 48 0 00-48-48z' fill='none' stroke='currentColor'\n          stroke-linecap='round' stroke-linejoin='round' stroke-width='32' />\n        </svg>\n\n        <div class='bookmarkPopup' id='bookmarkPopup'></div>\n        <div class='bookmarkContainer' id='bookmarkContainer'>\n          <div class='bookmark-topline'>\n            <span class=\"heading\">Bookmarks</span><button class='createNew'>Create new bookmark</button>\n          </div>\n          <div class='btn'>\n          </div>\n          <div style='position: relative;'>\n            <input class='search' type='text' id=\"myInput\" placeholder=\"Search\">\n            <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"ionicon\" viewBox=\"0 0 512 512\"><title>Search</title><path d=\"M221.09 64a157.09 157.09 0 10157.09 157.09A157.1 157.1 0 00221.09 64z\" fill=\"none\" stroke=\"currentColor\" stroke-miterlimit=\"10\" stroke-width=\"32\"/><path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-miterlimit=\"10\" stroke-width=\"32\" d=\"M338.29 338.29L448 448\"/></svg>            \n          </div>\n          <hr>\n          <div class='public'>\n          <div class=\"public-heading-caret\">\n              <svg class='public-caret caret' xmlns='http://www.w3.org/2000/svg' viewbox='0 0 512 512'>\n                <title>Caret Down</title>\n                <path d='M98 190.06l139.78 163.12a24 24 0 0036.44 0L414 190.06c13.34-15.57 2.28-39.62-18.22-39.62h-279.6c-20.5 0-31.56 24.05-18.18 39.62z' />\n              </svg>\n\n              <span class=\"heading\">Public bookmarks <span id=\"publicCount\">(0)</span></span>\n              </div>\n              <div id=\"public-placeholder\" class=\"active\"><p class='public-text'>You have no public bookmarks</p>\n              <p class='public-text'>Right-click on a bookmark and select 'Make public'.</p>\n            \n          </div>\n        </div>\n          <div class='my-bookmarks'>\n\n          <div class=\"heading-caret\">\n            <svg class='myBookmarks-caret caret' xmlns='http://www.w3.org/2000/svg' viewbox='0 0 512 512'>\n              <title>Caret Down</title>\n              <path\n                d='M98 190.06l139.78 163.12a24 24 0 0036.44 0L414 190.06c13.34-15.57 2.28-39.62-18.22-39.62h-279.6c-20.5 0-31.56 24.05-18.18 39.62z' />\n            </svg>\n            <span class=\"heading\">My bookmarks <span id=\"myBookmarksCount\">(0)</span></span>\n            </div>\n\n            <div id=\"myBookmarks-placeholder\" class=\"active\">\n            </div>\n          </div>\n        </div>\n      </div>\n\n      <div class='createNewPopup' id='createForm'>\n    <div class='createTopline'>\n    <span class=\"heading\">Create bookmark</span>\n    <span class='closeCreate'><svg xmlns='http://www.w3.org/2000/svg' viewbox='0 0 512 512'>\n    <title>Close</title>\n    <path fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='32'\n      d='M368 368L144 144M368 144L144 368' />\n  </svg></span>\n\n    </div>\n    <hr>\n    <div class=\"create-input\">\n    <label for='bookmarkName' class=\"title\">Title</label>\n      <input type='text' class=\"bookmark-name\" id='bookmarkName' name='bookmarkName'>\n      <label for='bookmarkDescription' class=\"description\">Description <span class='optional'>(optional)</span></label><br>\n      <input type='text' id='bookmarkDescription' name='bookmarkDescription'>\n      <div class=\"create-flex\"><button type=\"button\" disabled class='createSubmit' id='createSubmit'>Create</button>\n      </div>\n    </div>\n  </div>\n    ";
+      el.innerHTML = html;
+      this.render();
+    }
+  }
+
+  _createClass(Bookmarks, [{
+    key: "render",
+    value: function render(searchText) {
+      var publicCount = document.getElementById('publicCount');
+      var publicBookmarks = [];
+      var myBookmarksCount = document.getElementById('myBookmarksCount');
+      var myBookmarks = [];
+      this.options.app.createSessionObject({
+        'qInfo': {
+          'qId': 'BookmarkList',
+          'qType': 'BookmarkList'
+        },
+        'qBookmarkListDef': {
+          'qType': 'bookmark',
+          'qData': {
+            'title': '/qMetaDef/title',
+            'description': '/qMetaDef/description',
+            'sheetId': '/sheetId',
+            'selectionFields': '/selectionFields',
+            'creationDate': '/creationDate'
+          }
+        }
+      }).then(function (model) {
+        model.getLayout().then(function (layout) {
+          layout.qBookmarkList.qItems.forEach(function (d) {
+            if (d.qMeta.published === true) {
+              if (searchText) {
+                if (d.qMeta.title.toLowerCase().indexOf(searchText.toLowerCase()) !== -1) {
+                  publicBookmarks.push(d);
+                }
+              } else {
+                publicBookmarks.push(d);
+              }
+            } else {
+              if (searchText) {
+                if (d.qMeta.title.toLowerCase().indexOf(searchText.toLowerCase()) !== -1) {
+                  myBookmarks.push(d);
+                }
+              } else {
+                myBookmarks.push(d);
+              }
+            }
+          });
+          var publicHtml = "<div id=\"info-popup-mask\" class=\"info-popup-mask\"></div>";
+          publicBookmarks.forEach(function (bookmark) {
+            console.log('public', bookmark);
+            publicHtml += "\n              <div class=\"public-li\" id=\"public-li\" data-bookmark=\"".concat(bookmark.qInfo.qId, "\">\n              <span class=\"bookmark-text\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\">").concat(bookmark.qMeta.title, "</span>\n              <div class=\"date-and-i\">\n              <span class=\"bookmark-text\">").concat(new Date(bookmark.qMeta.createdDate).toLocaleString().slice(0, 10), "</span>\n              <span class=\"infoBtn\">\n               <svg data-bookmark=\"").concat(bookmark.qInfo.qId, "\" class=\"i-icon-public\" id=\"i-icon-public\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\">\n               <title>Information Circle</title><path d=\"M256 56C145.72 56 56 145.72 56 256s89.72 200 200 200 200-89.72 200-200S366.28 \n               56 256 56zm0 82a26 26 0 11-26 26 26 26 0 0126-26zm48 226h-88a16 16 0 010-32h28v-88h-16a16 16 0 010-32h32a16 16 0 0116 \n               16v104h28a16 16 0 010 32z\"/>\n               </svg>\n               </span>\n               </div>\n              </div>\n             \n              <div class=\"info-popup\" id=\"info-popup-").concat(bookmark.qInfo.qId, "\">\n              <div class=\"info-topline\" id=\"info-topline-").concat(bookmark.qInfo.qId, "\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\">\n              <span class=\"description-heading\" id=\"description-heading\">").concat(bookmark.qMeta.description, "</span>\n              </div>");
+
+            if (bookmark.qMeta.privileges.indexOf('update') !== -1) {
+              publicHtml += "\n              <svg xmlns=\"http://www.w3.org/2000/svg\" data-bookmark=\"".concat(bookmark.qInfo.qId, "\" class=\"edit-info\" id=\"edit-info-").concat(bookmark.qInfo.qId, "\" viewBox=\"0 0 512 512\">\n              <title>Create</title><path d=\"M384 224v184a40 40 0 01-40 40H104a40 40 0 01-40-40V168a40 40 0 0140-40h167.48\"\n               fill=\"none\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/>\n               <path d=\"M459.94 53.25a16.06 16.06 0 00-23.22-.56L424.35 65a8 8 0 000 11.31l11.34 11.32a8 8 0 0011.34\n                0l12.06-12c6.1-6.09 6.67-16.01.85-22.38zM399.34 90L218.82 270.2a9 9 0 00-2.31 3.93L208.16 299a3.91 3.91\n                 0 004.86 4.86l24.85-8.35a9 9 0 003.93-2.31L422 112.66a9 9 0 000-12.66l-9.95-10a9 9 0 00-12.71 0z\"/>\n                 </svg>\n                 </div>\n                 <div class=\"edit-topline\">\n                 <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"tick-icon\" id=\"tick-icon\" viewBox=\"0 0 512 512\">\n                 <title>Checkmark Circle</title><path d=\"M448 256c0-106-86-192-192-192S64 150 64 256s86 192 192 192 192-86 192-192z\" fill=\"none\" stroke=\"currentColor\" stroke-miterlimit=\"10\" stroke-width=\"32\"/><path fill=\"none\"\n                  stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" \n                  stroke-width=\"32\" d=\"M352 176L217.6 336 160 272\"/>\n                  </svg>");
+
+              if (bookmark.qMeta.privileges.indexOf('delete') !== -1) {
+                publicHtml += "\n                  <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"trash-icon\" data-bookmark=\"".concat(bookmark.qInfo.qId, "\" id=\"trashIcon-").concat(bookmark.qInfo.qId, "\" viewBox=\"0 0 512 512\"><title>Trash</title>\n                  <path d=\"M296 64h-80a7.91 7.91 0 00-8 8v24h96V72a7.91 7.91 0 00-8-8z\" fill=\"none\"/>\n                  <path d=\"M432 96h-96V72a40 40 0 00-40-40h-80a40 40 0 00-40 40v24H80a16 16 0 000 32h17l19 304.92c1.42\n                   26.85 22 47.08 48 47.08h184c26.13 0 46.3-19.78 48-47l19-305h17a16 16 0 000-32zM192.57 416H192a16 16 0 \n                   01-16-15.43l-8-224a16 16 0 1132-1.14l8 224A16 16 0 01192.57 416zM272 400a16 16 0 01-32 0V176a16 16 0 0132\n                    0zm32-304h-96V72a7.91 7.91 0 018-8h80a7.91 7.91 0 018 8zm32 304.57A16 16 0 01320 416h-.58A16 16 0 01304 \n                    399.43l8-224a16 16 0 1132 1.14z\"/>\n                    </svg>\n                  </div>\n                  ");
+              }
+
+              publicHtml += "\n                 <div id=\"edit-inputs-".concat(bookmark.qInfo.qId, "\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\" class=\"edit-inputs\">\n                 <input type=\"text\" id=\"edit-title-").concat(bookmark.qInfo.qId, "\" placeholder=\"Bookmark title\"  value=\"").concat(bookmark.qMeta.title, "\"/>\n                 <input type=\"text\" id=\"edit-description-").concat(bookmark.qInfo.qId, "\" placeholder=\"Bookmark description\" value=\"").concat(bookmark.qMeta.description, "\"  />\n                 </div>");
+            }
+
+            publicHtml += "\n              <span class=\"selections\"><b>Selections:</b> ".concat(bookmark.qData.selectionFields, " </span>\n              <div class=\"info-copy\">\n              <span class=\"set-expression\">Set expression</span>\n              <input type=\"text\" READONLY class=\"info-input\" id=\"infoInput\" value=\"").concat(bookmark.qData.selectionFields, "\" />\n            \n              <div class=\"flex\">\n              <div class=\"copied\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\" id=\"copied-").concat(bookmark.qInfo.qId, "\"><h5>copied to clipboard</h5></div>\n              <button class=\"copy\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\" id=\"copyBtn-").concat(bookmark.qInfo.qId, "\" >Copy</button>\n              </div>\n              </div>\n              </div>\n              ");
+
+            if (bookmark.qMeta.privileges.indexOf('publish') !== -1) {
+              publicHtml += "\n                <div class=\"right-click-popup\" id=\"rightClickPopup-".concat(bookmark.qInfo.qId, "\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\">\n                <ul class=\"right-click-menu\">\n                  <li class=\"li-item\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\">Apply bookmark</li>\n                  <li class=\"li-item\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\">Publish</li>\n                  <li class=\"li-item\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\">Delete</li>\n                </ul>\n                </div>\n                ");
+            }
+          });
+          var bookmarkHtml = '';
+          myBookmarks.forEach(function (bookmark) {
+            console.log('my bookmark', bookmark);
+            var createDate = new Date();
+
+            if (bookmark.qMeta.createdDate) {
+              createDate = new Date(bookmark.qMeta.createdDate);
+            }
+
+            bookmarkHtml += "\n              <div class=\"myBookmarks-li\" id=\"myBookmarks-li\" data-bookmark=\"".concat(bookmark.qInfo.qId, "\">\n                <span class=\"bookmark-text data-bookmark=\"").concat(bookmark.qInfo.qId, "\">").concat(bookmark.qMeta.title, "</span>\n                <div class=\"date-and-i\">\n                <span class=\"bookmark-text\">").concat(new Date(bookmark.qMeta.createdDate).toLocaleString().slice(0, 10), "</span>\n                <span class=\"infoBtn\">\n                <svg data-bookmark=\"").concat(bookmark.qInfo.qId, "\" class=\"i-icon-my\" id=\"i-icon-my\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\">\n                <title>Information Circle</title><path d=\"M256 56C145.72 56 56 145.72 56 256s89.72 200 200 200 200-89.72 200-200S366.28 \n                56 256 56zm0 82a26 26 0 11-26 26 26 26 0 0126-26zm48 226h-88a16 16 0 010-32h28v-88h-16a16 16 0 010-32h32a16 16 0 0116 \n                16v104h28a16 16 0 010 32z\"/>\n                </svg>\n                </span>\n                </div>\n                </div>\n              \n                <div class=\"info-popup\" id=\"info-popup-").concat(bookmark.qInfo.qId, "\">\n                <div class=\"info-topline\" id=\"info-topline-").concat(bookmark.qInfo.qId, "\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\">\n                <span class=\"description-heading\" id=\"description-heading\">").concat(bookmark.qMeta.description, "</span>");
+
+            if (bookmark.qMeta.privileges.indexOf('update') !== -1) {
+              bookmarkHtml += "\n                <svg xmlns=\"http://www.w3.org/2000/svg\" data-bookmark=\"".concat(bookmark.qInfo.qId, "\" class=\"edit-info\" id=\"edit-info-").concat(bookmark.qInfo.qId, "\" viewBox=\"0 0 512 512\">\n                <title>Create</title><path d=\"M384 224v184a40 40 0 01-40 40H104a40 40 0 01-40-40V168a40 40 0 0140-40h167.48\"\n                 fill=\"none\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/>\n                 <path d=\"M459.94 53.25a16.06 16.06 0 00-23.22-.56L424.35 65a8 8 0 000 11.31l11.34 11.32a8 8 0 0011.34\n                  0l12.06-12c6.1-6.09 6.67-16.01.85-22.38zM399.34 90L218.82 270.2a9 9 0 00-2.31 3.93L208.16 299a3.91 3.91\n                   0 004.86 4.86l24.85-8.35a9 9 0 003.93-2.31L422 112.66a9 9 0 000-12.66l-9.95-10a9 9 0 00-12.71 0z\"/>\n                   </svg>\n                   </div>\n                   <div class=\"edit-topline\">\n                   <svg xmlns=\"http://www.w3.org/2000/svg\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\" class=\"tick-icon\" id=\"tick-icon-").concat(bookmark.qInfo.qId, "\" viewBox=\"0 0 512 512\">\n                   <title>Checkmark Circle</title><path d=\"M448 256c0-106-86-192-192-192S64 150 64 256s86 192 192 192 192-86 192-192z\" fill=\"none\" stroke=\"currentColor\" stroke-miterlimit=\"10\" stroke-width=\"32\"/><path fill=\"none\"\n                    stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" \n                    stroke-width=\"32\" d=\"M352 176L217.6 336 160 272\"/>\n                    </svg>");
+
+              if (bookmark.qMeta.privileges.indexOf('delete') !== -1) {
+                bookmarkHtml += "\n                    <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"trash-icon\" data-bookmark=\"".concat(bookmark.qInfo.qId, "\" id=\"trashIcon-").concat(bookmark.qInfo.qId, "\" viewBox=\"0 0 512 512\"><title>Trash</title>\n                    <path d=\"M296 64h-80a7.91 7.91 0 00-8 8v24h96V72a7.91 7.91 0 00-8-8z\" fill=\"none\"/>\n                    <path d=\"M432 96h-96V72a40 40 0 00-40-40h-80a40 40 0 00-40 40v24H80a16 16 0 000 32h17l19 304.92c1.42\n                     26.85 22 47.08 48 47.08h184c26.13 0 46.3-19.78 48-47l19-305h17a16 16 0 000-32zM192.57 416H192a16 16 0 \n                     01-16-15.43l-8-224a16 16 0 1132-1.14l8 224A16 16 0 01192.57 416zM272 400a16 16 0 01-32 0V176a16 16 0 0132\n                      0zm32-304h-96V72a7.91 7.91 0 018-8h80a7.91 7.91 0 018 8zm32 304.57A16 16 0 01320 416h-.58A16 16 0 01304 \n                      399.43l8-224a16 16 0 1132 1.14z\"/>\n                      </svg>\n                    </div>\n                    ");
+              }
+
+              bookmarkHtml += "\n                   <div id=\"edit-inputs-".concat(bookmark.qInfo.qId, "\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\" class=\"edit-inputs\">\n                   <input type=\"text\" id=\"edit-title-").concat(bookmark.qInfo.qId, "\" placeholder=\"Bookmark title\" value=\"").concat(bookmark.qMeta.title, "\"/>\n                   <input type=\"text\" id=\"edit-description-").concat(bookmark.qInfo.qId, "\" placeholder=\"Bookmark description\" value=\"").concat(bookmark.qMeta.description, "\"  />\n                   </div>");
+            }
+
+            bookmarkHtml += "\n              <span class=\"selections\"><b>Selections:</b> ".concat(bookmark.qData.selectionFields, " </span>\n              <div class=\"info-copy\">\n              <span class=\"set-expression\">Set expression</span>\n              <input type=\"text\" READONLY class=\"info-input\" value=\"").concat(bookmark.qData.selectionFields, "\" />\n              <div class=\"flex\">\n              <div class=\"copied\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\" id=\"copied\"><h5>copied to clipboard</h5></div>\n              <button class=\"copy\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\" id=\"copyBtn-").concat(bookmark.qInfo.qId, "\" >Copy</button>\n              </div>\n              </div>\n              </div>\n              ");
+
+            if (bookmark.qMeta.privileges.indexOf('publish') !== -1) {
+              bookmarkHtml += "\n                      <div class=\"right-click-popup\" id=\"rightClickPopup-".concat(bookmark.qInfo.qId, "\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\">\n                      <div class=\"right-click-menu\">\n                        <p class=\"li-item\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\">Apply bookmark</p>\n                        <p class=\"li-item\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\">Publish</p>\n                        <p class=\"li-item\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\">Delete</p>\n                      </div>\n                      </div>\n                      ");
+            }
+          });
+          var publicPlaceholder = document.getElementById('public-placeholder');
+          publicPlaceholder.innerHTML = publicHtml;
+          var myBookmarksPlaceholder = document.getElementById('myBookmarks-placeholder');
+          myBookmarksPlaceholder.innerHTML = bookmarkHtml;
+          publicCount.textContent = "(" + publicBookmarks.length + ")";
+          myBookmarksCount.textContent = "(" + myBookmarks.length + ")";
+        });
+      });
+    }
+  }, {
+    key: "handleKeyUp",
+    value: function handleKeyUp(event) {
+      var bookmarkName = document.getElementById('bookmarkName').value;
+
+      if (event.target.classList.contains('search')) {
+        this.searchFunction();
+      }
+
+      if (event.target.classList.contains('bookmark-name')) {
+        if (bookmarkName.length === 0) {
+          this.disableCreate();
+        } else {
+          this.enableCreate();
+        }
+      }
+    }
+  }, {
+    key: "handleClick",
+    value: function handleClick(event) {
+      var _this = this;
+
+      var bookmarkTitle = document.getElementById('bookmarkName');
+      var bookmarkDescription = document.getElementById('bookmarkDescription');
+
+      if (event.target.classList.contains('bookmarkBtn')) {
+        this.openForm();
+      }
+
+      if (event.target.classList.contains('bookmarkPopup')) {
+        this.closeForm();
+        this.closeBookmark();
+        var infoList = Array.from(document.getElementsByClassName('info-popup'));
+        infoList.forEach(function (e) {
+          e.classList.remove('active');
+        });
+        var mask = document.getElementById('info-popup-mask');
+        mask.classList.remove('active');
+      }
+
+      if (event.target.classList.contains('createNew')) {
+        this.createNewBookmark();
+      }
+
+      if (event.target.classList.contains('closeCreate')) {
+        var bookmarkBackground = document.getElementById('bookmarkPopup');
+        bookmarkBackground.style.backgroundColor = 'transparent';
+        this.closeBookmark();
+      }
+
+      if (event.target.classList.contains('public-heading-caret')) {
+        this.closePublicUL();
+      }
+
+      if (event.target.classList.contains('heading-caret')) {
+        this.closeMyBookmarksUL();
+      }
+
+      if (event.target.classList.contains('createSubmit')) {
+        var _bookmarkBackground = document.getElementById('bookmarkPopup');
+
+        _bookmarkBackground.style.backgroundColor = 'transparent';
+        this.options.app.createBookmark({
+          qInfo: {
+            qType: 'bookmark'
+          },
+          qMetaDef: {
+            title: "".concat(bookmarkTitle.value),
+            description: "".concat(bookmarkDescription.value)
+          }
+        }).then(function () {
+          document.getElementById('bookmarkName').value = '';
+
+          _this.render();
+        });
+        this.closeBookmark();
+      }
+
+      if (event.target.classList.contains('trash-icon')) {
+        var bookmarkId = event.target.getAttribute('data-bookmark');
+        this.options.app.destroyBookmark(bookmarkId).then(function () {
+          _this.render();
+        });
+      }
+
+      if (event.target.classList.contains('i-icon-public')) {
+        this.toggleInfo(event);
+      }
+
+      if (event.target.classList.contains('i-icon-my')) {
+        this.toggleInfo(event);
+      }
+
+      if (event.target.classList.contains('info-popup-mask')) {
+        var _infoList = Array.from(document.getElementsByClassName('info-popup'));
+
+        _infoList.forEach(function (e) {
+          e.classList.remove('active');
+        });
+
+        var _mask = document.getElementById('info-popup-mask');
+
+        _mask.classList.remove('active');
+      }
+
+      if (event.target.classList.contains('edit-info')) {
+        this.editInfo(event);
+        this.hideInfoTopline(event);
+        this.showTickIcon(event);
+        this.showTrashIcon(event);
+      }
+
+      if (event.target.classList.contains('tick-icon')) {
+        var _bookmarkId = event.target.getAttribute('data-bookmark');
+
+        var editTitle = document.getElementById("edit-title-".concat(_bookmarkId));
+        var editDescription = document.getElementById("edit-description-".concat(_bookmarkId));
+        this.options.app.getBookmark(_bookmarkId).then(function (result) {
+          result.getProperties().then(function (props) {
+            props.qMetaDef.title = editTitle.value;
+            props.qMetaDef.description = editDescription.value;
+            result.setProperties(props);
+
+            _this.render();
+          });
+        });
+      }
+
+      if (event.target.classList.contains('public-li') || event.target.classList.contains('myBookmarks-li')) {
+        var _bookmarkId2 = event.target.getAttribute('data-bookmark');
+
+        this.options.app.applyBookmark(_bookmarkId2).then(function (result) {
+          console.log(result);
+        });
+        this.closeForm();
+      }
+
+      if (event.target.classList.contains('copy')) {
+        this.copyToClipboard(event);
+        this.toggleCopied(event);
+      }
+    }
+  }, {
+    key: "handleChange",
+    value: function handleChange(event) {
+      if (event.target.classList.contains('search')) {
+        this.render(event.target.value);
+      }
+    }
+  }, {
+    key: "searchFunction",
+    value: function searchFunction() {
+      var input, filter;
+      input = document.getElementById('myInput');
+      filter = input.value.toLowerCase();
+      this.render(filter);
+    }
+  }, {
+    key: "openForm",
+    value: function openForm() {
+      var myForm = document.getElementById('bookmarkPopup');
+
+      if (myForm) {
+        myForm.style.display = 'block';
+      }
+
+      var bookmarkContainer = document.getElementById('bookmarkContainer');
+
+      if (bookmarkContainer) {
+        bookmarkContainer.style.display = 'block';
+      }
+    }
+  }, {
+    key: "closeForm",
+    value: function closeForm() {
+      var myForm = document.getElementById('bookmarkPopup');
+      myForm.style.display = 'none';
+      var bookmarkContainer = document.getElementById('bookmarkContainer');
+
+      if (bookmarkContainer) {
+        bookmarkContainer.style.display = 'none';
+      }
+    }
+  }, {
+    key: "createNewBookmark",
+    value: function createNewBookmark() {
+      var createNew = document.getElementById('createForm');
+      var bookmarkBackground = document.getElementById('bookmarkPopup');
+      var bookmarkContainer = document.getElementById('bookmarkContainer');
+      createNew.style.display = 'flex';
+      bookmarkBackground.style.backgroundColor = '#bdbdbd';
+      bookmarkContainer.style.opacity = '.4';
+    }
+  }, {
+    key: "copyToClipboard",
+    value: function copyToClipboard(event) {
+      var bookmarkId = event.target.getAttribute('data-bookmark');
+      var copyText = document.getElementById('infoInput');
+      var copyBtn = document.getElementById("copyBtn-".concat(bookmarkId));
+      copyText.select();
+      navigator.clipboard.writeText(copyText.value);
+    }
+  }, {
+    key: "toggleCopied",
+    value: function toggleCopied(event) {
+      var bookmarkId = event.target.getAttribute('data-bookmark');
+      var inputBox = document.getElementById("copied-".concat(bookmarkId));
+      inputBox.classList.toggle('active');
+      setTimeout(this.toggleCopied, 3000);
+    }
+  }, {
+    key: "closeBookmark",
+    value: function closeBookmark() {
+      var createNew = document.getElementById('createForm');
+      createNew.style.display = 'none';
+      var bookmarkContainer = document.getElementById('bookmarkContainer');
+      bookmarkContainer.style.opacity = '1';
+    }
+  }, {
+    key: "closePublicUL",
+    value: function closePublicUL() {
+      var publicItem = document.getElementById('public-placeholder');
+      publicItem.classList.toggle('active');
+    }
+  }, {
+    key: "closeMyBookmarksUL",
+    value: function closeMyBookmarksUL() {
+      var myBookmarksItem = document.getElementById('myBookmarks-placeholder');
+      myBookmarksItem.classList.toggle('active');
+    }
+  }, {
+    key: "toggleInfo",
+    value: function toggleInfo(event) {
+      var infoList = Array.from(document.getElementsByClassName('info-popup'));
+      infoList.forEach(function (e) {
+        e.classList.remove('active');
+      });
+      var bookmarkId = event.target.getAttribute('data-bookmark');
+      var toggleInfo = document.getElementById("info-popup-".concat(bookmarkId));
+      toggleInfo.classList.add('active');
+      var mask = document.getElementById('info-popup-mask');
+      mask.classList.add('active');
+    }
+  }, {
+    key: "enableCreate",
+    value: function enableCreate() {
+      document.getElementById('createSubmit').disabled = false;
+    }
+  }, {
+    key: "disableCreate",
+    value: function disableCreate() {
+      document.getElementById('createSubmit').disabled = true;
+    }
+  }, {
+    key: "editInfo",
+    value: function editInfo(event) {
+      var bookmarkId = event.target.getAttribute('data-bookmark');
+      var toggleEdit = document.getElementById("edit-info-".concat(bookmarkId));
+      var editInputs = document.getElementById("edit-inputs-".concat(bookmarkId));
+      toggleEdit.classList.add('active');
+      editInputs.classList.toggle('active');
+      this.hideInfoTopline(event);
+    }
+  }, {
+    key: "hideInfoTopline",
+    value: function hideInfoTopline(event) {
+      var bookmarkId = event.target.getAttribute('data-bookmark');
+      var hideInfoTop = document.getElementById("info-topline-".concat(bookmarkId));
+      hideInfoTop.classList.toggle('active');
+    }
+  }, {
+    key: "showTickIcon",
+    value: function showTickIcon(event) {
+      var bookmarkId = event.target.getAttribute('data-bookmark');
+      var showTick = document.getElementById("tick-icon-".concat(bookmarkId));
+      showTick.classList.toggle('active');
+    }
+  }, {
+    key: "showTrashIcon",
+    value: function showTrashIcon(event) {
+      var bookmarkId = event.target.getAttribute('data-bookmark');
+      var showTrash = document.getElementById("trashIcon-".concat(bookmarkId));
+      showTrash.classList.toggle('active');
+    }
+  }, {
+    key: "handleContextMenu",
+    value: function handleContextMenu(event) {
+      if (event.target.classList.contains('public-li') || event.target.classList.contains('myBookmarks-li')) {
+        event.preventDefault();
+        var bookmarkId = event.target.getAttribute('data-bookmark');
+        var rightClickMenu = document.getElementById("rightClickPopup-".concat(bookmarkId));
+        rightClickMenu.classList.toggle('active');
+      }
+    }
+  }, {
+    key: "publish",
+    value: function publish(event) {
+      if (event.target.classlist.contains('')) {
+        var bookmarkId = event.target.getAttribute('data-bookmark');
+        var publishBtn = document.getElementById("");
+        console.log('publish clicked'); // this.options.app.publish('')
+      }
+    }
+  }]);
+
+  return Bookmarks;
+}();
 /* global WebsyDesigns createIdentity d3 */
+
+
 var Chart = /*#__PURE__*/function () {
   function Chart(elementId, options) {
-    var _this = this;
+    var _this2 = this;
 
     _classCallCheck(this, Chart);
 
@@ -71,7 +503,7 @@ var Chart = /*#__PURE__*/function () {
     };
     this.chart = new WebsyDesigns.WebsyChart(elementId);
     window.addEventListener('resize', function () {
-      return _this.chart.render();
+      return _this2.chart.render();
     });
     this.monthMap = {
       0: 'Jan',
@@ -100,19 +532,19 @@ var Chart = /*#__PURE__*/function () {
   }, {
     key: "checkForData",
     value: function checkForData() {
-      var _this2 = this;
+      var _this3 = this;
 
       return new Promise(function (resolve, reject) {
-        if (_this2.layout.qHyperCube.qDataPages[0] && _this2.layout.qHyperCube.qDataPages[0].qMatrix) {
+        if (_this3.layout.qHyperCube.qDataPages[0] && _this3.layout.qHyperCube.qDataPages[0].qMatrix) {
           resolve();
         } else {
-          _this2.options.model.getHyperCubeData('/qHyperCubeDef', [{
+          _this3.options.model.getHyperCubeData('/qHyperCubeDef', [{
             qTop: 0,
             qLeft: 0,
-            qWidth: _this2.layout.qHyperCube.qSize.qcx,
-            qHeight: Math.floor(10000 / _this2.layout.qHyperCube.qSize.qcx)
+            qWidth: _this3.layout.qHyperCube.qSize.qcx,
+            qHeight: Math.floor(10000 / _this3.layout.qHyperCube.qSize.qcx)
           }]).then(function (pages) {
-            _this2.layout.qHyperCube.qDataPages = pages;
+            _this3.layout.qHyperCube.qDataPages = pages;
             resolve();
           });
         }
@@ -169,25 +601,25 @@ var Chart = /*#__PURE__*/function () {
   }, {
     key: "render",
     value: function render() {
-      var _this3 = this;
+      var _this4 = this;
 
       this.options.model.getLayout().then(function (layout) {
-        _this3.layout = layout;
+        _this4.layout = layout;
 
-        _this3.checkForData().then(function () {
+        _this4.checkForData().then(function () {
           var options = {};
 
           if (layout.qHyperCube.qDimensionInfo.length === 1 && layout.qHyperCube.qMeasureInfo.length === 1) {
-            options = _this3.transformMultiMeasure();
+            options = _this4.transformMultiMeasure();
           } else if (layout.qHyperCube.qDimensionInfo.length === 1 && layout.qHyperCube.qMeasureInfo.length > 1) {
-            options = _this3.transformMultiMeasure();
+            options = _this4.transformMultiMeasure();
           } else if (layout.qHyperCube.qDimensionInfo.length > 1) {
-            options = _this3.transformMultiDimensions();
+            options = _this4.transformMultiDimensions();
           } else if (layout.qHyperCube.qDimensionInfo.length === 0 && layout.qHyperCube.qMeasureInfo.length > 0) {
-            options = _this3.transformNoDimensions();
+            options = _this4.transformNoDimensions();
           }
 
-          _this3.chart.render(options);
+          _this4.chart.render(options);
         });
       });
     }
@@ -199,7 +631,7 @@ var Chart = /*#__PURE__*/function () {
   }, {
     key: "transformBasic",
     value: function transformBasic() {
-      var _this4 = this;
+      var _this5 = this;
 
       var options = _extends({}, this.optionDefaults, this.layout.options);
 
@@ -215,7 +647,7 @@ var Chart = /*#__PURE__*/function () {
       options.data.left.title = this.layout.qHyperCube.qMeasureInfo[0].qFallbackTitle;
 
       options.data.left.formatter = function (d) {
-        return _this4.formatValue(d, _this4.layout.qHyperCube.qMeasureInfo[0].options || {});
+        return _this5.formatValue(d, _this5.layout.qHyperCube.qMeasureInfo[0].options || {});
       };
 
       var series = this.layout.qHyperCube.qMeasureInfo[0].options || {};
@@ -237,7 +669,7 @@ var Chart = /*#__PURE__*/function () {
   }, {
     key: "transformMultiDimensions",
     value: function transformMultiDimensions() {
-      var _this5 = this;
+      var _this6 = this;
 
       var options = _extends({}, this.optionDefaults, this.layout.options);
 
@@ -253,7 +685,7 @@ var Chart = /*#__PURE__*/function () {
       options.data.left.title = this.layout.qHyperCube.qMeasureInfo[0].qFallbackTitle;
 
       options.data.left.formatter = function (d) {
-        return _this5.formatValue(d, _this5.layout.qHyperCube.qMeasureInfo[0].options || {});
+        return _this6.formatValue(d, _this6.layout.qHyperCube.qMeasureInfo[0].options || {});
       };
 
       var series = [];
@@ -264,8 +696,8 @@ var Chart = /*#__PURE__*/function () {
         var bottomIndex = bottomKeys.indexOf(r[1].qText);
         var v = r[1].qText;
 
-        if ((_this5.layout.qHyperCube.qDimensionInfo[1].options || {}).scale === 'Time') {
-          v = _this5.fromQlikDate(r[1].qNum);
+        if ((_this6.layout.qHyperCube.qDimensionInfo[1].options || {}).scale === 'Time') {
+          v = _this6.fromQlikDate(r[1].qNum);
         }
 
         if (bottomIndex === -1) {
@@ -306,7 +738,7 @@ var Chart = /*#__PURE__*/function () {
   }, {
     key: "transformNoDimensions",
     value: function transformNoDimensions() {
-      var _this6 = this;
+      var _this7 = this;
 
       var options = _extends({}, this.optionDefaults, this.layout.options);
 
@@ -334,7 +766,7 @@ var Chart = /*#__PURE__*/function () {
       }
 
       options.data[yAxis].formatter = function (d) {
-        return _this6.formatValue(d, options || {});
+        return _this7.formatValue(d, options || {});
       };
 
       this.layout.qHyperCube.qMeasureInfo.forEach(function (m) {
@@ -368,7 +800,7 @@ var Chart = /*#__PURE__*/function () {
 
               return {
                 x: {
-                  value: _this6.layout.qHyperCube.qMeasureInfo[i].qFallbackTitle
+                  value: _this7.layout.qHyperCube.qMeasureInfo[i].qFallbackTitle
                 },
                 y: c
               };
@@ -382,7 +814,7 @@ var Chart = /*#__PURE__*/function () {
   }, {
     key: "transformMultiMeasure",
     value: function transformMultiMeasure() {
-      var _this7 = this;
+      var _this8 = this;
 
       var options = _extends({}, this.optionDefaults, this.layout.options);
 
@@ -409,14 +841,14 @@ var Chart = /*#__PURE__*/function () {
       options.data.series = this.layout.qHyperCube.qMeasureInfo.map(function (m, i) {
         var series = _extends({}, m.options);
 
-        series.key = _this7.createSeriesKey(m.qFallbackTitle);
+        series.key = _this8.createSeriesKey(m.qFallbackTitle);
         series.data = [];
         series.type = (m.options || {}).type || options.type || 'bar';
         series.accumulative = 0;
 
         if (m.axis === 'secondary') {
           // right hand axis
-          _this7.addOptions(options.data[y2Axis], m.options || {}); // options.data[y2Axis] = Object.assign({}, options.data[y2Axis], m.options)        
+          _this8.addOptions(options.data[y2Axis], m.options || {}); // options.data[y2Axis] = Object.assign({}, options.data[y2Axis], m.options)        
 
 
           if (options.grouping !== 'stacked') {
@@ -428,10 +860,10 @@ var Chart = /*#__PURE__*/function () {
           options.data[y2Axis].title = m.qFallbackTitle;
 
           options.data[y2Axis].formatter = function (d) {
-            return _this7.formatValue(d, _extends({}, m.options, options.data[y2Axis]));
+            return _this8.formatValue(d, _extends({}, m.options, options.data[y2Axis]));
           };
         } else {
-          _this7.addOptions(options.data[yAxis], m.options || {}); // options.data[yAxis] = Object.assign({}, options.data[yAxis], m.options)
+          _this8.addOptions(options.data[yAxis], m.options || {}); // options.data[yAxis] = Object.assign({}, options.data[yAxis], m.options)
 
 
           if (options.grouping !== 'stacked') {
@@ -444,7 +876,7 @@ var Chart = /*#__PURE__*/function () {
           options.data[yAxis].title = m.qFallbackTitle;
 
           options.data[yAxis].formatter = function (d) {
-            return _this7.formatValue(d, _extends({}, m.options, options.data[yAxis]));
+            return _this8.formatValue(d, _extends({}, m.options, options.data[yAxis]));
           };
         }
 
@@ -465,7 +897,7 @@ var Chart = /*#__PURE__*/function () {
 
       if (options.data[xAxis].scale !== 'Time') {
         options.data[xAxis].formatter = function (d) {
-          return _this7.formatValue(d, _this7.layout.qHyperCube.qDimensionInfo[0].options || {});
+          return _this8.formatValue(d, _this8.layout.qHyperCube.qDimensionInfo[0].options || {});
         };
       } else {
         options.data[xAxis].min = this.fromQlikDate(this.layout.qHyperCube.qDimensionInfo[0].qMin);
@@ -489,8 +921,8 @@ var Chart = /*#__PURE__*/function () {
           var x = r[0];
           x.value = x.qText;
 
-          if ((_this7.layout.qHyperCube.qDimensionInfo[0].options || {}).scale === 'Time') {
-            x.value = _this7.fromQlikDate(x.qNum);
+          if ((_this8.layout.qHyperCube.qDimensionInfo[0].options || {}).scale === 'Time') {
+            x.value = _this8.fromQlikDate(x.qNum);
           } // else {
           //   if (xKeys.indexOf(x.value) === -1) {
           //     xKeys.push(x.value)
@@ -508,7 +940,7 @@ var Chart = /*#__PURE__*/function () {
 
           c.value = isNaN(c.qNum) ? 0 : c.qNum;
           xTotals[xKeys.indexOf(x.qElemNumber)] += c.value;
-          c.tooltipLabel = _this7.layout.qHyperCube.qMeasureInfo[cIndex - 1].qFallbackTitle;
+          c.tooltipLabel = _this8.layout.qHyperCube.qMeasureInfo[cIndex - 1].qFallbackTitle;
           c.tooltipValue = c.qText; // if (this.layout.qHyperCube.qMeasureInfo[cIndex - 1].options) {
           // c.color = this.layout.qHyperCube.qMeasureInfo[cIndex - 1].options.color 
           // }        
@@ -542,6 +974,171 @@ var Chart = /*#__PURE__*/function () {
 
   return Chart;
 }();
+/* global SelectionBar WebsyDesignsQlikPlugins WebsyDropdown */
+
+
+var CurrentSelections = /*#__PURE__*/function () {
+  function CurrentSelections(elementId, options) {
+    var _this9 = this;
+
+    _classCallCheck(this, CurrentSelections);
+
+    this.elementId = elementId;
+    var DEFAULTS = {
+      def: {
+        qInfo: {
+          qType: 'currentSelections'
+        },
+        qSelectionObjectDef: {}
+      }
+    };
+    this.options = _extends({}, DEFAULTS, options);
+    this.hasOpenDropdown = false;
+    this.dropdowns = {};
+    this.current = [];
+    var el = document.getElementById(this.elementId);
+
+    if (el) {
+      el.addEventListener('click', this.handleClick.bind(this));
+      var html = "\n      <div class=\"websy-selection-bar\">\n        <div class=\"left-group\">\n          <div class=\"back\">\n            <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\"><path d=\"M448,440a16,16,0,0,1-12.61-6.15c-22.86-29.27-44.07-51.86-73.32-67C335,352.88,301,345.59,256,344.23V424A16,16,0,0,1,229,435.57l-176-168a16,16,0,0,1,0-23.14l176-168A16,16,0,0,1,256,88v80.36c74.14,3.41,129.38,30.91,164.35,81.87C449.32,292.44,464,350.9,464,424a16,16,0,0,1-16,16Z\"/></svg>\n          </div>\n          <div class=\"forward\">\n            <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\"><path d=\"M58.79,439.13A16,16,0,0,1,48,424c0-73.1,14.68-131.56,43.65-173.77,35-51,90.21-78.46,164.35-81.87V88a16,16,0,0,1,27.05-11.57l176,168a16,16,0,0,1,0,23.14l-176,168A16,16,0,0,1,256,424V344.23c-45,1.36-79,8.65-106.07,22.64-29.25,15.12-50.46,37.71-73.32,67a16,16,0,0,1-17.82,5.28Z\"/></svg>\n          </div>\n          <div class=\"clear-all\">\n            <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\"><line x1=\"368\" y1=\"368\" x2=\"144\" y2=\"144\" style=\"fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px\"/><line x1=\"368\" y1=\"144\" x2=\"144\" y2=\"368\" style=\"fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px\"/></svg>\n          </div>\n        </div>\n        <div class=\"no-selections\" id=\"".concat(this.elementId, "_noselections\">No Selections</div>\n        <div class=\"selections-group\" id=\"").concat(this.elementId, "_selections\"></div>    \n      </div>\n      ");
+      el.innerHTML = html;
+    }
+
+    this.options.app.createSessionObject(this.options.def).then(function (model) {
+      model.on('changed', _this9.render.bind(_this9));
+      _this9.options.model = model;
+
+      _this9.render();
+    });
+  }
+
+  _createClass(CurrentSelections, [{
+    key: "onDropdownOpen",
+    value: function onDropdownOpen() {
+      this.hasOpenDropdown = true;
+    }
+  }, {
+    key: "onDropdownClose",
+    value: function onDropdownClose() {
+      this.hasOpenDropdown = false;
+    }
+  }, {
+    key: "render",
+    value: function render() {
+      var _this10 = this;
+
+      var el = document.getElementById("".concat(this.elementId, "_selections"));
+      var noEl = document.getElementById("".concat(this.elementId, "_noselections"));
+      this.options.model.getLayout().then(function (layout) {
+        console.log(layout);
+        _this10.current = [];
+
+        if (layout.qSelectionObject.qSelections.length > 0) {
+          el.classList.add('active');
+          noEl.classList.remove('active');
+          layout.qSelectionObject.qSelections.forEach(function (selection, index) {
+            var id = selection.qField.toLowerCase().replace(/ /g, '_');
+
+            _this10.current.push(id);
+
+            if (!_this10.dropdowns[id]) {
+              selection.id = id;
+              var newEl = document.createElement('div');
+              newEl.id = "".concat(_this10.elementId, "_").concat(id);
+              newEl.classList.add('selection-tabs');
+              el.appendChild(newEl);
+              var def = {
+                qInfo: {
+                  qType: 'filter'
+                },
+                qListObjectDef: {
+                  qDef: {
+                    qFieldDefs: [selection.qField],
+                    qSortCriterias: [{
+                      qSortByState: 1,
+                      qSortByAscii: 1
+                    }]
+                  },
+                  options: {
+                    closeAfterSelection: false
+                  }
+                }
+              };
+
+              _this10.options.app.createSessionObject(def).then(function (model) {
+                _this10.dropdowns[id] = {
+                  instance: new WebsyDesignsQlikPlugins.Dropdown("".concat(_this10.elementId, "_").concat(id), {
+                    model: model,
+                    multiSelect: true,
+                    closeAfterSelection: false // onOpen: this.onDropdownOpen.bind(this),
+                    // onClose: this.onDropdownClose.bind(this)
+
+                  }),
+                  model: model
+                }; // model.on('changed', () => {
+                //   this.dropdowns[id].instance.render()
+                // })
+              });
+            }
+          });
+        } else {
+          el.classList.remove('active');
+          noEl.classList.add('active');
+        } // Cleanup unused selections
+
+
+        for (var key in _this10.dropdowns) {
+          if (_this10.current.indexOf(key) === -1) {
+            var sEl = document.getElementById("".concat(_this10.elementId, "_").concat(key));
+
+            if (sEl) {
+              el.removeChild(sEl);
+            }
+
+            _this10.options.app.destroySessionObject(_this10.dropdowns[key].model.id);
+
+            delete _this10.dropdowns[key];
+          }
+        }
+      });
+    }
+  }, {
+    key: "backSelection",
+    value: function backSelection() {
+      this.options.app.back();
+      this.render();
+    }
+  }, {
+    key: "forwardSelection",
+    value: function forwardSelection() {
+      this.options.app.forward();
+      this.render();
+    }
+  }, {
+    key: "clearSelection",
+    value: function clearSelection() {
+      this.options.app.clearAll();
+      this.render();
+    }
+  }, {
+    key: "handleClick",
+    value: function handleClick(event) {
+      if (event.target.classList.contains('back')) {
+        this.backSelection();
+      }
+
+      if (event.target.classList.contains('forward')) {
+        this.forwardSelection();
+      }
+
+      if (event.target.classList.contains('clear-all')) {
+        this.clearSelection();
+      }
+    }
+  }]);
+
+  return CurrentSelections;
+}();
 /*
   global
   WebsyDesigns
@@ -568,23 +1165,23 @@ var DatePicker = /*#__PURE__*/function () {
   _createClass(DatePicker, [{
     key: "checkForData",
     value: function checkForData() {
-      var _this8 = this;
+      var _this11 = this;
 
       return new Promise(function (resolve, reject) {
-        if (_this8.listening === true) {
-          _this8.listening = false;
+        if (_this11.listening === true) {
+          _this11.listening = false;
 
-          _this8.options.model.getListObjectData('/qListObjectDef', [{
+          _this11.options.model.getListObjectData('/qListObjectDef', [{
             qTop: 0,
             qLeft: 0,
             qWidth: 1,
-            qHeight: _this8.options.pageSize
+            qHeight: _this11.options.pageSize
           }]).then(function (pages) {
-            _this8.layout.qListObject.qDataPages = [pages[0]];
-            _this8.listening = true;
+            _this11.layout.qListObject.qDataPages = [pages[0]];
+            _this11.listening = true;
             resolve();
           }, function (err) {
-            _this8.listening = true;
+            _this11.listening = true;
             reject(err);
           });
         }
@@ -609,16 +1206,16 @@ var DatePicker = /*#__PURE__*/function () {
   }, {
     key: "getField",
     value: function getField(f) {
-      var _this9 = this;
+      var _this12 = this;
 
       return new Promise(function (resolve, reject) {
-        if (_this9.field) {
-          resolve(_this9.field);
+        if (_this12.field) {
+          resolve(_this12.field);
         } else {
-          _this9.options.app.getField(f).then(function (field) {
+          _this12.options.app.getField(f).then(function (field) {
             if (field) {
-              _this9.field = field;
-              resolve(_this9.field);
+              _this12.field = field;
+              resolve(_this12.field);
             }
           }, reject);
         }
@@ -627,6 +1224,10 @@ var DatePicker = /*#__PURE__*/function () {
   }, {
     key: "toQlikDate",
     value: function toQlikDate(d) {
+      if (typeof d === 'number') {
+        d = new Date(d);
+      }
+
       var day = d.getDate();
 
       if (day.toString().length === 1) {
@@ -651,14 +1252,14 @@ var DatePicker = /*#__PURE__*/function () {
   }, {
     key: "onChange",
     value: function onChange(data, isRange) {
-      var _this10 = this;
+      var _this13 = this;
 
       console.log(data);
       var start;
       var end;
       var valueList = data.map(function (d) {
-        if (_this10.options.mode === 'date') {
-          return _this10.toQlikDate(d);
+        if (_this13.options.mode === 'date') {
+          return _this13.toQlikDate(d);
         } else {
           return d;
         }
@@ -680,19 +1281,19 @@ var DatePicker = /*#__PURE__*/function () {
 
 
       this.options.model.searchListObjectFor('/qListObjectDef', query).then(function () {
-        _this10.options.model.acceptListObjectSearch('/qListObjectDef', false).then();
+        _this13.options.model.acceptListObjectSearch('/qListObjectDef', false).then();
       }); // })    
       // })    
     }
   }, {
     key: "render",
     value: function render() {
-      var _this11 = this;
+      var _this14 = this;
 
       this.options.model.getLayout().then(function (layout) {
-        _this11.layout = layout;
+        _this14.layout = layout;
 
-        _this11.checkForData().then(function () {
+        _this14.checkForData().then(function () {
           var disabledDates = [];
           var min;
           var max;
@@ -700,48 +1301,48 @@ var DatePicker = /*#__PURE__*/function () {
           var selectedMax;
           var selectedRange = [];
 
-          if (layout.qListObject.qDataPages[0] && _this11.listening === true) {
+          if (layout.qListObject.qDataPages[0] && _this14.listening === true) {
             // ensure we have a complete calendar
             var completeDateList = {};
             var oneDay = 1000 * 60 * 60 * 24;
             var start;
             var end;
 
-            if (_this11.options.mode === 'date') {
-              start = _this11.fromQlikDate(layout.qListObject.qDataPages[0].qMatrix[0][0].qNum).getTime();
-              end = _this11.fromQlikDate(layout.qListObject.qDataPages[0].qMatrix[layout.qListObject.qDataPages[0].qMatrix.length - 1][0].qNum).getTime();
-            } else if (_this11.options.mode === 'year') {
+            if (_this14.options.mode === 'date') {
+              start = _this14.fromQlikDate(layout.qListObject.qDataPages[0].qMatrix[0][0].qNum).getTime();
+              end = _this14.fromQlikDate(layout.qListObject.qDataPages[0].qMatrix[layout.qListObject.qDataPages[0].qMatrix.length - 1][0].qNum).getTime();
+            } else if (_this14.options.mode === 'year') {
               start = layout.qListObject.qDataPages[0].qMatrix[0][0].qNum;
               end = layout.qListObject.qDataPages[0].qMatrix[layout.qListObject.qDataPages[0].qMatrix.length - 1][0].qNum;
 
               if (start > end) {
                 end = layout.qListObject.qDataPages[0].qMatrix[0][0].qNum;
                 start = layout.qListObject.qDataPages[0].qMatrix[layout.qListObject.qDataPages[0].qMatrix.length - 1][0].qNum;
-                _this11.options.sortDirection = 'desc';
-                _this11.picker.options.sortDirection = 'desc';
+                _this14.options.sortDirection = 'desc';
+                _this14.picker.options.sortDirection = 'desc';
               }
 
               min = start;
               max = end;
-              _this11.picker.options.minAllowedYear = start;
-              _this11.picker.options.maxAllowedYear = end;
+              _this14.picker.options.minAllowedYear = start;
+              _this14.picker.options.maxAllowedYear = end;
             }
 
             var diff = end - start;
 
-            if (_this11.options.mode === 'date') {
+            if (_this14.options.mode === 'date') {
               diff = diff / oneDay;
             }
 
             for (var i = 0; i < diff + 1; i++) {
-              if (_this11.options.mode === 'date') {
+              if (_this14.options.mode === 'date') {
                 var temp = new Date(start + i * oneDay);
                 temp.setHours(0, 0, 0);
                 completeDateList[temp.getTime()] = {
-                  qNum: _this11.toQlikDateNum(temp),
+                  qNum: _this14.toQlikDateNum(temp),
                   qState: 'Z'
                 };
-              } else if (_this11.options.mode === 'year') {
+              } else if (_this14.options.mode === 'year') {
                 completeDateList[start + i] = {
                   qNum: start + i,
                   qState: 'Z'
@@ -750,17 +1351,17 @@ var DatePicker = /*#__PURE__*/function () {
             }
 
             layout.qListObject.qDataPages[0].qMatrix.forEach(function (r, i, arr) {
-              if (_this11.options.mode === 'date') {
-                if (completeDateList[_this11.fromQlikDate(r[0].qNum).getTime()]) {
-                  completeDateList[_this11.fromQlikDate(r[0].qNum).getTime()] = r[0];
+              if (_this14.options.mode === 'date') {
+                if (completeDateList[_this14.fromQlikDate(r[0].qNum).getTime()]) {
+                  completeDateList[_this14.fromQlikDate(r[0].qNum).getTime()] = r[0];
                 }
 
                 if (i === 0) {
-                  min = _this11.fromQlikDate(r[0].qNum);
+                  min = _this14.fromQlikDate(r[0].qNum);
                 } else if (i === arr.length - 1) {
-                  max = _this11.fromQlikDate(r[0].qNum);
+                  max = _this14.fromQlikDate(r[0].qNum);
                 }
-              } else if (_this11.options.mode === 'year') {
+              } else if (_this14.options.mode === 'year') {
                 if (completeDateList[r[0].qNum]) {
                   completeDateList[r[0].qNum] = r[0];
                 } // if (i === 0) {
@@ -775,25 +1376,25 @@ var DatePicker = /*#__PURE__*/function () {
             var completeDateListArr = Object.values(completeDateList);
             completeDateListArr.forEach(function (d) {
               if (d.qState === 'S') {
-                selectedRange.push(_this11.options.mode === 'date' ? _this11.fromQlikDate(d.qNum) : d.qNum);
+                selectedRange.push(_this14.options.mode === 'date' ? _this14.fromQlikDate(d.qNum) : d.qNum);
               } // if (['X', 'XS', 'XL'].indexOf(d.qState) !== -1) {
 
 
               if (['Z'].indexOf(d.qState) !== -1) {
-                disabledDates.push(_this11.options.mode === 'date' ? _this11.fromQlikDate(d.qNum) : d.qNum);
+                disabledDates.push(_this14.options.mode === 'date' ? _this14.fromQlikDate(d.qNum) : d.qNum);
               }
             });
 
-            _this11.picker.setDateBounds([min, max]);
+            _this14.picker.setDateBounds([min, max]);
 
             if (selectedRange.length !== layout.qListObject.qDataPages[0].qMatrix.length) {// do nothing because all values are selected
             } else if (selectedRange.length > 0) {
-              _this11.picker.selectCustomRange([selectedRange[0], selectedRange[selectedRange.length - 1] || selectedRange[0]]);
+              _this14.picker.selectCustomRange([selectedRange[0], selectedRange[selectedRange.length - 1] || selectedRange[0]]);
             }
 
-            _this11.picker.render(disabledDates);
+            _this14.picker.render(disabledDates);
 
-            _this11.listening = true;
+            _this14.listening = true;
           }
         });
       });
@@ -848,40 +1449,40 @@ var Dropdown = /*#__PURE__*/function () {
   }, {
     key: "checkForData",
     value: function checkForData() {
-      var _this12 = this;
+      var _this15 = this;
 
       return new Promise(function (resolve, reject) {
-        if (_this12.busy === false) {
-          _this12.busy = true;
+        if (_this15.busy === false) {
+          _this15.busy = true;
 
-          _this12.options.model.getListObjectData("/".concat(_this12.options.path, "/qListObjectDef").replace(/\/\//g, '/'), [{
-            qTop: _this12.rowsLoaded,
+          _this15.options.model.getListObjectData("/".concat(_this15.options.path, "/qListObjectDef").replace(/\/\//g, '/'), [{
+            qTop: _this15.rowsLoaded,
             qLeft: 0,
             qWidth: 1,
-            qHeight: _this12.options.pageSize
+            qHeight: _this15.options.pageSize
           }]).then(function (pages) {
-            if (_this12.options.path !== '') {
-              _this12.layout[_this12.options.path].qListObject.qDataPages[0].qMatrix = _this12.layout[_this12.options.path].qListObject.qDataPages[0].qMatrix.concat((pages[0] || {
+            if (_this15.options.path !== '') {
+              _this15.layout[_this15.options.path].qListObject.qDataPages[0].qMatrix = _this15.layout[_this15.options.path].qListObject.qDataPages[0].qMatrix.concat((pages[0] || {
                 qMatrix: []
               }).qMatrix);
-              _this12.rowsLoaded = _this12.layout[_this12.options.path].qListObject.qDataPages[0].qMatrix.length;
+              _this15.rowsLoaded = _this15.layout[_this15.options.path].qListObject.qDataPages[0].qMatrix.length;
             } else {
-              if (!_this12.layout.qListObject.qDataPages[0]) {
-                _this12.layout.qListObject.qDataPages[0] = {
+              if (!_this15.layout.qListObject.qDataPages[0]) {
+                _this15.layout.qListObject.qDataPages[0] = {
                   qMatrix: []
                 };
               }
 
-              _this12.layout.qListObject.qDataPages[0].qMatrix = _this12.layout.qListObject.qDataPages[0].qMatrix.concat((pages[0] || {
+              _this15.layout.qListObject.qDataPages[0].qMatrix = _this15.layout.qListObject.qDataPages[0].qMatrix.concat((pages[0] || {
                 qMatrix: []
               }).qMatrix);
-              _this12.rowsLoaded = _this12.layout.qListObject.qDataPages[0].qMatrix.length;
+              _this15.rowsLoaded = _this15.layout.qListObject.qDataPages[0].qMatrix.length;
             }
 
-            _this12.busy = false;
+            _this15.busy = false;
             resolve();
           }, function (err) {
-            _this12.busy = false;
+            _this15.busy = false;
             reject(err);
           });
         }
@@ -890,11 +1491,11 @@ var Dropdown = /*#__PURE__*/function () {
   }, {
     key: "checkForVariable",
     value: function checkForVariable() {
-      var _this13 = this;
+      var _this16 = this;
 
       return new Promise(function (resolve, reject) {
-        if (_this13.options.useVariable === true && _this13.options.variable && _this13.options.app) {
-          _this13.options.app.getVariableByName(_this13.options.variable).then(function (v) {
+        if (_this16.options.useVariable === true && _this16.options.variable && _this16.options.app) {
+          _this16.options.app.getVariableByName(_this16.options.variable).then(function (v) {
             v.getLayout().then(function (layout) {
               resolve(layout);
             });
@@ -917,11 +1518,11 @@ var Dropdown = /*#__PURE__*/function () {
   }, {
     key: "handleScroll",
     value: function handleScroll(event) {
-      var _this14 = this;
+      var _this17 = this;
 
       if (event.target.scrollTop / (event.target.scrollHeight - event.target.clientHeight) > 0.7) {
         this.checkForData().then(function () {
-          _this14.dropdown.data = _this14.transformData();
+          _this17.dropdown.data = _this17.transformData();
         });
       }
     }
@@ -954,14 +1555,14 @@ var Dropdown = /*#__PURE__*/function () {
   }, {
     key: "render",
     value: function render() {
-      var _this15 = this;
+      var _this18 = this;
 
       this.rowsLoaded = 0;
       this.options.model.getLayout().then(function (layout) {
-        _this15.layout = layout;
+        _this18.layout = layout;
 
-        _this15.checkForVariable().then(function (variableValue) {
-          var listObject = _this15.options.path !== '' ? _this15.layout[_this15.options.path].qListObject : _this15.layout.qListObject;
+        _this18.checkForVariable().then(function (variableValue) {
+          var listObject = _this18.options.path !== '' ? _this18.layout[_this18.options.path].qListObject : _this18.layout.qListObject;
 
           if (!listObject.qDataPages || listObject.qDataPages.length === 0) {
             listObject.qDataPages = [{
@@ -969,12 +1570,12 @@ var Dropdown = /*#__PURE__*/function () {
             }];
           }
 
-          _this15.rowsLoaded = listObject.qDataPages[0].qMatrix.length;
+          _this18.rowsLoaded = listObject.qDataPages[0].qMatrix.length;
 
-          _this15.checkForData().then(function () {
+          _this18.checkForData().then(function () {
             if (listObject.qDataPages[0]) {
-              _this15.dropdown.options.label = listObject.qDimensionInfo.qFallbackTitle;
-              _this15.dropdown.data = _this15.transformData(variableValue);
+              _this18.dropdown.options.label = listObject.qDimensionInfo.qFallbackTitle;
+              _this18.dropdown.data = _this18.transformData(variableValue);
             }
           });
         });
@@ -1063,33 +1664,33 @@ var KPI = /*#__PURE__*/function () {
   }, {
     key: "render",
     value: function render() {
-      var _this16 = this;
+      var _this19 = this;
 
       this.options.model.getLayout().then(function (layout) {
         var decimals = 2;
         var v = layout.kpi.qHyperCube.qDataPages[0].qMatrix[0][0].qText;
-        _this16.kpiOptions.value = {
+        _this19.kpiOptions.value = {
           value: v
         };
-        _this16.kpiOptions.label = {
+        _this19.kpiOptions.label = {
           value: layout.kpi.qHyperCube.qMeasureInfo[0].qFallbackTitle
         };
 
         if (layout.icon) {
-          _this16.kpiOptions.icon = "".concat(window.location.origin, "/resources/svg/").concat(layout.icon, ".svg");
+          _this19.kpiOptions.icon = "".concat(window.location.origin, "/resources/svg/").concat(layout.icon, ".svg");
         }
 
         if (layout.tooltip && layout.tooltip.value) {
-          _this16.kpiOptions.tooltip = {
+          _this19.kpiOptions.tooltip = {
             value: layout.tooltip.value
           };
 
           if (layout.tooltip.classes) {
-            _this16.kpiOptions.tooltip.classes = layout.tooltip.classes;
+            _this19.kpiOptions.tooltip.classes = layout.tooltip.classes;
           }
         }
 
-        _this16.kpiOptions.subValue = {
+        _this19.kpiOptions.subValue = {
           value: ''
         };
 
@@ -1101,12 +1702,12 @@ var KPI = /*#__PURE__*/function () {
           }
 
           var v1 = layout.kpi.qHyperCube.qDataPages[0].qMatrix[0][1].qText;
-          _this16.kpiOptions.subValue = {
+          _this19.kpiOptions.subValue = {
             value: "".concat(layout.kpi.qHyperCube.qMeasureInfo[1].qFallbackTitle, " ").concat(v1)
           };
         }
 
-        _this16.kpi.render(_this16.kpiOptions);
+        _this19.kpi.render(_this19.kpiOptions);
       });
     }
   }, {
@@ -1123,7 +1724,7 @@ var KPI = /*#__PURE__*/function () {
 
 var GeoMap = /*#__PURE__*/function () {
   function GeoMap(elementId, options) {
-    var _this17 = this;
+    var _this20 = this;
 
     _classCallCheck(this, GeoMap);
 
@@ -1137,11 +1738,11 @@ var GeoMap = /*#__PURE__*/function () {
 
     if (this.options.geoJSON && typeof this.options.geoJSON === 'string') {
       WebsyDesigns.service.get(this.options.geoJSON).then(function (geoJSON) {
-        _this17.geoJSON = geoJSON;
-        delete _this17.options.geoJSON;
-        _this17.map = new WebsyDesigns.WebsyMap(elementId, _this17.options);
+        _this20.geoJSON = geoJSON;
+        delete _this20.options.geoJSON;
+        _this20.map = new WebsyDesigns.WebsyMap(elementId, _this20.options);
 
-        _this17.render();
+        _this20.render();
       });
     } else {
       this.map = new WebsyDesigns.WebsyMap(elementId, this.options);
@@ -1163,7 +1764,7 @@ var GeoMap = /*#__PURE__*/function () {
   }, {
     key: "render",
     value: function render() {
-      var _this18 = this;
+      var _this21 = this;
 
       var el = document.getElementById(this.elementId);
 
@@ -1173,21 +1774,21 @@ var GeoMap = /*#__PURE__*/function () {
 
       this.options.model.getLayout().then(function (layout) {
         if (layout.options) {
-          _this18.options = _extends({}, _this18.options, layout.options); // this.map.options = Object.assign({}, this.options, this.map.options, layout.options)
+          _this21.options = _extends({}, _this21.options, layout.options); // this.map.options = Object.assign({}, this.options, this.map.options, layout.options)
         }
 
         if (layout.qHyperCube.qDataPages[0]) {
-          if (_this18.geoJSON) {
+          if (_this21.geoJSON) {
             var geoJSON = {
               type: 'FeatureCollection',
               features: []
             };
             layout.qHyperCube.qDataPages[0].qMatrix.forEach(function (r) {
-              var p = _this18.findGeoJsonByProperty(r[0].qText);
+              var p = _this21.findGeoJsonByProperty(r[0].qText);
 
               if (p) {
-                if (_this18.options.geoAutoFill === true) {
-                  p.fillColor = _this18.options.geoFillColor;
+                if (_this21.options.geoAutoFill === true) {
+                  p.fillColor = _this21.options.geoFillColor;
                   p.fillOpacity = 0.4 + r[1].qNum / layout.qHyperCube.qMeasureInfo[0].qMax * 0.6;
                 }
 
@@ -1195,7 +1796,7 @@ var GeoMap = /*#__PURE__*/function () {
                   p.fillColor = r[1].qAttrExps.qValues[0].qText;
                 }
 
-                if (_this18.options.geoShowTooltip === true) {
+                if (_this21.options.geoShowTooltip === true) {
                   p.tooltip = "".concat(r[1].qText, "<br>").concat(p.properties.label);
                   p.tooltipClass = 'websy-map-tooltip';
                 }
@@ -1203,7 +1804,7 @@ var GeoMap = /*#__PURE__*/function () {
                 geoJSON.features.push(p);
               }
             });
-            _this18.map.options.geoJSON = geoJSON;
+            _this21.map.options.geoJSON = geoJSON;
           }
 
           var data = {};
@@ -1234,13 +1835,13 @@ var GeoMap = /*#__PURE__*/function () {
               }
             });
           });
-          _this18.map.options.data = data;
+          _this21.map.options.data = data;
 
           if (el.parentElement) {
             el.parentElement.classList.remove('loading');
           }
 
-          _this18.map.render();
+          _this21.map.render();
         }
       });
     }
@@ -1291,15 +1892,15 @@ var Table = /*#__PURE__*/function () {
   }, {
     key: "getData",
     value: function getData(callbackFn) {
-      var _this19 = this;
+      var _this22 = this;
 
       if (this.busy === false) {
         this.busy = true;
 
         if (this.options.getAllData === true) {
           getAllData('qHyperCube', this.options.model, this.layout, function (layout) {
-            _this19.rowCount = layout.qHyperCube.qDataPages[0].qMatrix.length;
-            _this19.busy = false;
+            _this22.rowCount = layout.qHyperCube.qDataPages[0].qMatrix.length;
+            _this22.busy = false;
 
             if (callbackFn) {
               callbackFn(layout.qHyperCube.qDataPages[0].qMatrix);
@@ -1322,24 +1923,24 @@ var Table = /*#__PURE__*/function () {
 
             this.options.model[method]('/qHyperCubeDef', pageDefs).then(function (pages) {
               if (pages && pages[0]) {
-                if (_this19.layout.qHyperCube.qMode === 'P') {
-                  _this19.layout.qHyperCube.qPivotDataPages.push(pages[0]);
+                if (_this22.layout.qHyperCube.qMode === 'P') {
+                  _this22.layout.qHyperCube.qPivotDataPages.push(pages[0]);
 
-                  _this19.rowCount += pages[0].qData.length;
+                  _this22.rowCount += pages[0].qData.length;
                 } else {
                   pages[0].qMatrix = pages[0].qMatrix.filter(function (r) {
                     return r[0].qText !== '-';
                   });
 
-                  _this19.layout.qHyperCube.qDataPages.push(pages[0]);
+                  _this22.layout.qHyperCube.qDataPages.push(pages[0]);
 
-                  _this19.rowCount += pages[0].qMatrix.length;
+                  _this22.rowCount += pages[0].qMatrix.length;
                 }
 
-                _this19.busy = false;
+                _this22.busy = false;
 
                 if (callbackFn) {
-                  if (_this19.layout.qHyperCube.qMode === 'P') {
+                  if (_this22.layout.qHyperCube.qMode === 'P') {
                     callbackFn(pages[0]);
                   } else {
                     callbackFn(pages[0].qMatrix);
@@ -1349,12 +1950,12 @@ var Table = /*#__PURE__*/function () {
             }, function (err) {
               var e = err;
 
-              if (_this19.errorCount < 50) {
-                _this19.errorCount++;
-                console.log('error getting data, attempt', _this19.errorCount);
-                clearTimeout(_this19.retryFn);
-                _this19.retryFn = setTimeout(function () {
-                  _this19.getData(callbackFn);
+              if (_this22.errorCount < 50) {
+                _this22.errorCount++;
+                console.log('error getting data, attempt', _this22.errorCount);
+                clearTimeout(_this22.retryFn);
+                _this22.retryFn = setTimeout(function () {
+                  _this22.getData(callbackFn);
                 }, 300);
               } // callbackFn({err})
 
@@ -1403,11 +2004,11 @@ var Table = /*#__PURE__*/function () {
   }, {
     key: "handleScroll",
     value: function handleScroll(event) {
-      var _this20 = this;
+      var _this23 = this;
 
       if (event.target.scrollTop / (event.target.scrollHeight - event.target.clientHeight) > 0.7) {
         this.getData(function (page) {
-          _this20.appendRows(_this20.transformData(page));
+          _this23.appendRows(_this23.transformData(page));
         });
       }
     }
@@ -1432,7 +2033,7 @@ var Table = /*#__PURE__*/function () {
   }, {
     key: "render",
     value: function render() {
-      var _this21 = this;
+      var _this24 = this;
 
       var pageNum = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
       this.table.showLoading({
@@ -1440,38 +2041,38 @@ var Table = /*#__PURE__*/function () {
       });
       this.options.model.getLayout().then(function (layout) {
         console.log(layout);
-        _this21.layout = layout;
-        _this21.rowCount = pageNum * _this21.options.pageSize;
-        _this21.errorCount = 0;
-        _this21.pageNum = pageNum;
-        _this21.pageCount = Math.ceil(layout.qHyperCube.qSize.qcy / _this21.options.pageSize);
-        _this21.table.options.pageNum = _this21.pageNum;
-        _this21.table.options.pageCount = _this21.pageCount;
+        _this24.layout = layout;
+        _this24.rowCount = pageNum * _this24.options.pageSize;
+        _this24.errorCount = 0;
+        _this24.pageNum = pageNum;
+        _this24.pageCount = Math.ceil(layout.qHyperCube.qSize.qcy / _this24.options.pageSize);
+        _this24.table.options.pageNum = _this24.pageNum;
+        _this24.table.options.pageCount = _this24.pageCount;
 
         if (layout.qHyperCube.qError && layout.qHyperCube.qCalcCondMsg) {
-          _this21.table.hideLoading();
+          _this24.table.hideLoading();
 
-          _this21.table.showError({
-            message: _this21.options.customError || layout.qHyperCube.qCalcCondMsg
+          _this24.table.showError({
+            message: _this24.options.customError || layout.qHyperCube.qCalcCondMsg
           });
 
           return;
         }
 
-        _this21.dataWidth = _this21.layout.qHyperCube.qSize.qcx;
-        _this21.columnOrder = _this21.layout.qHyperCube.qColumnOrder;
+        _this24.dataWidth = _this24.layout.qHyperCube.qSize.qcx;
+        _this24.columnOrder = _this24.layout.qHyperCube.qColumnOrder;
 
-        if (typeof _this21.columnOrder === 'undefined') {
-          _this21.columnOrder = new Array(_this21.layout.qHyperCube.qSize.qcx).fill({}).map(function (r, i) {
+        if (typeof _this24.columnOrder === 'undefined') {
+          _this24.columnOrder = new Array(_this24.layout.qHyperCube.qSize.qcx).fill({}).map(function (r, i) {
             return i;
           });
         }
 
-        var columns = _this21.layout.qHyperCube.qDimensionInfo.concat(_this21.layout.qHyperCube.qMeasureInfo);
+        var columns = _this24.layout.qHyperCube.qDimensionInfo.concat(_this24.layout.qHyperCube.qMeasureInfo);
 
-        var activeSort = _this21.layout.qHyperCube.qEffectiveInterColumnSortOrder[0];
+        var activeSort = _this24.layout.qHyperCube.qEffectiveInterColumnSortOrder[0];
         columns = columns.map(function (c, i) {
-          c.colIndex = _this21.columnOrder.indexOf(i);
+          c.colIndex = _this24.columnOrder.indexOf(i);
           c.name = c.qFallbackTitle;
 
           if (c.tooltip) {
@@ -1493,31 +2094,31 @@ var Table = /*#__PURE__*/function () {
           return a.colIndex - b.colIndex;
         });
 
-        _this21.getData(function (page) {
-          _this21.table.options.columns = columns;
-          _this21.table.options.activeSort = activeSort;
+        _this24.getData(function (page) {
+          _this24.table.options.columns = columns;
+          _this24.table.options.activeSort = activeSort;
 
-          _this21.table.hideLoading();
+          _this24.table.hideLoading();
 
-          _this21.table.render();
+          _this24.table.render();
 
           if (page.err) {
-            var tableEl = document.getElementById("".concat(_this21.elementId, "_foot"));
+            var tableEl = document.getElementById("".concat(_this24.elementId, "_foot"));
             tableEl.innerHTML = "\n            <div class='request-abort-error'>Could not fetch data. Click <strong class='table-try-again'>here</strong> to try again</div>\n          ";
           } else {
-            _this21.appendRows(_this21.transformData(page));
+            _this24.appendRows(_this24.transformData(page));
           }
         });
       }, function (err) {
         // try again      
         var e = err;
 
-        if (_this21.errorCount < 50) {
-          _this21.errorCount++;
-          console.log('error getting layout, attempt', _this21.errorCount);
-          clearTimeout(_this21.retryFn);
-          _this21.retryFn = setTimeout(function () {
-            _this21.render();
+        if (_this24.errorCount < 50) {
+          _this24.errorCount++;
+          console.log('error getting layout, attempt', _this24.errorCount);
+          clearTimeout(_this24.retryFn);
+          _this24.retryFn = setTimeout(function () {
+            _this24.render();
           }, 300);
         }
       });
@@ -1536,14 +2137,14 @@ var Table = /*#__PURE__*/function () {
   }, {
     key: "transformData",
     value: function transformData(page) {
-      var _this22 = this;
+      var _this25 = this;
 
       console.log('page', page);
 
       if (this.layout.qHyperCube.qMode === 'S') {
         return page.map(function (r) {
           return r.map(function (c, i) {
-            if (_this22.table.options.columns[i].showAsLink === true || _this22.table.options.columns[i].showAsNavigatorLink === true) {
+            if (_this25.table.options.columns[i].showAsLink === true || _this25.table.options.columns[i].showAsNavigatorLink === true) {
               if (c.qAttrExps && c.qAttrExps.qValues && c.qAttrExps.qValues[0].qText) {
                 c.value = c.qAttrExps.qValues[0].qText;
 
@@ -1563,16 +2164,16 @@ var Table = /*#__PURE__*/function () {
               var t = 'qDimensionInfo';
               var tIndex = i;
 
-              if (i > _this22.layout.qHyperCube.qDimensionInfo.length - 1) {
+              if (i > _this25.layout.qHyperCube.qDimensionInfo.length - 1) {
                 t = 'qMeasureInfo';
-                tIndex -= _this22.layout.qHyperCube.qDimensionInfo.length;
+                tIndex -= _this25.layout.qHyperCube.qDimensionInfo.length;
               }
 
               c.qAttrExps.qValues.forEach(function (a, aI) {
                 if (a.qText && a.qText !== '') {
-                  if (_this22.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                  if (_this25.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                     c.color = a.qText;
-                  } else if (_this22.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                  } else if (_this25.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                     c.backgroundColor = a.qText;
                   }
                 }
@@ -1948,15 +2549,15 @@ var Table2 = /*#__PURE__*/function () {
   }, {
     key: "getData",
     value: function getData(callbackFn) {
-      var _this23 = this;
+      var _this26 = this;
 
       if (this.busy === false) {
         this.busy = true;
 
         if (this.options.getAllData === true) {
           getAllData('qHyperCube', this.options.model, this.layout, function (layout) {
-            _this23.rowCount = layout.qHyperCube.qDataPages[0].qMatrix.length;
-            _this23.busy = false;
+            _this26.rowCount = layout.qHyperCube.qDataPages[0].qMatrix.length;
+            _this26.busy = false;
 
             if (callbackFn) {
               callbackFn(layout.qHyperCube.qDataPages[0].qMatrix);
@@ -1979,24 +2580,24 @@ var Table2 = /*#__PURE__*/function () {
 
             this.options.model[method]('/qHyperCubeDef', pageDefs).then(function (pages) {
               if (pages && pages[0]) {
-                if (_this23.layout.qHyperCube.qMode === 'P') {
-                  _this23.layout.qHyperCube.qPivotDataPages.push(pages[0]);
+                if (_this26.layout.qHyperCube.qMode === 'P') {
+                  _this26.layout.qHyperCube.qPivotDataPages.push(pages[0]);
 
-                  _this23.rowCount += pages[0].qData.length;
+                  _this26.rowCount += pages[0].qData.length;
                 } else {
                   pages[0].qMatrix = pages[0].qMatrix.filter(function (r) {
                     return r[0].qText !== '-';
                   });
 
-                  _this23.layout.qHyperCube.qDataPages.push(pages[0]);
+                  _this26.layout.qHyperCube.qDataPages.push(pages[0]);
 
-                  _this23.rowCount += pages[0].qMatrix.length;
+                  _this26.rowCount += pages[0].qMatrix.length;
                 }
 
-                _this23.busy = false;
+                _this26.busy = false;
 
                 if (callbackFn) {
-                  if (_this23.layout.qHyperCube.qMode === 'P') {
+                  if (_this26.layout.qHyperCube.qMode === 'P') {
                     callbackFn(pages[0]);
                   } else {
                     callbackFn(pages[0].qMatrix);
@@ -2006,12 +2607,12 @@ var Table2 = /*#__PURE__*/function () {
             }, function (err) {
               var e = err;
 
-              if (_this23.errorCount < 50) {
-                _this23.errorCount++;
-                console.log('error getting data, attempt', _this23.errorCount);
-                clearTimeout(_this23.retryFn);
-                _this23.retryFn = setTimeout(function () {
-                  _this23.getData(callbackFn);
+              if (_this26.errorCount < 50) {
+                _this26.errorCount++;
+                console.log('error getting data, attempt', _this26.errorCount);
+                clearTimeout(_this26.retryFn);
+                _this26.retryFn = setTimeout(function () {
+                  _this26.getData(callbackFn);
                 }, 300);
               } // callbackFn({err})
 
@@ -2060,11 +2661,11 @@ var Table2 = /*#__PURE__*/function () {
   }, {
     key: "handleScroll",
     value: function handleScroll(event) {
-      var _this24 = this;
+      var _this27 = this;
 
       if (event.target.scrollTop / (event.target.scrollHeight - event.target.clientHeight) > 0.7) {
         this.getData(function (page) {
-          _this24.appendRows(_this24.transformData(page));
+          _this27.appendRows(_this27.transformData(page));
         });
       }
     }
@@ -2138,7 +2739,7 @@ var Table2 = /*#__PURE__*/function () {
   }, {
     key: "prepDropdowns",
     value: function prepDropdowns() {
-      var _this25 = this;
+      var _this28 = this;
 
       // this.table.options.columns.forEach((c, i) => {
       //   if (c.searchable === true && c.searchField && this.layout[c.searchField] && this.layout[c.searchField].qListObject) {
@@ -2149,11 +2750,11 @@ var Table2 = /*#__PURE__*/function () {
       //   }
       // })
       this.layout.qHyperCube.qDimensionInfo.forEach(function (d, i) {
-        if (!_this25.dropdowns["dim".concat(i)]) {
-          _this25.dropdowns["dim".concat(i)] = new WebsyDesignsQlikPlugins.Dropdown("".concat(_this25.elementId, "_columnSearch_").concat(i), {
-            model: _this25.options.model,
+        if (!_this28.dropdowns["dim".concat(i)]) {
+          _this28.dropdowns["dim".concat(i)] = new WebsyDesignsQlikPlugins.Dropdown("".concat(_this28.elementId, "_columnSearch_").concat(i), {
+            model: _this28.options.model,
             path: "dim".concat(i),
-            onClose: _this25.handleCloseSearch
+            onClose: _this28.handleCloseSearch
           });
         }
       });
@@ -2161,7 +2762,7 @@ var Table2 = /*#__PURE__*/function () {
   }, {
     key: "prepSearch",
     value: function prepSearch() {
-      var _this26 = this;
+      var _this29 = this;
 
       this.busy = true;
       this.options.model.getProperties().then(function (props) {
@@ -2180,18 +2781,18 @@ var Table2 = /*#__PURE__*/function () {
           });
         });
 
-        _this26.options.model.applyPatches(patches, true).then(function () {
-          _this26.busy = false;
-          _this26.searchPrepped = true;
+        _this29.options.model.applyPatches(patches, true).then(function () {
+          _this29.busy = false;
+          _this29.searchPrepped = true;
 
-          _this26.render();
+          _this29.render();
         });
       });
     }
   }, {
     key: "render",
     value: function render() {
-      var _this27 = this;
+      var _this30 = this;
 
       var pageNum = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
 
@@ -2204,71 +2805,71 @@ var Table2 = /*#__PURE__*/function () {
         message: 'Loading...'
       });
       this.options.model.getLayout().then(function (layout) {
-        _this27.layout = layout;
+        _this30.layout = layout;
         console.log('table layout', layout);
-        _this27.rowCount = pageNum * _this27.options.pageSize;
+        _this30.rowCount = pageNum * _this30.options.pageSize;
 
-        if (_this27.layout.qHyperCube.qPivotDataPages[0]) {
-          _this27.layout.qHyperCube.qPivotDataPages = [];
+        if (_this30.layout.qHyperCube.qPivotDataPages[0]) {
+          _this30.layout.qHyperCube.qPivotDataPages = [];
         }
 
-        _this27.errorCount = 0;
-        _this27.pageNum = pageNum;
-        _this27.pageCount = Math.ceil(layout.qHyperCube.qSize.qcy / _this27.options.pageSize);
-        _this27.table.options.pageNum = _this27.pageNum;
+        _this30.errorCount = 0;
+        _this30.pageNum = pageNum;
+        _this30.pageCount = Math.ceil(layout.qHyperCube.qSize.qcy / _this30.options.pageSize);
+        _this30.table.options.pageNum = _this30.pageNum;
 
-        if (_this27.layout.qHyperCube.qNoOfLeftDims) {
-          _this27.table.options.leftColumns = _this27.options.freezeColumns || _this27.layout.qHyperCube.qNoOfLeftDims;
+        if (_this30.layout.qHyperCube.qNoOfLeftDims) {
+          _this30.table.options.leftColumns = _this30.options.freezeColumns || _this30.layout.qHyperCube.qNoOfLeftDims;
         }
 
-        _this27.table.options.pageCount = _this27.pageCount;
+        _this30.table.options.pageCount = _this30.pageCount;
 
         if (layout.qHyperCube.qError && layout.qHyperCube.qCalcCondMsg) {
-          _this27.table.hideLoading();
+          _this30.table.hideLoading();
 
-          _this27.table.showError({
-            message: _this27.options.customError || layout.qHyperCube.qCalcCondMsg
+          _this30.table.showError({
+            message: _this30.options.customError || layout.qHyperCube.qCalcCondMsg
           });
 
           return;
         }
 
-        _this27.table.hideError();
+        _this30.table.hideError();
 
-        _this27.dataWidth = _this27.layout.qHyperCube.qSize.qcx;
-        _this27.columnOrder = _this27.layout.qHyperCube.qColumnOrder;
+        _this30.dataWidth = _this30.layout.qHyperCube.qSize.qcx;
+        _this30.columnOrder = _this30.layout.qHyperCube.qColumnOrder;
 
-        if (typeof _this27.columnOrder === 'undefined') {
-          _this27.columnOrder = new Array(_this27.layout.qHyperCube.qSize.qcx).fill({}).map(function (r, i) {
+        if (typeof _this30.columnOrder === 'undefined') {
+          _this30.columnOrder = new Array(_this30.layout.qHyperCube.qSize.qcx).fill({}).map(function (r, i) {
             return i;
           });
         }
 
-        _this27.layout.qHyperCube.qDimensionInfo = _this27.layout.qHyperCube.qDimensionInfo.map(function (c, i) {
-          if (_this27.options.columnOverrides[i]) {
+        _this30.layout.qHyperCube.qDimensionInfo = _this30.layout.qHyperCube.qDimensionInfo.map(function (c, i) {
+          if (_this30.options.columnOverrides[i]) {
             c = _objectSpread(_objectSpread({}, c), {}, {
               searchable: true,
-              onSearch: _this27.handleSearch.bind(_this27),
-              onCloseSearch: _this27.handleCloseSearch.bind(_this27)
-            }, _this27.options.columnOverrides[i]);
+              onSearch: _this30.handleSearch.bind(_this30),
+              onCloseSearch: _this30.handleCloseSearch.bind(_this30)
+            }, _this30.options.columnOverrides[i]);
           }
 
           c.searchField = "dim".concat(i);
           return c;
         });
-        _this27.layout.qHyperCube.qMeasureInfo = _this27.layout.qHyperCube.qMeasureInfo.map(function (c, i) {
-          if (_this27.options.columnOverrides[_this27.layout.qHyperCube.qDimensionInfo.length + i]) {
-            c = _objectSpread(_objectSpread({}, c), _this27.options.columnOverrides[_this27.layout.qHyperCube.qDimensionInfo.length + i]);
+        _this30.layout.qHyperCube.qMeasureInfo = _this30.layout.qHyperCube.qMeasureInfo.map(function (c, i) {
+          if (_this30.options.columnOverrides[_this30.layout.qHyperCube.qDimensionInfo.length + i]) {
+            c = _objectSpread(_objectSpread({}, c), _this30.options.columnOverrides[_this30.layout.qHyperCube.qDimensionInfo.length + i]);
           }
 
           return c;
         });
 
-        var columns = _this27.layout.qHyperCube.qDimensionInfo.concat(_this27.layout.qHyperCube.qMeasureInfo);
+        var columns = _this30.layout.qHyperCube.qDimensionInfo.concat(_this30.layout.qHyperCube.qMeasureInfo);
 
-        var activeSort = _this27.layout.qHyperCube.qEffectiveInterColumnSortOrder[0];
+        var activeSort = _this30.layout.qHyperCube.qEffectiveInterColumnSortOrder[0];
         columns = columns.map(function (c, i) {
-          c.colIndex = _this27.columnOrder.indexOf(i);
+          c.colIndex = _this30.columnOrder.indexOf(i);
           c.name = c.qFallbackTitle;
 
           if (c.tooltip) {
@@ -2278,7 +2879,7 @@ var Table2 = /*#__PURE__*/function () {
           c.reverseSort = activeSort === i && c.qReverseSort !== true;
           c.activeSort = activeSort === i;
 
-          if (_this27.layout.qHyperCube.qMode === 'S') {
+          if (_this30.layout.qHyperCube.qMode === 'S') {
             if (c.qSortIndicator === 'A') {
               c.sort = 'asc';
             } else if (c.qSortIndicator === 'D') {
@@ -2291,7 +2892,7 @@ var Table2 = /*#__PURE__*/function () {
 
           if (c.searchable === true) {
             if (!c.onSearch) {
-              c.onSearch = _this27.handleSearch.bind(_this27);
+              c.onSearch = _this30.handleSearch.bind(_this30);
             }
           }
 
@@ -2301,79 +2902,79 @@ var Table2 = /*#__PURE__*/function () {
           return a.colIndex - b.colIndex;
         });
 
-        if (_this27.layout.qHyperCube.qMode === 'P') {
+        if (_this30.layout.qHyperCube.qMode === 'P') {
           columns = columns.filter(function (c, i) {
-            return i < _this27.layout.qHyperCube.qNoOfLeftDims;
+            return i < _this30.layout.qHyperCube.qNoOfLeftDims;
           });
         }
 
         columns = columns.filter(function (c) {
           return !c.qError;
         });
-        _this27.table.options.columns = columns;
+        _this30.table.options.columns = columns;
 
-        var activeDimensions = _this27.layout.qHyperCube.qDimensionInfo.filter(function (c) {
+        var activeDimensions = _this30.layout.qHyperCube.qDimensionInfo.filter(function (c) {
           return !c.qError;
         });
 
         var columnParamValues = activeDimensions.filter(function (c, i) {
-          return _this27.layout.qHyperCube.qMode === 'S' || i < _this27.layout.qHyperCube.qNoOfLeftDims;
-        }).map(function (c) {
+          return _this30.layout.qHyperCube.qMode === 'S' || i < _this30.layout.qHyperCube.qNoOfLeftDims;
+        }).map(function (c, i) {
           return {
-            value: new Array(c.qApprMaxGlyphCount).fill('x').join(''),
+            value: new Array(Math.max(c.qApprMaxGlyphCount, _this30.layout.qHyperCube.qDimensionInfo[i].qFallbackTitle.length)).fill('x').join(''),
             width: c.width || null
           };
         });
         var measureLabel = activeDimensions.pop(); // const maxMValue = this.layout.qHyperCube.qMeasureInfo.reduce((a, b) => a.qApprMaxGlyphCount > b.qApprMaxGlyphCount ? a : b)
         // columnParamValues.push({ value: new Array(maxMValue.qApprMaxGlyphCount).fill('x').join(''), width)
 
-        columnParamValues = columnParamValues.concat(_this27.layout.qHyperCube.qMeasureInfo.filter(function (c) {
+        columnParamValues = columnParamValues.concat(_this30.layout.qHyperCube.qMeasureInfo.filter(function (c) {
           return !c.qError;
         }).map(function (c) {
           return {
-            value: new Array(_this27.layout.qHyperCube.qMode === 'S' ? c.qApprMaxGlyphCount : Math.max(c.qApprMaxGlyphCount, measureLabel.qApprMaxGlyphCount)).fill('x').join(''),
-            width: _this27.layout.qHyperCube.qMode === 'S' ? c.width || null : c.width || measureLabel.width || null
+            value: new Array(_this30.layout.qHyperCube.qMode === 'S' ? c.qApprMaxGlyphCount : Math.max(c.qApprMaxGlyphCount, measureLabel.qApprMaxGlyphCount)).fill('x').join(''),
+            width: _this30.layout.qHyperCube.qMode === 'S' ? c.width || null : c.width || measureLabel.width || null
           };
         }));
-        _this27.columnParams = _this27.table.getColumnParameters(columnParamValues);
+        _this30.columnParams = _this30.table.getColumnParameters(columnParamValues);
 
         for (var i = 0; i < columns.length; i++) {
-          columns[i].width = "".concat(_this27.columnParams.cellWidths[i] || _this27.columnParams.cellWidths[_this27.columnParams.cellWidths.length - 1], "px");
+          columns[i].width = "".concat(_this30.columnParams.cellWidths[i] || _this30.columnParams.cellWidths[_this30.columnParams.cellWidths.length - 1], "px");
         } // this.columnsToRender = Math.ceil(this.columnParams.availableWidth / this.columnParams.cellWidth)
 
 
-        _this27.rowsToRender = Math.ceil(_this27.columnParams.availableHeight / _this27.columnParams.cellHeight);
+        _this30.rowsToRender = Math.ceil(_this30.columnParams.availableHeight / _this30.columnParams.cellHeight);
 
-        _this27.getData(function (page) {
-          _this27.table.options.activeSort = activeSort;
+        _this30.getData(function (page) {
+          _this30.table.options.activeSort = activeSort;
 
-          _this27.table.hideLoading();
+          _this30.table.hideLoading();
 
-          if (_this27.layout.qHyperCube.qMode === 'S') {
-            _this27.table.render();
+          if (_this30.layout.qHyperCube.qMode === 'S') {
+            _this30.table.render();
 
-            _this27.prepDropdowns();
+            _this30.prepDropdowns();
           }
 
           if (page.err) {
-            var tableEl = document.getElementById("".concat(_this27.elementId, "_foot"));
+            var tableEl = document.getElementById("".concat(_this30.elementId, "_foot"));
             tableEl.innerHTML = "\n            <div class='request-abort-error'>Could not fetch data. Click <strong class='table-try-again'>here</strong> to try again</div>\n          ";
           } else {
-            _this27.fullData = page;
+            _this30.fullData = page;
 
-            _this27.resize();
+            _this30.resize();
           }
         });
       }, function (err) {
         // try again      
         var e = err;
 
-        if (_this27.errorCount < 50) {
-          _this27.errorCount++;
-          console.log('error getting layout, attempt', _this27.errorCount);
-          clearTimeout(_this27.retryFn);
-          _this27.retryFn = setTimeout(function () {
-            _this27.render();
+        if (_this30.errorCount < 50) {
+          _this30.errorCount++;
+          console.log('error getting layout, attempt', _this30.errorCount);
+          clearTimeout(_this30.retryFn);
+          _this30.retryFn = setTimeout(function () {
+            _this30.render();
           }, 300);
         }
       });
@@ -2397,12 +2998,12 @@ var Table2 = /*#__PURE__*/function () {
   }, {
     key: "transformData",
     value: function transformData(page) {
-      var _this28 = this;
+      var _this31 = this;
 
       if (this.layout.qHyperCube.qMode === 'S') {
         return page.map(function (r) {
           return r.map(function (c, i) {
-            if (_this28.table.options.columns[i].showAsLink === true || _this28.table.options.columns[i].showAsNavigatorLink === true) {
+            if (_this31.table.options.columns[i].showAsLink === true || _this31.table.options.columns[i].showAsNavigatorLink === true) {
               if (c.qAttrExps && c.qAttrExps.qValues && c.qAttrExps.qValues[0].qText) {
                 c.value = c.qAttrExps.qValues[0].qText;
 
@@ -2422,16 +3023,16 @@ var Table2 = /*#__PURE__*/function () {
               var t = 'qDimensionInfo';
               var tIndex = i;
 
-              if (i > _this28.layout.qHyperCube.qDimensionInfo.length - 1) {
+              if (i > _this31.layout.qHyperCube.qDimensionInfo.length - 1) {
                 t = 'qMeasureInfo';
-                tIndex -= _this28.layout.qHyperCube.qDimensionInfo.length;
+                tIndex -= _this31.layout.qHyperCube.qDimensionInfo.length;
               }
 
               c.qAttrExps.qValues.forEach(function (a, aI) {
                 if (a.qText && a.qText !== '') {
-                  if (_this28.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                  if (_this31.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                     c.color = a.qText;
-                  } else if (_this28.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                  } else if (_this31.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                     c.backgroundColor = a.qText;
                   }
                 }
@@ -2503,7 +3104,7 @@ var Table2 = /*#__PURE__*/function () {
   }, {
     key: "transformPivotTable",
     value: function transformPivotTable(page) {
-      var _this29 = this;
+      var _this32 = this;
 
       var output = [];
       var leftNodes = [];
@@ -2525,7 +3126,7 @@ var Table2 = /*#__PURE__*/function () {
       }
 
       leftNodes[0] && leftNodes[0].forEach(function (c, i) {
-        c.width = _this29.columnParams.cellWidths[i];
+        c.width = _this32.columnParams.cellWidths[i];
       });
       var scrollableColumns = this.layout.qHyperCube.qSize.qcx; // - (this.options.freezeColumns || this.layout.qHyperCube.qNoOfLeftDims)
 
@@ -2547,7 +3148,7 @@ var Table2 = /*#__PURE__*/function () {
         left: 0
       });
       topNodesTransposed[topNodesTransposed.length - 1].forEach(function (c, i) {
-        c.width = "".concat(_this29.columnParams.cellWidths[(_this29.options.freezeColumns || _this29.layout.qHyperCube.qNoOfLeftDims) + i] || _this29.columnParams.cellWidths[_this29.columnParams.cellWidths.length - 1], "px");
+        c.width = "".concat(_this32.columnParams.cellWidths[(_this32.options.freezeColumns || _this32.layout.qHyperCube.qNoOfLeftDims) + i] || _this32.columnParams.cellWidths[_this32.columnParams.cellWidths.length - 1], "px");
       });
 
       for (var r = 0; r < page.qData.length; r++) {
@@ -2559,6 +3160,7 @@ var Table2 = /*#__PURE__*/function () {
 
         for (var c = 0; c < row.length; c++) {
           row[c].pos = 'Data';
+          row[c].style = 'text-align: right;';
           row[c].width = "".concat(this.columnParams.cellWidths[(this.options.freezeColumns || this.layout.qHyperCube.qNoOfLeftDims) + c] || this.columnParams.cellWidths[this.columnParams.cellWidths.length - 1], "px");
 
           if (row[c].qAttrExps && row[c].qAttrExps.qValues && row[c].qAttrExps.qValues[0] && row[c].qAttrExps.qValues[0].qText) {
@@ -2576,7 +3178,7 @@ var Table2 = /*#__PURE__*/function () {
             row[c].qType = 'T';
           }
 
-          row[c].value = row[c].qText;
+          row[c].value = row[c].qText || '';
         }
 
         if (leftNodes[r]) {
@@ -2609,7 +3211,7 @@ var Table2 = /*#__PURE__*/function () {
             }).map(function (d, dI) {
               return _extends({}, d, {
                 name: d.qFallbackTitle,
-                width: "".concat(_this29.columnParams.cellWidths[dI] || _this29.columnParams.cellWidths[_this29.columnParams.cellWidths.length - 1], "px")
+                width: "".concat(_this32.columnParams.cellWidths[dI] || _this32.columnParams.cellWidths[_this32.columnParams.cellWidths.length - 1], "px")
               });
             }).concat(topNodesTransposed[_i12]);
           } else {
@@ -2627,8 +3229,8 @@ var Table2 = /*#__PURE__*/function () {
 
         o.level = level;
         o.pos = 'Left';
-        o.value = o.qText;
-        input.value = input.qText;
+        o.value = o.qText || '';
+        input.value = input.qText || '';
         visibleLeftCount = Math.max(visibleLeftCount, level + 1);
         o.childCount = o.qSubNodes.length;
 
@@ -2645,7 +3247,7 @@ var Table2 = /*#__PURE__*/function () {
 
         if (typeof o.qText === 'undefined') {
           if (o.qElemNo === -1) {
-            o.qText = 'Totals??';
+            o.qText = 'Totals';
           } else if (o.qElemNo === -4) {
             o.qText = '';
             o.qType = 'T';
@@ -2692,7 +3294,8 @@ var Table2 = /*#__PURE__*/function () {
         o.rowIndex = topCounter;
         o.topNode = true;
         o.isHeader = true;
-        o.name = o.qText;
+        o.style = 'text-align: center;';
+        o.name = o.qText || '';
 
         if (!o.font) {
           o.font = {};
@@ -2800,7 +3403,9 @@ var Table2 = /*#__PURE__*/function () {
 
 if (typeof WebsyDesigns !== 'undefined') {
   WebsyDesigns.QlikPlugins = {
+    Bookmarks: Bookmarks,
     Chart: Chart,
+    CurrentSelections: CurrentSelections,
     Table: Table,
     Table2: Table2,
     GeoMap: GeoMap,
@@ -2809,7 +3414,9 @@ if (typeof WebsyDesigns !== 'undefined') {
     KPI: KPI
   };
   window.WebsyDesignsQlikPlugins = {
+    Bookmarks: Bookmarks,
     Chart: Chart,
+    CurrentSelections: CurrentSelections,
     Table: Table,
     Table2: Table2,
     GeoMap: GeoMap,
@@ -2936,14 +3543,14 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "init",
       value: function init() {
-        var _this30 = this;
+        var _this33 = this;
 
         return new Promise(function (resolve, reject) {
-          _this30.prep('global');
+          _this33.prep('global');
 
-          _this30.connectToApp().then(function () {
-            _this30.executeAction(0, _this30.options.initialActions, function () {
-              _this30.selectFromUrl(function () {
+          _this33.connectToApp().then(function () {
+            _this33.executeAction(0, _this33.options.initialActions, function () {
+              _this33.selectFromUrl(function () {
                 resolve();
               });
             });
@@ -3024,7 +3631,7 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "prep",
       value: function prep(view) {
-        var _this31 = this;
+        var _this34 = this;
 
         // for (let view in this.options.views) {
         // sort out the elements in each view
@@ -3046,29 +3653,29 @@ if (typeof WebsyDesigns !== 'undefined') {
 
 
         var _loop = function _loop(a) {
-          var el = document.getElementById(_this31.options.actions[a].elementId);
+          var el = document.getElementById(_this34.options.actions[a].elementId);
 
           if (el) {
-            el.addEventListener(_this31.options.actions[a].event, function () {
+            el.addEventListener(_this34.options.actions[a].event, function () {
               var _loop2 = function _loop2(i) {
-                var item = _this31.options.actions[a].items[i];
+                var item = _this34.options.actions[a].items[i];
 
                 if (typeof item.params === 'undefined') {
                   item.params = [];
                 }
 
                 if (item.field) {
-                  _this31.app.getField(item.field).then(function (field) {
+                  _this34.app.getField(item.field).then(function (field) {
                     field[item.method].apply(field, _toConsumableArray(item.params));
                   });
                 } else {
-                  var _this31$app;
+                  var _this34$app;
 
-                  (_this31$app = _this31.app)[item.method].apply(_this31$app, _toConsumableArray(item.params));
+                  (_this34$app = _this34.app)[item.method].apply(_this34$app, _toConsumableArray(item.params));
                 }
               };
 
-              for (var i = 0; i < _this31.options.actions[a].items.length; i++) {
+              for (var i = 0; i < _this34.options.actions[a].items.length; i++) {
                 _loop2(i);
               }
             });
@@ -3084,14 +3691,14 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "connectToApp",
       value: function connectToApp() {
-        var _this32 = this;
+        var _this35 = this;
 
         return new Promise(function (resolve, reject) {
           // check for enigma.js      
-          var originalId = _this32.options.enigmaConfig.app;
+          var originalId = _this35.options.enigmaConfig.app;
 
-          if (_this32.options.enigmaConfig.app) {
-            _this32.options.enigmaConfig.app = _this32.normalizeId(_this32.options.enigmaConfig.app);
+          if (_this35.options.enigmaConfig.app) {
+            _this35.options.enigmaConfig.app = _this35.normalizeId(_this35.options.enigmaConfig.app);
           }
 
           if (typeof enigma === 'undefined') {
@@ -3101,46 +3708,46 @@ if (typeof WebsyDesigns !== 'undefined') {
             return;
           }
 
-          if (typeof _this32.options.enigmaSchema === 'undefined') {
+          if (typeof _this35.options.enigmaSchema === 'undefined') {
             reject({
               error: 'enigmaSchema property not found.'
             });
             return;
           }
 
-          var url = _this32.options.enigmaConfig.url;
+          var url = _this35.options.enigmaConfig.url;
 
-          if (_this32.options.enigmaConfig.ticket) {
+          if (_this35.options.enigmaConfig.ticket) {
             if (url.indexOf('?') === -1) {
               url += '?';
             } else {
               url += '&';
             }
 
-            url += "qlikTicket=".concat(_this32.options.enigmaConfig.ticket);
+            url += "qlikTicket=".concat(_this35.options.enigmaConfig.ticket);
           }
 
           var config = {
-            schema: _this32.options.enigmaSchema,
+            schema: _this35.options.enigmaSchema,
             url: url
           };
           var session = enigma.create(config);
-          _this32.session = session;
+          _this35.session = session;
           session.open().then(function (global) {
-            _this32.global = global;
+            _this35.global = global;
             global.getActiveDoc().then(function (app) {
               if (app) {
-                _this32.app = app;
+                _this35.app = app;
 
-                if (_this32.options.views.global) {
-                  _this32.executeActions('global').then(function () {
+                if (_this35.options.views.global) {
+                  _this35.executeActions('global').then(function () {
                     resolve();
                   });
                 } else {
                   resolve();
                 }
               } else {
-                return _this32.openApp(originalId).then(function () {
+                return _this35.openApp(originalId).then(function () {
                   resolve();
                 });
               }
@@ -3148,10 +3755,10 @@ if (typeof WebsyDesigns !== 'undefined') {
               var e = err;
 
               if (originalId) {
-                return _this32.openApp(originalId).then(function () {
+                return _this35.openApp(originalId).then(function () {
                   resolve();
                 }, function (err) {
-                  _this32.sessionOnNotification({
+                  _this35.sessionOnNotification({
                     err: err
                   });
                 });
@@ -3160,40 +3767,40 @@ if (typeof WebsyDesigns !== 'undefined') {
               }
             });
 
-            if (_this32.options.keepAlive === true) {
-              _this32.keepAlive();
+            if (_this35.options.keepAlive === true) {
+              _this35.keepAlive();
             }
           }, function (err) {
             reject(err);
           });
           session.on('traffic:received', function (data) {
             if (typeof data.suspend !== 'undefined') {
-              _this32.sessionSuspended();
+              _this35.sessionSuspended();
             }
           });
           session.on('notification:*', function (eventName, data) {
             if (eventName === 'OnAuthenticationInformation') {
               if (data.mustAuthenticate === true) {
-                if (_this32.options.enigmaConfig.authUrl) {
-                  window.location = _this32.options.enigmaConfig.authUrl + window.location.search.replace('?', '%3F').replace('=', '%3D');
-                } else if (_this32.options.enigmaConfig.onMustAuthenticate) {
-                  _this32.options.enigmaConfig.onMustAuthenticate();
+                if (_this35.options.enigmaConfig.authUrl) {
+                  window.location = _this35.options.enigmaConfig.authUrl + window.location.search.replace('?', '%3F').replace('=', '%3D');
+                } else if (_this35.options.enigmaConfig.onMustAuthenticate) {
+                  _this35.options.enigmaConfig.onMustAuthenticate();
                 } else if (data.loginUri) {
                   window.location = data.loginUri;
                 }
               } else if (data.mustAuthenticate === false) {
-                _this32.user = {
+                _this35.user = {
                   userDirectory: data.userDirectory,
                   userId: data.userId
                 };
               }
             } else {
-              _this32.sessionOnNotification(data, eventName);
+              _this35.sessionOnNotification(data, eventName);
             }
           });
-          session.on('suspended', _this32.sessionSuspended.bind(_this32));
-          session.on('resumed', _this32.sessionResumed.bind(_this32));
-          session.on('closed', _this32.sessionClosed.bind(_this32));
+          session.on('suspended', _this35.sessionSuspended.bind(_this35));
+          session.on('resumed', _this35.sessionResumed.bind(_this35));
+          session.on('closed', _this35.sessionClosed.bind(_this35));
         });
       }
     }, {
@@ -3214,24 +3821,24 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "keepAlive",
       value: function keepAlive() {
-        var _this33 = this;
+        var _this36 = this;
 
         this.global.engineVersion();
         setTimeout(function () {
-          _this33.keepAlive();
+          _this36.keepAlive();
         }, 59000);
       }
     }, {
       key: "openApp",
       value: function openApp(appId) {
-        var _this34 = this;
+        var _this37 = this;
 
         return new Promise(function (resolve, reject) {
-          _this34.global.openDoc(appId).then(function (app) {
-            _this34.app = app;
+          _this37.global.openDoc(appId).then(function (app) {
+            _this37.app = app;
 
-            if (_this34.options.views.global) {
-              _this34.executeActions('global').then(function () {
+            if (_this37.options.views.global) {
+              _this37.executeActions('global').then(function () {
                 resolve();
               });
             } else {
@@ -3245,7 +3852,7 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "loadView",
       value: function loadView(view, force) {
-        var _this35 = this;
+        var _this38 = this;
 
         if (typeof force === 'undefined') {
           force = false;
@@ -3265,23 +3872,23 @@ if (typeof WebsyDesigns !== 'undefined') {
 
         if (this.options.views[view].controller && this.options.views[view].initialized !== true) {
           this.options.views[view].controller.init(function () {
-            _this35.options.views[view].initialized = true;
+            _this38.options.views[view].initialized = true;
 
-            if (_this35.options.views[view].prepped !== true) {
-              _this35.prep(view);
+            if (_this38.options.views[view].prepped !== true) {
+              _this38.prep(view);
             }
 
-            _this35.executeActions(view).then(function () {
-              if ((_this35.globalObjectsLoaded === false || _this35.options.alwaysLoadGlobal === true) && view !== 'global') {
-                _this35.loadObjects('global', force);
+            _this38.executeActions(view).then(function () {
+              if ((_this38.globalObjectsLoaded === false || _this38.options.alwaysLoadGlobal === true) && view !== 'global') {
+                _this38.loadObjects('global', force);
 
-                _this35.globalObjectsLoaded = true;
+                _this38.globalObjectsLoaded = true;
               }
 
-              _this35.loadObjects(view, force);
+              _this38.loadObjects(view, force);
 
               if (view === 'global') {
-                _this35.globalObjectsLoaded = true;
+                _this38.globalObjectsLoaded = true;
               }
             });
           });
@@ -3294,16 +3901,16 @@ if (typeof WebsyDesigns !== 'undefined') {
           this.executeActions(view).then(function () {
             console.log('Actions complete', view);
 
-            if ((_this35.globalObjectsLoaded === false || _this35.options.alwaysLoadGlobal === true) && view !== 'global') {
-              _this35.loadObjects('global', force);
+            if ((_this38.globalObjectsLoaded === false || _this38.options.alwaysLoadGlobal === true) && view !== 'global') {
+              _this38.loadObjects('global', force);
 
-              _this35.globalObjectsLoaded = true;
+              _this38.globalObjectsLoaded = true;
             }
 
-            _this35.loadObjects(view, force);
+            _this38.loadObjects(view, force);
 
             if (view === 'global') {
-              _this35.globalObjectsLoaded = true;
+              _this38.globalObjectsLoaded = true;
             }
           });
         }
@@ -3311,7 +3918,7 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "executeAction",
       value: function executeAction(index, actionList, callbackFn) {
-        var _this36 = this;
+        var _this39 = this;
 
         var item = actionList[index];
 
@@ -3329,7 +3936,7 @@ if (typeof WebsyDesigns !== 'undefined') {
                   if (index === actionList.length) {
                     callbackFn();
                   } else {
-                    _this36.executeAction(index, actionList, callbackFn);
+                    _this39.executeAction(index, actionList, callbackFn);
                   }
                 });
               } else {
@@ -3338,7 +3945,7 @@ if (typeof WebsyDesigns !== 'undefined') {
                 if (index === actionList.length) {
                   callbackFn();
                 } else {
-                  _this36.executeAction(index, actionList, callbackFn);
+                  _this39.executeAction(index, actionList, callbackFn);
                 }
               }
             });
@@ -3352,7 +3959,7 @@ if (typeof WebsyDesigns !== 'undefined') {
             if (index === actionList.length) {
               callbackFn();
             } else {
-              _this36.executeAction(index, actionList, callbackFn);
+              _this39.executeAction(index, actionList, callbackFn);
             }
           });
         }
@@ -3360,20 +3967,20 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "executeActions",
       value: function executeActions(view) {
-        var _this37 = this;
+        var _this40 = this;
 
         return new Promise(function (resolve, reject) {
-          if (!_this37.options.views[view] || !_this37.options.views[view].actions || _this37.options.views[view].actions.length === 0) {
+          if (!_this40.options.views[view] || !_this40.options.views[view].actions || _this40.options.views[view].actions.length === 0) {
             resolve();
           }
 
-          _this37.executeAction(0, _this37.options.views[view].actions, resolve);
+          _this40.executeAction(0, _this40.options.views[view].actions, resolve);
         });
       }
     }, {
       key: "loadObjects",
       value: function loadObjects(view, force) {
-        var _this38 = this;
+        var _this41 = this;
 
         console.log('Loading objects', view);
 
@@ -3399,16 +4006,16 @@ if (typeof WebsyDesigns !== 'undefined') {
               }
             } else if (objList[i].definition) {
               if (typeof objList[i].definition === 'string' && objList[i].definition.toLowerCase().indexOf('.json') !== -1) {
-                _this38.request('GET', objList[i].definition).then(function (def) {
+                _this41.request('GET', objList[i].definition).then(function (def) {
                   objList[i].definition = def;
 
-                  _this38.createObjectFromDefinition(objList[i]);
+                  _this41.createObjectFromDefinition(objList[i]);
                 });
               } else {
-                _this38.createObjectFromDefinition(objList[i]);
+                _this41.createObjectFromDefinition(objList[i]);
               }
             } else {
-              _this38.createObjectFromDefinition(objList[i]);
+              _this41.createObjectFromDefinition(objList[i]);
             }
           };
 
@@ -3469,7 +4076,7 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "createObjectFromDefinition",
       value: function createObjectFromDefinition(objectConfig) {
-        var _this39 = this;
+        var _this42 = this;
 
         if (objectConfig.retries) {
           objectConfig.retries = 0;
@@ -3489,16 +4096,16 @@ if (typeof WebsyDesigns !== 'undefined') {
             objectConfig.objectId = model.id;
             objectConfig.attached = true;
 
-            if (_this39.supportedChartTypes.indexOf(objectConfig.definition.qInfo.qType) !== -1) {
+            if (_this42.supportedChartTypes.indexOf(objectConfig.definition.qInfo.qType) !== -1) {
               var options = _extends({}, objectConfig.options, {
                 model: model,
                 def: objectConfig.definition,
-                app: _this39.app
+                app: _this42.app
               });
 
-              objectConfig.vis = new _this39.chartLibrary[objectConfig.definition.qInfo.qType]("".concat(objectConfig.elementId, "_vis"), options);
+              objectConfig.vis = new _this42.chartLibrary[objectConfig.definition.qInfo.qType]("".concat(objectConfig.elementId, "_vis"), options);
               model.on('changed', function () {
-                if (objectConfig.attached === true && _this39.paused === false) {
+                if (objectConfig.attached === true && _this42.paused === false) {
                   objectConfig.vis.render();
                 }
               });
@@ -3508,7 +4115,7 @@ if (typeof WebsyDesigns !== 'undefined') {
               objectConfig.model = model;
               objectConfig.render(objectConfig, model);
               model.on('changed', function () {
-                if (objectConfig.attached === true && _this39.paused === false) {
+                if (objectConfig.attached === true && _this42.paused === false) {
                   objectConfig.render(objectConfig, model);
                 }
               });
@@ -3516,11 +4123,11 @@ if (typeof WebsyDesigns !== 'undefined') {
           }, function (err) {
             console.log('Error creating object', err);
 
-            if (objectConfig.retries < _this39.options.retryCount) {
+            if (objectConfig.retries < _this42.options.retryCount) {
               console.log('retrying');
               objectConfig.retries++;
 
-              _this39.createObjectFromDefinition(objectConfig);
+              _this42.createObjectFromDefinition(objectConfig);
             } else {
               console.log('Max retries reached.');
             }
@@ -3669,7 +4276,7 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "select",
       value: function select(index, selections, callbackFn) {
-        var _this40 = this;
+        var _this43 = this;
 
         if (index === selections.length) {
           callbackFn();
@@ -3704,13 +4311,13 @@ if (typeof WebsyDesigns !== 'undefined') {
             f.selectValues(values).then(function () {
               index++;
 
-              _this40.select(index, selections, callbackFn);
+              _this43.select(index, selections, callbackFn);
             });
           }, function (err) {
             console.log('field for selection not found', err);
             index++;
 
-            _this40.select(index, selections, callbackFn);
+            _this43.select(index, selections, callbackFn);
           });
         }
       }
