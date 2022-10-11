@@ -1409,15 +1409,27 @@ class Dropdown {
     if (this.options.useVariable === true && this.options.variable && this.options.app) {
       this.options.app.getVariableByName(this.options.variable).then(v => {
         if (item.qNum === 'NaN') {
-          v.setStringValue(item.qText)
+          v.setStringValue(item.qText).then(() => {
+            if (this.options.onItemSelected) {
+              this.options.onItemSelected(item, selectedIndexes, items)
+            }
+          })
         }
         else {
-          v.setNumValue(item.qNum)
+          v.setNumValue(item.qNum).then(() => {
+            if (this.options.onItemSelected) {
+              this.options.onItemSelected(item, selectedIndexes, items)
+            }
+          })
         }
       })
     }
     else {
-      this.options.model.selectListObjectValues(`/${this.options.path}/qListObjectDef`.replace(/\/\//g, '/'), [item.qElemNumber], this.dropdown.options.multiSelect === true)
+      this.options.model.selectListObjectValues(`/${this.options.path}/qListObjectDef`.replace(/\/\//g, '/'), [item.qElemNumber], this.dropdown.options.multiSelect === true).then(() => {
+        if (this.options.onItemSelected) {
+          this.options.onItemSelected(item, selectedIndexes, items)
+        }
+      })
     }
   }
   onOpen () {
