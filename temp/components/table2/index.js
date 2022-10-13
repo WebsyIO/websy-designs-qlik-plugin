@@ -214,7 +214,7 @@ class Table2 {
       if (!this.dropdowns[`dim${i}`]) {
         this.dropdowns[`dim${i}`] = new WebsyDesignsQlikPlugins.Dropdown(`${this.elementId}_columnSearch_${i}`, {
           model: this.options.model,
-          path: `dim${i}`,
+          // path: `dim${i}`,
           onClose: this.handleCloseSearch
         }) 
       }      
@@ -341,7 +341,7 @@ class Table2 {
       let columnParamValues = activeDimensions
         .filter((c, i) => (this.layout.qHyperCube.qMode === 'S' || i < this.layout.qHyperCube.qNoOfLeftDims))
         .map((c, i) => ({ 
-          value: new Array(Math.max(c.qApprMaxGlyphCount, this.layout.qHyperCube.qDimensionInfo[i].qFallbackTitle.length)).fill('x').join(''),
+          value: new Array(Math.max(c.qApprMaxGlyphCount, this.layout.qHyperCube.qDimensionInfo[i].qFallbackTitle.length)).fill('X').join(''),
           width: c.width || null
         }))
       let measureLabel = activeDimensions.pop()
@@ -350,7 +350,7 @@ class Table2 {
       columnParamValues = columnParamValues.concat(this.layout.qHyperCube.qMeasureInfo        
         .filter(c => !c.qError)
         .map(c => ({ 
-          value: new Array(this.layout.qHyperCube.qMode === 'S' ? c.qApprMaxGlyphCount : Math.max(c.qApprMaxGlyphCount, measureLabel.qApprMaxGlyphCount)).fill('x').join(''),
+          value: new Array(this.layout.qHyperCube.qMode === 'S' ? c.qApprMaxGlyphCount : Math.max(c.qApprMaxGlyphCount, measureLabel.qApprMaxGlyphCount)).fill('X').join(''),
           width: this.layout.qHyperCube.qMode === 'S' ? c.width || null : c.width || measureLabel.width || null
         })))
       this.columnParams = this.table.getColumnParameters(columnParamValues)     

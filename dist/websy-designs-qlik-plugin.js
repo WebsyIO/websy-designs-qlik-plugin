@@ -2767,7 +2767,7 @@ var Table2 = /*#__PURE__*/function () {
         if (!_this29.dropdowns["dim".concat(i)]) {
           _this29.dropdowns["dim".concat(i)] = new WebsyDesignsQlikPlugins.Dropdown("".concat(_this29.elementId, "_columnSearch_").concat(i), {
             model: _this29.options.model,
-            path: "dim".concat(i),
+            // path: `dim${i}`,
             onClose: _this29.handleCloseSearch
           });
         }
@@ -2935,7 +2935,7 @@ var Table2 = /*#__PURE__*/function () {
           return _this31.layout.qHyperCube.qMode === 'S' || i < _this31.layout.qHyperCube.qNoOfLeftDims;
         }).map(function (c, i) {
           return {
-            value: new Array(Math.max(c.qApprMaxGlyphCount, _this31.layout.qHyperCube.qDimensionInfo[i].qFallbackTitle.length)).fill('x').join(''),
+            value: new Array(Math.max(c.qApprMaxGlyphCount, _this31.layout.qHyperCube.qDimensionInfo[i].qFallbackTitle.length)).fill('X').join(''),
             width: c.width || null
           };
         });
@@ -2946,7 +2946,7 @@ var Table2 = /*#__PURE__*/function () {
           return !c.qError;
         }).map(function (c) {
           return {
-            value: new Array(_this31.layout.qHyperCube.qMode === 'S' ? c.qApprMaxGlyphCount : Math.max(c.qApprMaxGlyphCount, measureLabel.qApprMaxGlyphCount)).fill('x').join(''),
+            value: new Array(_this31.layout.qHyperCube.qMode === 'S' ? c.qApprMaxGlyphCount : Math.max(c.qApprMaxGlyphCount, measureLabel.qApprMaxGlyphCount)).fill('X').join(''),
             width: _this31.layout.qHyperCube.qMode === 'S' ? c.width || null : c.width || measureLabel.width || null
           };
         }));
