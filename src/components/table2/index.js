@@ -214,7 +214,7 @@ class Table2 {
       if (!this.dropdowns[`dim${i}`]) {
         this.dropdowns[`dim${i}`] = new WebsyDesignsQlikPlugins.Dropdown(`${this.elementId}_columnSearch_${i}`, {
           model: this.options.model,
-          // path: `dim${i}`,
+          path: `dim${i}`,
           onClose: this.handleCloseSearch
         }) 
       }      
@@ -231,7 +231,7 @@ class Table2 {
           qPath: `/dim${i}`,
           qValue: JSON.stringify({
             qListObjectDef: {
-              qDef: d.qDef,
+              qDef: {...d.qDef, qSortCriterias: [{qSortByState: 1, qSortByAscii: 1}]},
               qLibraryId: d.qLibraryId
             }
           })
@@ -251,8 +251,7 @@ class Table2 {
     }
     this.table.showLoading({message: 'Loading...'})    
     this.options.model.getLayout().then(layout => {    
-      this.layout = layout
-      console.log('table layout', layout)      
+      this.layout = layout      
       this.rowCount = pageNum * this.options.pageSize
       if (this.layout.qHyperCube.qPivotDataPages[0]) {
         this.layout.qHyperCube.qPivotDataPages = []
@@ -277,10 +276,10 @@ class Table2 {
         this.columnOrder = (new Array(this.layout.qHyperCube.qSize.qcx)).fill({}).map((r, i) => i)
       }
       this.layout.qHyperCube.qDimensionInfo = this.layout.qHyperCube.qDimensionInfo.map((c, i) => {
+        c.searchable = true
         if (this.options.columnOverrides[i]) {
           c = {
-            ...c, 
-            searchable: true, 
+            ...c,             
             onSearch: this.handleSearch.bind(this),
             onCloseSearch: this.handleCloseSearch.bind(this),
             ...this.options.columnOverrides[i]

@@ -22,7 +22,41 @@ class Dropdown {
       onCancelSearch: this.cancelSearch.bind(this),
       onScroll: this.handleScroll.bind(this),
       onOpen: this.onOpen.bind(this),
-      onClose: this.onClose.bind(this)
+      onClose: this.onClose.bind(this),
+      customActions: [
+        {
+          label: 'Select All',
+          fn: () => {
+            this.options.model.selectListObjectAll(`/${this.options.path}/qListObjectDef`.replace(/\/\//g, '/')).then(() => {
+              this.render()
+            })
+          }
+        },
+        {
+          label: 'Select Possible',
+          fn: () => {
+            this.options.model.selectListObjectPossible(`/${this.options.path}/qListObjectDef`.replace(/\/\//g, '/')).then(() => {
+              this.render()
+            })
+          }
+        },
+        {
+          label: 'Select Alternative',
+          fn: () => {
+            this.options.model.selectListObjectAlternative(`/${this.options.path}/qListObjectDef`.replace(/\/\//g, '/')).then(() => {
+              this.render()
+            })
+          }
+        },
+        {
+          label: 'Select Excluded',
+          fn: () => {
+            this.options.model.selectListObjectExcluded(`/${this.options.path}/qListObjectDef`.replace(/\/\//g, '/')).then(() => {
+              this.render()
+            })
+          }
+        }
+      ]
     })
     this.dropdown = new WebsyDesigns.WebsyDropdown(elementId, this.dropdownOptions)
     this.render()

@@ -8,7 +8,8 @@ class DatePicker {
       mode: 'date',
       pageSize: 1000
     }
-    this.elementId = elementId    
+    this.elementId = elementId  
+    this.monthYearIsDate = true  
     this.options = Object.assign({}, DEFAULTS, options)
     this.picker = new WebsyDesigns.WebsyDatePicker(elementId, Object.assign({}, options, {
       onChange: this.onChange.bind(this)
@@ -89,6 +90,17 @@ class DatePicker {
       if (this.options.mode === 'date') {
         return this.toQlikDate(d)
       }
+      else if (this.options.mode === 'monthyear') {
+        if (this.monthYearIsDate === true) {
+          return this.toQlikDate(d)
+        }
+        else {          
+          if (!d.getFullYear) {        
+            d = new Date(d)
+          }
+          return +`${d.getFullYear()}${d.getMonth() < 9 ? '0' : ''}${d.getMonth() + 1}`
+        }
+      }
       else {
         return d
       }  
@@ -116,6 +128,7 @@ class DatePicker {
   render () {
     this.options.model.getLayout().then(layout => {
       this.layout = layout
+      console.log(layout)
       this.checkForData().then(() => {
         let disabledDates = []
         let min
@@ -147,9 +160,34 @@ class DatePicker {
             this.picker.options.minAllowedYear = start
             this.picker.options.maxAllowedYear = end
           }
+          else if (this.options.mode === 'monthyear') {
+            start = layout.qListObject.qDataPages[0].qMatrix[0][0]
+            end = layout.qListObject.qDataPages[0].qMatrix[layout.qListObject.qDataPages[0].qMatrix.length - 1][0]
+            if (start.qNum.toString().length === 5) {
+              this.monthYearIsDate = true
+              start = this.fromQlikDate(start.qNum)
+              end = this.fromQlikDate(end.qNum)
+            }
+            else {
+              this.monthYearIsDate = false
+              let startYear = +start.qNum.toString().substring(0, 4)
+              let startMonth = +start.qNum.toString().substring(4, 6) - 1
+              let endYear = +end.qNum.toString().substring(0, 4)
+              let endMonth = +end.qNum.toString().substring(4, 6) - 1
+              start = new Date(new Date(new Date(new Date().setDate(1)).setMonth(startMonth)).setFullYear(startYear))
+              end = new Date(new Date(new Date(new Date().setDate(1)).setMonth(endMonth)).setFullYear(endYear))              
+            }
+          }
+          else if (this.options.mode === 'hour') {
+            // 
+          }
           let diff = (end - start)
           if (this.options.mode === 'date') {
             diff = diff / oneDay
+          }
+          else if (this.options.mode === 'monthyear') {
+            let yearDiff = (end.getFullYear() - start.getFullYear()) * 12
+            diff = Math.floor((end.getMonth() - start.getMonth())) + yearDiff
           }        
           for (let i = 0; i < diff + 1; i++) {
             if (this.options.mode === 'date') {
@@ -165,6 +203,17 @@ class DatePicker {
                 qNum: start + i,
                 qState: 'Z'
               }
+            }
+            else if (this.options.mode === 'monthyear') {
+              let temp = this.floorDate(new Date(new Date(start.getTime()).setMonth(start.getMonth() + i)))
+              // temp.setHours(0, 0, 0)
+              completeDateList[temp.getTime()] = {
+                qNum: this.monthYearIsDate === true ? this.toQlikDateNum(temp) : `${temp.getFullYear()}${temp.getMonth() < 9 ? '0' : ''}${temp.getMonth() + 1}`,
+                qState: 'Z'
+              }
+            }
+            else if (this.options.mode === 'hour') {
+              // 
             }        
           }
           layout.qListObject.qDataPages[0].qMatrix.forEach((r, i, arr) => {
@@ -189,20 +238,80 @@ class DatePicker {
               // if (i === arr.length - 1) {
               //   max = r[0].qNum
               // } 
-            }              
+            }
+            else if (this.options.mode === 'monthyear') {
+              if (this.monthYearIsDate === true) {
+                if (completeDateList[this.fromQlikDate(r[0].qNum).getTime()]) {
+                  completeDateList[this.fromQlikDate(r[0].qNum).getTime()] = r[0]
+                }
+                if (i === 0) {
+                  min = this.fromQlikDate(r[0].qNum)
+                }
+                else if (i === arr.length - 1) {
+                  max = this.fromQlikDate(r[0].qNum)
+                }
+              }
+              else {
+                let d = r[0]
+                let startYear = +d.qNum.toString().substring(0, 4)
+                let startMonth = +d.qNum.toString().substring(4, 6) - 1
+                d = this.floorDate(new Date(new Date(new Date(new Date().setDate(1)).setMonth(startMonth)).setFullYear(startYear)))
+                if (completeDateList[d.getTime()]) {
+                  completeDateList[d.getTime()] = r[0]
+                }
+                if (i === 0) {
+                  min = d
+                }
+                else if (i === arr.length - 1) {
+                  max = d
+                }
+              }
+            }
+            else if (this.options.mode === 'hour') {
+              // 
+            }             
           })
           const completeDateListArr = Object.values(completeDateList)
           completeDateListArr.forEach(d => {
-            if (d.qState === 'S') {            
-              selectedRange.push(this.options.mode === 'date' ? this.fromQlikDate(d.qNum) : d.qNum)
+            if (d.qState === 'S') {
+              if (this.options.mode === 'date') {
+                selectedRange.push(this.fromQlikDate(d.qNum))
+              }            
+              else if (this.options.mode === 'monthyear') {
+                if (this.monthYearIsDate === true) {
+                  selectedRange.push(this.fromQlikDate(d.qNum))
+                }
+                else {
+                  let year = +d.qNum.toString().substring(0, 4)
+                  let month = +d.qNum.toString().substring(4, 6) - 1
+                  d = this.floorDate(new Date(new Date(new Date(new Date().setDate(1)).setMonth(month)).setFullYear(year)))
+                  selectedRange.push(d)
+                }
+              } 
+              else {
+                selectedRange.push(d.qNum)
+              }                           
             }
             // if (['X', 'XS', 'XL'].indexOf(d.qState) !== -1) {
             if (['Z'].indexOf(d.qState) !== -1) {
-              disabledDates.push(this.options.mode === 'date' ? this.fromQlikDate(d.qNum) : d.qNum)
+              if (this.options.mode === 'date') {
+                disabledDates.push(this.fromQlikDate(d.qNum))
+              }            
+              else if (this.options.mode === 'monthyear') {
+                if (this.monthYearIsDate === true) {
+                  disabledDates.push(this.fromQlikDate(d.qNum))
+                }
+                else {
+                  disabledDates.push(d.qNum)
+                }
+              } 
+              else {
+                disabledDates.push(d.qNum)
+              }
             }
           })
           this.picker.setDateBounds([min, max])
-          if (selectedRange.length !== layout.qListObject.qDataPages[0].qMatrix.length) {
+          if (selectedRange.length === layout.qListObject.qDataPages[0].qMatrix.length) {
             // do nothing because all values are selected
           }
           else if (selectedRange.length > 0) {

@@ -58,7 +58,10 @@ class CurrentSelections {
         if (layout.qSelectionObject.qSelections.length > 0) {
           el.classList.add('active')
           noEl.classList.remove('active')                     
-          layout.qSelectionObject.qSelections.forEach((selection, index) => {              
+          layout.qSelectionObject.qSelections.forEach((selection, index) => {  
+            if (selection.qIsHidden === true) {
+              return
+            }            
             let id = selection.qField.toLowerCase().replace(/ /g, '_')
             this.current.push(id)
             if (!this.dropdowns[id]) {

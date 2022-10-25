@@ -44,10 +44,14 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 /* global Bookmark */
 var Bookmarks = /*#__PURE__*/function () {
   function Bookmarks(elementId, options) {
+    var _this = this;
+
     _classCallCheck(this, Bookmarks);
 
     this.elementId = elementId;
-    var DEFAULTS = {};
+    var DEFAULTS = {
+      dock: 'left'
+    };
     this.options = _extends({}, DEFAULTS, options);
     var el = document.getElementById(this.elementId);
 
@@ -56,19 +60,8 @@ var Bookmarks = /*#__PURE__*/function () {
       el.addEventListener('keyup', this.handleKeyUp.bind(this));
       el.addEventListener('change', this.handleChange.bind(this));
       el.addEventListener('contextmenu', this.handleContextMenu.bind(this));
-      var html = "<div>\n      <svg xmlns='http://www.w3.org/2000/svg' class='bookmarkBtn' viewBox='0 0 512 512'>\n        <title>Bookmark</title>\n        <path d='M352 48H160a48 48 0 00-48 48v368l144-128 144 128V96a48 48 0 00-48-48z' fill='none' stroke='currentColor'\n          stroke-linecap='round' stroke-linejoin='round' stroke-width='32' />\n        </svg>\n\n        <div class='bookmarkPopup' id='bookmarkPopup'></div>\n        <div class='bookmarkContainer' id='bookmarkContainer'>\n          <div class='bookmark-topline'>\n            <span class=\"heading\">Bookmarks</span><button class='createNew'>Create new bookmark</button>\n          </div>\n          <div class='btn'>\n          </div>\n          <div style='position: relative;'>\n            <input class='search' type='text' id=\"myInput\" placeholder=\"Search\">\n            <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"ionicon\" viewBox=\"0 0 512 512\"><title>Search</title><path d=\"M221.09 64a157.09 157.09 0 10157.09 157.09A157.1 157.1 0 00221.09 64z\" fill=\"none\" stroke=\"currentColor\" stroke-miterlimit=\"10\" stroke-width=\"32\"/><path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-miterlimit=\"10\" stroke-width=\"32\" d=\"M338.29 338.29L448 448\"/></svg>            \n          </div>\n          <hr>\n          <div class='public'>\n          <div class=\"public-heading-caret\">\n              <svg class='public-caret caret' xmlns='http://www.w3.org/2000/svg' viewbox='0 0 512 512'>\n                <title>Caret Down</title>\n                <path d='M98 190.06l139.78 163.12a24 24 0 0036.44 0L414 190.06c13.34-15.57 2.28-39.62-18.22-39.62h-279.6c-20.5 0-31.56 24.05-18.18 39.62z' />\n              </svg>\n\n              <span class=\"heading\">Public bookmarks <span id=\"publicCount\">(0)</span></span>\n              </div>\n              <div id=\"public-placeholder\" class=\"active\"><p class='public-text'>You have no public bookmarks</p>\n              <p class='public-text'>Right-click on a bookmark and select 'Make public'.</p>\n            \n          </div>\n        </div>\n          <div class='my-bookmarks'>\n\n          <div class=\"heading-caret\">\n            <svg class='myBookmarks-caret caret' xmlns='http://www.w3.org/2000/svg' viewbox='0 0 512 512'>\n              <title>Caret Down</title>\n              <path\n                d='M98 190.06l139.78 163.12a24 24 0 0036.44 0L414 190.06c13.34-15.57 2.28-39.62-18.22-39.62h-279.6c-20.5 0-31.56 24.05-18.18 39.62z' />\n            </svg>\n            <span class=\"heading\">My bookmarks <span id=\"myBookmarksCount\">(0)</span></span>\n            </div>\n\n            <div id=\"myBookmarks-placeholder\" class=\"active\">\n            </div>\n          </div>\n        </div>\n      </div>\n\n      <div class='createNewPopup' id='createForm'>\n    <div class='createTopline'>\n    <span class=\"heading\">Create bookmark</span>\n    <span class='closeCreate'><svg xmlns='http://www.w3.org/2000/svg' viewbox='0 0 512 512'>\n    <title>Close</title>\n    <path fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='32'\n      d='M368 368L144 144M368 144L144 368' />\n  </svg></span>\n\n    </div>\n    <hr>\n    <div class=\"create-input\">\n    <label for='bookmarkName' class=\"title\">Title</label>\n      <input type='text' class=\"bookmark-name\" id='bookmarkName' name='bookmarkName'>\n      <label for='bookmarkDescription' class=\"description\">Description <span class='optional'>(optional)</span></label><br>\n      <input type='text' id='bookmarkDescription' name='bookmarkDescription'>\n      <div class=\"create-flex\"><button type=\"button\" disabled class='createSubmit' id='createSubmit'>Create</button>\n      </div>\n    </div>\n  </div>\n    ";
+      var html = "\n        <div class='websy-bookmark'>\n          <div class='bookmarkBtn'>\n            <svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 512 512'>        \n              <path d='M352 48H160a48 48 0 00-48 48v368l144-128 144 128V96a48 48 0 00-48-48z' fill='none' stroke='currentColor'\n                stroke-linecap='round' stroke-linejoin='round' stroke-width='32' />\n            </svg>\n          </div>\n          <div class='bookmark-mask' id='".concat(this.elementId, "_bookmarkPopup'></div>\n          <div class='bookmarkContainer dock-").concat(this.options.dock, "' id='bookmarkContainer'>\n            <div class='bookmark-topline'>\n              <span class=\"heading\">Bookmarks</span><button class='createNew'>Create new bookmark</button>\n            </div>            \n            <div style='position: relative;'>\n              <input class='search-input' type='text' id=\"").concat(this.elementId, "_search\" placeholder=\"Search\">\n              <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"ionicon\" viewBox=\"0 0 512 512\"><title>Search</title><path d=\"M221.09 64a157.09 157.09 0 10157.09 157.09A157.1 157.1 0 00221.09 64z\" fill=\"none\" stroke=\"currentColor\" stroke-miterlimit=\"10\" stroke-width=\"32\"/><path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-miterlimit=\"10\" stroke-width=\"32\" d=\"M338.29 338.29L448 448\"/></svg>            \n            </div>            \n            <div class='public'>\n              <div class=\"public-heading-caret\">\n                <svg class='public-caret caret' xmlns='http://www.w3.org/2000/svg' viewbox='0 0 512 512'>\n                  <title>Caret Down</title>\n                  <path d='M98 190.06l139.78 163.12a24 24 0 0036.44 0L414 190.06c13.34-15.57 2.28-39.62-18.22-39.62h-279.6c-20.5 0-31.56 24.05-18.18 39.62z' />\n                </svg>\n                <span class=\"heading\">Public bookmarks <span id=\"publicCount\">(0)</span></span>\n              </div>\n              <div id=\"public-placeholder\" class=\"active\"><p class='public-text'>You have no public bookmarks</p>\n                <p class='public-text'>Right-click on a bookmark and select 'Make public'.</p>              \n              </div>\n            </div>\n            <div class='my-bookmarks'>\n              <div class=\"heading-caret\">\n                <svg class='myBookmarks-caret caret' xmlns='http://www.w3.org/2000/svg' viewbox='0 0 512 512'>\n                  <title>Caret Down</title>\n                  <path\n                    d='M98 190.06l139.78 163.12a24 24 0 0036.44 0L414 190.06c13.34-15.57 2.28-39.62-18.22-39.62h-279.6c-20.5 0-31.56 24.05-18.18 39.62z' />\n                </svg>\n                <span class=\"heading\">My bookmarks <span id=\"myBookmarksCount\">(0)</span></span>\n              </div>\n              <div id=\"myBookmarks-placeholder\" class=\"active\"></div>\n            </div>\n          </div> \n          <div class='bookmark-mask-dark' id='bookmarkNewPopup'></div>       \n          <div class='createNewPopup' id='createForm'>\n            <div class='createTopline'>\n              <span class=\"heading\">Create bookmark</span>\n              <span class='closeCreate'>\n                <svg xmlns='http://www.w3.org/2000/svg' viewbox='0 0 512 512'>    \n                  <path fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='32'\n                    d='M368 368L144 144M368 144L144 368' />\n                </svg>\n              </span>\n            </div>\n            <div class=\"create-input\">\n              <label for='bookmarkName' class=\"title\">Title</label>\n              <input type='text' class=\"bookmark-name\" id='bookmarkName' name='bookmarkName'>\n              <label for='bookmarkDescription' class=\"description\">Description <span class='optional'>(optional)</span></label>\n              <textarea type='text' id='").concat(this.elementId, "_bookmarkDescription' name='bookmarkDescription'></textarea>\n              <div class=\"create-flex\">\n                <button type=\"button\" disabled class='create-submit' id='createSubmit'>Create</button>\n            </div>\n          </div>\n        </div>\n      </div>\n    ");
       el.innerHTML = html;
-      this.render();
-    }
-  }
-
-  _createClass(Bookmarks, [{
-    key: "render",
-    value: function render(searchText) {
-      var publicCount = document.getElementById('publicCount');
-      var publicBookmarks = [];
-      var myBookmarksCount = document.getElementById('myBookmarksCount');
-      var myBookmarks = [];
       this.options.app.createSessionObject({
         'qInfo': {
           'qId': 'BookmarkList',
@@ -85,81 +78,104 @@ var Bookmarks = /*#__PURE__*/function () {
           }
         }
       }).then(function (model) {
-        model.getLayout().then(function (layout) {
-          layout.qBookmarkList.qItems.forEach(function (d) {
-            if (d.qMeta.published === true) {
-              if (searchText) {
-                if (d.qMeta.title.toLowerCase().indexOf(searchText.toLowerCase()) !== -1) {
-                  publicBookmarks.push(d);
-                }
-              } else {
-                publicBookmarks.push(d);
+        _this.options.model = model;
+
+        _this.render();
+      });
+    }
+  }
+
+  _createClass(Bookmarks, [{
+    key: "createBookmarkHtml",
+    value: function createBookmarkHtml(bookmark, bookmarkType) {
+      var html = "\n      <div class=\"public-li\" id=\"public-li\" data-bookmark=\"".concat(bookmark.qInfo.qId, "\">\n        <span class=\"bookmark-text\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\">").concat(bookmark.qMeta.title, "</span>\n        <div class=\"date-and-i\">\n          <span class=\"bookmark-text\">").concat(new Date(bookmark.qMeta.createdDate).toLocaleString().slice(0, 10), "</span>\n          <span class=\"infoBtn\">\n            <svg data-bookmark=\"").concat(bookmark.qInfo.qId, "\" class=\"i-icon-public\" id=\"i-icon-public\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\">\n              <path d=\"M256 56C145.72 56 56 145.72 56 256s89.72 200 200 200 200-89.72 200-200S366.28 \n              56 256 56zm0 82a26 26 0 11-26 26 26 26 0 0126-26zm48 226h-88a16 16 0 010-32h28v-88h-16a16 16 0 010-32h32a16 16 0 0116 \n              16v104h28a16 16 0 010 32z\"/>\n            </svg>\n          </span>\n        </div>\n      </div>          \n      <div class=\"info-popup\" id=\"info-popup-").concat(bookmark.qInfo.qId, "\">\n        <div class=\"info-topline\" id=\"info-topline-").concat(bookmark.qInfo.qId, "\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\">\n          <span class=\"description-heading\" id=\"description-heading\">").concat(bookmark.qMeta.description, "</span>\n        </div>");
+
+      if (bookmark.qMeta.privileges.indexOf('update') !== -1) {
+        html += "\n        <svg xmlns=\"http://www.w3.org/2000/svg\" data-bookmark=\"".concat(bookmark.qInfo.qId, "\" class=\"edit-info\" id=\"edit-info-").concat(bookmark.qInfo.qId, "\" viewBox=\"0 0 512 512\">\n          <path d=\"M384 224v184a40 40 0 01-40 40H104a40 40 0 01-40-40V168a40 40 0 0140-40h167.48\"\n          fill=\"none\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/>\n          <path d=\"M459.94 53.25a16.06 16.06 0 00-23.22-.56L424.35 65a8 8 0 000 11.31l11.34 11.32a8 8 0 0011.34\n          0l12.06-12c6.1-6.09 6.67-16.01.85-22.38zM399.34 90L218.82 270.2a9 9 0 00-2.31 3.93L208.16 299a3.91 3.91\n            0 004.86 4.86l24.85-8.35a9 9 0 003.93-2.31L422 112.66a9 9 0 000-12.66l-9.95-10a9 9 0 00-12.71 0z\"/>\n        </svg>              \n        <div class=\"edit-topline\">\n          <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"tick-icon\" id=\"tick-icon\" viewBox=\"0 0 512 512\">\n            <path d=\"M448 256c0-106-86-192-192-192S64 150 64 256s86 192 192 192 192-86 192-192z\" fill=\"none\" stroke=\"currentColor\" stroke-miterlimit=\"10\" stroke-width=\"32\"/><path fill=\"none\"\n              stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" \n              stroke-width=\"32\" d=\"M352 176L217.6 336 160 272\"/>\n          </svg>");
+
+        if (bookmark.qMeta.privileges.indexOf('delete') !== -1) {
+          html += "\n          <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"trash-icon\" data-bookmark=\"".concat(bookmark.qInfo.qId, "\" id=\"trashIcon-").concat(bookmark.qInfo.qId, "\" viewBox=\"0 0 512 512\"><title>Trash</title>\n            <path d=\"M296 64h-80a7.91 7.91 0 00-8 8v24h96V72a7.91 7.91 0 00-8-8z\" fill=\"none\"/>\n            <path d=\"M432 96h-96V72a40 40 0 00-40-40h-80a40 40 0 00-40 40v24H80a16 16 0 000 32h17l19 304.92c1.42\n              26.85 22 47.08 48 47.08h184c26.13 0 46.3-19.78 48-47l19-305h17a16 16 0 000-32zM192.57 416H192a16 16 0 \n              01-16-15.43l-8-224a16 16 0 1132-1.14l8 224A16 16 0 01192.57 416zM272 400a16 16 0 01-32 0V176a16 16 0 0132\n              0zm32-304h-96V72a7.91 7.91 0 018-8h80a7.91 7.91 0 018 8zm32 304.57A16 16 0 01320 416h-.58A16 16 0 01304 \n              399.43l8-224a16 16 0 1132 1.14z\"/>\n          </svg>               \n        ");
+        }
+
+        html += "\n        </div>\n        <div id=\"edit-inputs-".concat(bookmark.qInfo.qId, "\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\" class=\"edit-inputs\">\n          <input type=\"text\" id=\"edit-title-").concat(bookmark.qInfo.qId, "\" placeholder=\"Bookmark title\"  value=\"").concat(bookmark.qMeta.title, "\"/>\n          <input type=\"text\" id=\"edit-description-").concat(bookmark.qInfo.qId, "\" placeholder=\"Bookmark description\" value=\"").concat(bookmark.qMeta.description, "\"  />\n        </div>");
+      }
+
+      html += "\n      <span class=\"selections\">Selections: ".concat(bookmark.qData.selectionFields, "</span>\n    ");
+      html += bookmark.qData.qBookmark.qStateData.map(function (s, i) {
+        return "\n      <div class=\"info-copy\">\n        <span class=\"set-expression\">".concat(s.qStateName, "</span>\n        <input type=\"text\" READONLY class=\"info-input\" value=\"\" id=\"").concat(bookmark.qInfo.qId, "_i_set\" />\n        <div class=\"flex\">\n          <div class=\"copied\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\" id=\"copied\"><h5>copied to clipboard</h5></div>\n          <button class=\"copy\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\" id=\"copyBtn-").concat(bookmark.qInfo.qId, "_i\" >Copy</button>          \n        </div>\n      </div>\n    ");
+      }).join('');
+
+      if (bookmark.qMeta.published === true && bookmark.qMeta.privileges.indexOf('publish') !== -1) {
+        html += "\n        <div class=\"right-click-popup\" id=\"rightClickPopup-".concat(bookmark.qInfo.qId, "\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\">\n          <div class=\"right-click-menu\">\n            <p class=\"unpublish-btn\" id=\"unpublishBtn-").concat(bookmark.qInfo.qId, "\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\">Unpublish</p>\n          </div>\n        </div>\n        ");
+      }
+
+      if (bookmark.qMeta.published !== true && bookmark.qMeta.privileges.indexOf('publish') !== -1) {
+        html += "\n        <div class=\"right-click-popup\" id=\"rightClickPopup-".concat(bookmark.qInfo.qId, "\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\">\n          <div class=\"right-click-menu\">\n            <p class=\"publish-btn\" id=\"publishBtn-").concat(bookmark.qInfo.qId, "\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\">Publish</p>\n          </div>\n        </div>\n        ");
+      }
+
+      html += "</div>";
+      return html;
+    }
+  }, {
+    key: "render",
+    value: function render(searchText) {
+      var _this2 = this;
+
+      var publicCount = document.getElementById('publicCount');
+      this.publicBookmarks = [];
+      var myBookmarksCount = document.getElementById('myBookmarksCount');
+      this.myBookmarks = [];
+      this.options.model.getLayout().then(function (layout) {
+        layout.qBookmarkList.qItems.forEach(function (d) {
+          if (d.qMeta.published === true) {
+            if (searchText) {
+              if (d.qMeta.title.toLowerCase().indexOf(searchText.toLowerCase()) !== -1) {
+                _this2.publicBookmarks.push(d);
               }
             } else {
-              if (searchText) {
-                if (d.qMeta.title.toLowerCase().indexOf(searchText.toLowerCase()) !== -1) {
-                  myBookmarks.push(d);
-                }
-              } else {
-                myBookmarks.push(d);
+              _this2.publicBookmarks.push(d);
+            }
+          } else {
+            if (searchText) {
+              if (d.qMeta.title.toLowerCase().indexOf(searchText.toLowerCase()) !== -1) {
+                _this2.myBookmarks.push(d);
               }
+            } else {
+              _this2.myBookmarks.push(d);
             }
-          });
-          var publicHtml = "<div id=\"info-popup-mask\" class=\"info-popup-mask\"></div>";
-          publicBookmarks.forEach(function (bookmark) {
-            console.log('public', bookmark);
-            publicHtml += "\n              <div class=\"public-li\" id=\"public-li\" data-bookmark=\"".concat(bookmark.qInfo.qId, "\">\n              <span class=\"bookmark-text\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\">").concat(bookmark.qMeta.title, "</span>\n              <div class=\"date-and-i\">\n              <span class=\"bookmark-text\">").concat(new Date(bookmark.qMeta.createdDate).toLocaleString().slice(0, 10), "</span>\n              <span class=\"infoBtn\">\n               <svg data-bookmark=\"").concat(bookmark.qInfo.qId, "\" class=\"i-icon-public\" id=\"i-icon-public\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\">\n               <title>Information Circle</title><path d=\"M256 56C145.72 56 56 145.72 56 256s89.72 200 200 200 200-89.72 200-200S366.28 \n               56 256 56zm0 82a26 26 0 11-26 26 26 26 0 0126-26zm48 226h-88a16 16 0 010-32h28v-88h-16a16 16 0 010-32h32a16 16 0 0116 \n               16v104h28a16 16 0 010 32z\"/>\n               </svg>\n               </span>\n               </div>\n              </div>\n             \n              <div class=\"info-popup\" id=\"info-popup-").concat(bookmark.qInfo.qId, "\">\n              <div class=\"info-topline\" id=\"info-topline-").concat(bookmark.qInfo.qId, "\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\">\n              <span class=\"description-heading\" id=\"description-heading\">").concat(bookmark.qMeta.description, "</span>\n              </div>");
-
-            if (bookmark.qMeta.privileges.indexOf('update') !== -1) {
-              publicHtml += "\n              <svg xmlns=\"http://www.w3.org/2000/svg\" data-bookmark=\"".concat(bookmark.qInfo.qId, "\" class=\"edit-info\" id=\"edit-info-").concat(bookmark.qInfo.qId, "\" viewBox=\"0 0 512 512\">\n              <title>Create</title><path d=\"M384 224v184a40 40 0 01-40 40H104a40 40 0 01-40-40V168a40 40 0 0140-40h167.48\"\n               fill=\"none\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/>\n               <path d=\"M459.94 53.25a16.06 16.06 0 00-23.22-.56L424.35 65a8 8 0 000 11.31l11.34 11.32a8 8 0 0011.34\n                0l12.06-12c6.1-6.09 6.67-16.01.85-22.38zM399.34 90L218.82 270.2a9 9 0 00-2.31 3.93L208.16 299a3.91 3.91\n                 0 004.86 4.86l24.85-8.35a9 9 0 003.93-2.31L422 112.66a9 9 0 000-12.66l-9.95-10a9 9 0 00-12.71 0z\"/>\n                 </svg>\n                 </div>\n                 <div class=\"edit-topline\">\n                 <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"tick-icon\" id=\"tick-icon\" viewBox=\"0 0 512 512\">\n                 <title>Checkmark Circle</title><path d=\"M448 256c0-106-86-192-192-192S64 150 64 256s86 192 192 192 192-86 192-192z\" fill=\"none\" stroke=\"currentColor\" stroke-miterlimit=\"10\" stroke-width=\"32\"/><path fill=\"none\"\n                  stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" \n                  stroke-width=\"32\" d=\"M352 176L217.6 336 160 272\"/>\n                  </svg>");
-
-              if (bookmark.qMeta.privileges.indexOf('delete') !== -1) {
-                publicHtml += "\n                  <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"trash-icon\" data-bookmark=\"".concat(bookmark.qInfo.qId, "\" id=\"trashIcon-").concat(bookmark.qInfo.qId, "\" viewBox=\"0 0 512 512\"><title>Trash</title>\n                  <path d=\"M296 64h-80a7.91 7.91 0 00-8 8v24h96V72a7.91 7.91 0 00-8-8z\" fill=\"none\"/>\n                  <path d=\"M432 96h-96V72a40 40 0 00-40-40h-80a40 40 0 00-40 40v24H80a16 16 0 000 32h17l19 304.92c1.42\n                   26.85 22 47.08 48 47.08h184c26.13 0 46.3-19.78 48-47l19-305h17a16 16 0 000-32zM192.57 416H192a16 16 0 \n                   01-16-15.43l-8-224a16 16 0 1132-1.14l8 224A16 16 0 01192.57 416zM272 400a16 16 0 01-32 0V176a16 16 0 0132\n                    0zm32-304h-96V72a7.91 7.91 0 018-8h80a7.91 7.91 0 018 8zm32 304.57A16 16 0 01320 416h-.58A16 16 0 01304 \n                    399.43l8-224a16 16 0 1132 1.14z\"/>\n                    </svg>\n                  </div>\n                  ");
-              }
-
-              publicHtml += "\n                 <div id=\"edit-inputs-".concat(bookmark.qInfo.qId, "\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\" class=\"edit-inputs\">\n                 <input type=\"text\" id=\"edit-title-").concat(bookmark.qInfo.qId, "\" placeholder=\"Bookmark title\"  value=\"").concat(bookmark.qMeta.title, "\"/>\n                 <input type=\"text\" id=\"edit-description-").concat(bookmark.qInfo.qId, "\" placeholder=\"Bookmark description\" value=\"").concat(bookmark.qMeta.description, "\"  />\n                 </div>");
-            }
-
-            publicHtml += "\n              <span class=\"selections\"><b>Selections:</b> ".concat(bookmark.qData.selectionFields, " </span>\n              <div class=\"info-copy\">\n              <span class=\"set-expression\">Set expression</span>\n              <input type=\"text\" READONLY class=\"info-input\" id=\"infoInput\" value=\"").concat(bookmark.qData.selectionFields, "\" />\n            \n              <div class=\"flex\">\n              <div class=\"copied\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\" id=\"copied-").concat(bookmark.qInfo.qId, "\"><h5>copied to clipboard</h5></div>\n              <button class=\"copy\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\" id=\"copyBtn-").concat(bookmark.qInfo.qId, "\" >Copy</button>\n              </div>\n              </div>\n              </div>\n              ");
-
-            if (bookmark.qMeta.privileges.indexOf('publish') !== -1) {
-              publicHtml += "\n                <div class=\"right-click-popup\" id=\"rightClickPopup-".concat(bookmark.qInfo.qId, "\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\">\n                <ul class=\"right-click-menu\">\n                  <li class=\"li-item\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\">Apply bookmark</li>\n                  <li class=\"li-item\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\">Publish</li>\n                  <li class=\"li-item\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\">Delete</li>\n                </ul>\n                </div>\n                ");
-            }
-          });
-          var bookmarkHtml = '';
-          myBookmarks.forEach(function (bookmark) {
-            console.log('my bookmark', bookmark);
-            var createDate = new Date();
-
-            if (bookmark.qMeta.createdDate) {
-              createDate = new Date(bookmark.qMeta.createdDate);
-            }
-
-            bookmarkHtml += "\n              <div class=\"myBookmarks-li\" id=\"myBookmarks-li\" data-bookmark=\"".concat(bookmark.qInfo.qId, "\">\n                <span class=\"bookmark-text data-bookmark=\"").concat(bookmark.qInfo.qId, "\">").concat(bookmark.qMeta.title, "</span>\n                <div class=\"date-and-i\">\n                <span class=\"bookmark-text\">").concat(new Date(bookmark.qMeta.createdDate).toLocaleString().slice(0, 10), "</span>\n                <span class=\"infoBtn\">\n                <svg data-bookmark=\"").concat(bookmark.qInfo.qId, "\" class=\"i-icon-my\" id=\"i-icon-my\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\">\n                <title>Information Circle</title><path d=\"M256 56C145.72 56 56 145.72 56 256s89.72 200 200 200 200-89.72 200-200S366.28 \n                56 256 56zm0 82a26 26 0 11-26 26 26 26 0 0126-26zm48 226h-88a16 16 0 010-32h28v-88h-16a16 16 0 010-32h32a16 16 0 0116 \n                16v104h28a16 16 0 010 32z\"/>\n                </svg>\n                </span>\n                </div>\n                </div>\n              \n                <div class=\"info-popup\" id=\"info-popup-").concat(bookmark.qInfo.qId, "\">\n                <div class=\"info-topline\" id=\"info-topline-").concat(bookmark.qInfo.qId, "\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\">\n                <span class=\"description-heading\" id=\"description-heading\">").concat(bookmark.qMeta.description, "</span>");
-
-            if (bookmark.qMeta.privileges.indexOf('update') !== -1) {
-              bookmarkHtml += "\n                <svg xmlns=\"http://www.w3.org/2000/svg\" data-bookmark=\"".concat(bookmark.qInfo.qId, "\" class=\"edit-info\" id=\"edit-info-").concat(bookmark.qInfo.qId, "\" viewBox=\"0 0 512 512\">\n                <title>Create</title><path d=\"M384 224v184a40 40 0 01-40 40H104a40 40 0 01-40-40V168a40 40 0 0140-40h167.48\"\n                 fill=\"none\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/>\n                 <path d=\"M459.94 53.25a16.06 16.06 0 00-23.22-.56L424.35 65a8 8 0 000 11.31l11.34 11.32a8 8 0 0011.34\n                  0l12.06-12c6.1-6.09 6.67-16.01.85-22.38zM399.34 90L218.82 270.2a9 9 0 00-2.31 3.93L208.16 299a3.91 3.91\n                   0 004.86 4.86l24.85-8.35a9 9 0 003.93-2.31L422 112.66a9 9 0 000-12.66l-9.95-10a9 9 0 00-12.71 0z\"/>\n                   </svg>\n                   </div>\n                   <div class=\"edit-topline\">\n                   <svg xmlns=\"http://www.w3.org/2000/svg\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\" class=\"tick-icon\" id=\"tick-icon-").concat(bookmark.qInfo.qId, "\" viewBox=\"0 0 512 512\">\n                   <title>Checkmark Circle</title><path d=\"M448 256c0-106-86-192-192-192S64 150 64 256s86 192 192 192 192-86 192-192z\" fill=\"none\" stroke=\"currentColor\" stroke-miterlimit=\"10\" stroke-width=\"32\"/><path fill=\"none\"\n                    stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" \n                    stroke-width=\"32\" d=\"M352 176L217.6 336 160 272\"/>\n                    </svg>");
-
-              if (bookmark.qMeta.privileges.indexOf('delete') !== -1) {
-                bookmarkHtml += "\n                    <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"trash-icon\" data-bookmark=\"".concat(bookmark.qInfo.qId, "\" id=\"trashIcon-").concat(bookmark.qInfo.qId, "\" viewBox=\"0 0 512 512\"><title>Trash</title>\n                    <path d=\"M296 64h-80a7.91 7.91 0 00-8 8v24h96V72a7.91 7.91 0 00-8-8z\" fill=\"none\"/>\n                    <path d=\"M432 96h-96V72a40 40 0 00-40-40h-80a40 40 0 00-40 40v24H80a16 16 0 000 32h17l19 304.92c1.42\n                     26.85 22 47.08 48 47.08h184c26.13 0 46.3-19.78 48-47l19-305h17a16 16 0 000-32zM192.57 416H192a16 16 0 \n                     01-16-15.43l-8-224a16 16 0 1132-1.14l8 224A16 16 0 01192.57 416zM272 400a16 16 0 01-32 0V176a16 16 0 0132\n                      0zm32-304h-96V72a7.91 7.91 0 018-8h80a7.91 7.91 0 018 8zm32 304.57A16 16 0 01320 416h-.58A16 16 0 01304 \n                      399.43l8-224a16 16 0 1132 1.14z\"/>\n                      </svg>\n                    </div>\n                    ");
-              }
-
-              bookmarkHtml += "\n                   <div id=\"edit-inputs-".concat(bookmark.qInfo.qId, "\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\" class=\"edit-inputs\">\n                   <input type=\"text\" id=\"edit-title-").concat(bookmark.qInfo.qId, "\" placeholder=\"Bookmark title\" value=\"").concat(bookmark.qMeta.title, "\"/>\n                   <input type=\"text\" id=\"edit-description-").concat(bookmark.qInfo.qId, "\" placeholder=\"Bookmark description\" value=\"").concat(bookmark.qMeta.description, "\"  />\n                   </div>");
-            }
-
-            bookmarkHtml += "\n              <span class=\"selections\"><b>Selections:</b> ".concat(bookmark.qData.selectionFields, " </span>\n              <div class=\"info-copy\">\n              <span class=\"set-expression\">Set expression</span>\n              <input type=\"text\" READONLY class=\"info-input\" value=\"").concat(bookmark.qData.selectionFields, "\" />\n              <div class=\"flex\">\n              <div class=\"copied\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\" id=\"copied\"><h5>copied to clipboard</h5></div>\n              <button class=\"copy\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\" id=\"copyBtn-").concat(bookmark.qInfo.qId, "\" >Copy</button>\n              </div>\n              </div>\n              </div>\n              ");
-
-            if (bookmark.qMeta.privileges.indexOf('publish') !== -1) {
-              bookmarkHtml += "\n                      <div class=\"right-click-popup\" id=\"rightClickPopup-".concat(bookmark.qInfo.qId, "\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\">\n                      <div class=\"right-click-menu\">\n                        <p class=\"li-item\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\">Apply bookmark</p>\n                        <p class=\"li-item\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\">Publish</p>\n                        <p class=\"li-item\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\">Delete</p>\n                      </div>\n                      </div>\n                      ");
-            }
-          });
-          var publicPlaceholder = document.getElementById('public-placeholder');
-          publicPlaceholder.innerHTML = publicHtml;
-          var myBookmarksPlaceholder = document.getElementById('myBookmarks-placeholder');
-          myBookmarksPlaceholder.innerHTML = bookmarkHtml;
-          publicCount.textContent = "(" + publicBookmarks.length + ")";
-          myBookmarksCount.textContent = "(" + myBookmarks.length + ")";
+          }
         });
+        var publicHtml = "<div id=\"info-popup-mask\" class=\"info-popup-mask\"></div>";
+
+        _this2.publicBookmarks.forEach(function (bookmark) {
+          if (_this2.options.hidePrefix && bookmark.qMeta.title.indexOf(_this2.options.hidePrefix) === 0) {
+            return;
+          }
+
+          console.log('public', bookmark);
+          publicHtml += _this2.createBookmarkHtml(bookmark);
+        });
+
+        console.log('publicHtml', publicHtml);
+        var bookmarkHtml = '';
+
+        _this2.myBookmarks.forEach(function (bookmark) {
+          console.log('my bookmark', bookmark);
+          var createDate = new Date();
+
+          if (bookmark.qMeta.createdDate) {
+            createDate = new Date(bookmark.qMeta.createdDate);
+          }
+
+          bookmarkHtml += _this2.createBookmarkHtml(bookmark);
+        });
+
+        var publicPlaceholder = document.getElementById('public-placeholder');
+        publicPlaceholder.innerHTML = publicHtml;
+        var myBookmarksPlaceholder = document.getElementById('myBookmarks-placeholder');
+        myBookmarksPlaceholder.innerHTML = bookmarkHtml;
+        publicCount.textContent = "(" + _this2.publicBookmarks.length + ")";
+        myBookmarksCount.textContent = "(" + _this2.myBookmarks.length + ")";
       });
     }
   }, {
@@ -182,7 +198,7 @@ var Bookmarks = /*#__PURE__*/function () {
   }, {
     key: "handleClick",
     value: function handleClick(event) {
-      var _this = this;
+      var _this3 = this;
 
       var bookmarkTitle = document.getElementById('bookmarkName');
       var bookmarkDescription = document.getElementById('bookmarkDescription');
@@ -191,7 +207,7 @@ var Bookmarks = /*#__PURE__*/function () {
         this.openForm();
       }
 
-      if (event.target.classList.contains('bookmarkPopup')) {
+      if (event.target.classList.contains('bookmark-mask')) {
         this.closeForm();
         this.closeBookmark();
         var infoList = Array.from(document.getElementsByClassName('info-popup'));
@@ -207,21 +223,23 @@ var Bookmarks = /*#__PURE__*/function () {
       }
 
       if (event.target.classList.contains('closeCreate')) {
-        var bookmarkBackground = document.getElementById('bookmarkPopup');
+        var bookmarkBackground = document.getElementById("".concat(this.elementId, "_bookmarkPopup"));
         bookmarkBackground.style.backgroundColor = 'transparent';
         this.closeBookmark();
       }
 
       if (event.target.classList.contains('public-heading-caret')) {
         this.closePublicUL();
+        event.target.classList.toggle('closed');
       }
 
       if (event.target.classList.contains('heading-caret')) {
         this.closeMyBookmarksUL();
+        event.target.classList.toggle('closed');
       }
 
       if (event.target.classList.contains('createSubmit')) {
-        var _bookmarkBackground = document.getElementById('bookmarkPopup');
+        var _bookmarkBackground = document.getElementById("".concat(this.elementId, "_bookmarkPopup"));
 
         _bookmarkBackground.style.backgroundColor = 'transparent';
         this.options.app.createBookmark({
@@ -235,7 +253,7 @@ var Bookmarks = /*#__PURE__*/function () {
         }).then(function () {
           document.getElementById('bookmarkName').value = '';
 
-          _this.render();
+          _this3.render();
         });
         this.closeBookmark();
       }
@@ -243,7 +261,7 @@ var Bookmarks = /*#__PURE__*/function () {
       if (event.target.classList.contains('trash-icon')) {
         var bookmarkId = event.target.getAttribute('data-bookmark');
         this.options.app.destroyBookmark(bookmarkId).then(function () {
-          _this.render();
+          _this3.render();
         });
       }
 
@@ -285,7 +303,7 @@ var Bookmarks = /*#__PURE__*/function () {
             props.qMetaDef.description = editDescription.value;
             result.setProperties(props);
 
-            _this.render();
+            _this3.render();
           });
         });
       }
@@ -293,15 +311,23 @@ var Bookmarks = /*#__PURE__*/function () {
       if (event.target.classList.contains('public-li') || event.target.classList.contains('myBookmarks-li')) {
         var _bookmarkId2 = event.target.getAttribute('data-bookmark');
 
-        this.options.app.applyBookmark(_bookmarkId2).then(function (result) {
-          console.log(result);
-        });
+        this.options.app.applyBookmark(_bookmarkId2);
         this.closeForm();
       }
 
       if (event.target.classList.contains('copy')) {
         this.copyToClipboard(event);
         this.toggleCopied(event);
+      }
+
+      if (event.target.classList.contains('publish-btn')) {
+        this.publish(event);
+        this.handleContextMenu(event);
+      }
+
+      if (event.target.classList.contains('unpublish-btn')) {
+        this.unpublish(event);
+        this.handleContextMenu(event);
       }
     }
   }, {
@@ -314,15 +340,34 @@ var Bookmarks = /*#__PURE__*/function () {
   }, {
     key: "searchFunction",
     value: function searchFunction() {
-      var input, filter;
-      input = document.getElementById('myInput');
-      filter = input.value.toLowerCase();
+      var input = document.getElementById("".concat(this.elementId, "_search"));
+      var filter = input.value.toLowerCase();
       this.render(filter);
+    }
+  }, {
+    key: "publish",
+    value: function publish(event) {
+      var bookmarkId = event.target.getAttribute('data-bookmark');
+      this.options.app.getBookmark(bookmarkId).then(function (result) {
+        result.publish();
+      })["catch"](function (error) {
+        console.log('error', error);
+      });
+    }
+  }, {
+    key: "unpublish",
+    value: function unpublish(event) {
+      var bookmarkId = event.target.getAttribute('data-bookmark');
+      this.options.app.getBookmark(bookmarkId).then(function (result) {
+        result.unpublish();
+      })["catch"](function (error) {
+        console.log('error', error);
+      });
     }
   }, {
     key: "openForm",
     value: function openForm() {
-      var myForm = document.getElementById('bookmarkPopup');
+      var myForm = document.getElementById("".concat(this.elementId, "_bookmarkPopup"));
 
       if (myForm) {
         myForm.style.display = 'block';
@@ -337,23 +382,38 @@ var Bookmarks = /*#__PURE__*/function () {
   }, {
     key: "closeForm",
     value: function closeForm() {
-      var myForm = document.getElementById('bookmarkPopup');
+      var myForm = document.getElementById("".concat(this.elementId, "_bookmarkPopup"));
       myForm.style.display = 'none';
       var bookmarkContainer = document.getElementById('bookmarkContainer');
 
       if (bookmarkContainer) {
         bookmarkContainer.style.display = 'none';
       }
+
+      var infoList = Array.from(document.getElementsByClassName('info-popup'));
+      infoList.forEach(function (e) {
+        e.classList.remove('active');
+      });
+      var publicForm = Array.from(document.getElementsByClassName('right-click-popup'));
+      publicForm.forEach(function (e) {
+        e.classList.remove('active');
+      });
+      var editOptions = document.querySelectorAll('.edit-topline svg');
+      editOptions.forEach(function (e) {
+        e.classList.remove('active');
+      });
+      var inputOptions = document.querySelectorAll('.edit-topline svg');
+      editOptions.forEach(function (e) {
+        e.classList.remove('active');
+      });
     }
   }, {
     key: "createNewBookmark",
     value: function createNewBookmark() {
       var createNew = document.getElementById('createForm');
-      var bookmarkBackground = document.getElementById('bookmarkPopup');
-      var bookmarkContainer = document.getElementById('bookmarkContainer');
-      createNew.style.display = 'flex';
-      bookmarkBackground.style.backgroundColor = '#bdbdbd';
-      bookmarkContainer.style.opacity = '.4';
+      var maskEl = document.getElementById('bookmarkNewPopup');
+      createNew.classList.add('active');
+      maskEl.classList.add('active');
     }
   }, {
     key: "copyToClipboard",
@@ -376,9 +436,9 @@ var Bookmarks = /*#__PURE__*/function () {
     key: "closeBookmark",
     value: function closeBookmark() {
       var createNew = document.getElementById('createForm');
-      createNew.style.display = 'none';
-      var bookmarkContainer = document.getElementById('bookmarkContainer');
-      bookmarkContainer.style.opacity = '1';
+      createNew.classList.remove('active');
+      var maskEl = document.getElementById('bookmarkNewPopup');
+      maskEl.classList.remove('active');
     }
   }, {
     key: "closePublicUL",
@@ -451,18 +511,18 @@ var Bookmarks = /*#__PURE__*/function () {
     value: function handleContextMenu(event) {
       if (event.target.classList.contains('public-li') || event.target.classList.contains('myBookmarks-li')) {
         event.preventDefault();
+        var infoList = Array.from(document.getElementsByClassName('right-click-popup'));
+        infoList.forEach(function (e) {
+          e.classList.remove('active');
+        });
+        var clientX = event.clientX;
         var bookmarkId = event.target.getAttribute('data-bookmark');
         var rightClickMenu = document.getElementById("rightClickPopup-".concat(bookmarkId));
-        rightClickMenu.classList.toggle('active');
-      }
-    }
-  }, {
-    key: "publish",
-    value: function publish(event) {
-      if (event.target.classlist.contains('')) {
-        var bookmarkId = event.target.getAttribute('data-bookmark');
-        var publishBtn = document.getElementById("");
-        console.log('publish clicked'); // this.options.app.publish('')
+
+        if (rightClickMenu) {
+          rightClickMenu.classList.toggle('active');
+          rightClickMenu.style.left = "".concat(clientX, "px");
+        }
       }
     }
   }]);
@@ -474,7 +534,7 @@ var Bookmarks = /*#__PURE__*/function () {
 
 var Chart = /*#__PURE__*/function () {
   function Chart(elementId, options) {
-    var _this2 = this;
+    var _this4 = this;
 
     _classCallCheck(this, Chart);
 
@@ -503,7 +563,7 @@ var Chart = /*#__PURE__*/function () {
     };
     this.chart = new WebsyDesigns.WebsyChart(elementId);
     window.addEventListener('resize', function () {
-      return _this2.chart.render();
+      return _this4.chart.render();
     });
     this.monthMap = {
       0: 'Jan',
@@ -532,19 +592,19 @@ var Chart = /*#__PURE__*/function () {
   }, {
     key: "checkForData",
     value: function checkForData() {
-      var _this3 = this;
+      var _this5 = this;
 
       return new Promise(function (resolve, reject) {
-        if (_this3.layout.qHyperCube.qDataPages[0] && _this3.layout.qHyperCube.qDataPages[0].qMatrix) {
+        if (_this5.layout.qHyperCube.qDataPages[0] && _this5.layout.qHyperCube.qDataPages[0].qMatrix) {
           resolve();
         } else {
-          _this3.options.model.getHyperCubeData('/qHyperCubeDef', [{
+          _this5.options.model.getHyperCubeData('/qHyperCubeDef', [{
             qTop: 0,
             qLeft: 0,
-            qWidth: _this3.layout.qHyperCube.qSize.qcx,
-            qHeight: Math.floor(10000 / _this3.layout.qHyperCube.qSize.qcx)
+            qWidth: _this5.layout.qHyperCube.qSize.qcx,
+            qHeight: Math.floor(10000 / _this5.layout.qHyperCube.qSize.qcx)
           }]).then(function (pages) {
-            _this3.layout.qHyperCube.qDataPages = pages;
+            _this5.layout.qHyperCube.qDataPages = pages;
             resolve();
           });
         }
@@ -601,25 +661,25 @@ var Chart = /*#__PURE__*/function () {
   }, {
     key: "render",
     value: function render() {
-      var _this4 = this;
+      var _this6 = this;
 
       this.options.model.getLayout().then(function (layout) {
-        _this4.layout = layout;
+        _this6.layout = layout;
 
-        _this4.checkForData().then(function () {
+        _this6.checkForData().then(function () {
           var options = {};
 
           if (layout.qHyperCube.qDimensionInfo.length === 1 && layout.qHyperCube.qMeasureInfo.length === 1) {
-            options = _this4.transformMultiMeasure();
+            options = _this6.transformMultiMeasure();
           } else if (layout.qHyperCube.qDimensionInfo.length === 1 && layout.qHyperCube.qMeasureInfo.length > 1) {
-            options = _this4.transformMultiMeasure();
+            options = _this6.transformMultiMeasure();
           } else if (layout.qHyperCube.qDimensionInfo.length > 1) {
-            options = _this4.transformMultiDimensions();
+            options = _this6.transformMultiDimensions();
           } else if (layout.qHyperCube.qDimensionInfo.length === 0 && layout.qHyperCube.qMeasureInfo.length > 0) {
-            options = _this4.transformNoDimensions();
+            options = _this6.transformNoDimensions();
           }
 
-          _this4.chart.render(options);
+          _this6.chart.render(options);
         });
       });
     }
@@ -631,7 +691,7 @@ var Chart = /*#__PURE__*/function () {
   }, {
     key: "transformBasic",
     value: function transformBasic() {
-      var _this5 = this;
+      var _this7 = this;
 
       var options = _extends({}, this.optionDefaults, this.layout.options);
 
@@ -647,7 +707,7 @@ var Chart = /*#__PURE__*/function () {
       options.data.left.title = this.layout.qHyperCube.qMeasureInfo[0].qFallbackTitle;
 
       options.data.left.formatter = function (d) {
-        return _this5.formatValue(d, _this5.layout.qHyperCube.qMeasureInfo[0].options || {});
+        return _this7.formatValue(d, _this7.layout.qHyperCube.qMeasureInfo[0].options || {});
       };
 
       var series = this.layout.qHyperCube.qMeasureInfo[0].options || {};
@@ -669,7 +729,7 @@ var Chart = /*#__PURE__*/function () {
   }, {
     key: "transformMultiDimensions",
     value: function transformMultiDimensions() {
-      var _this6 = this;
+      var _this8 = this;
 
       var options = _extends({}, this.optionDefaults, this.layout.options);
 
@@ -685,7 +745,7 @@ var Chart = /*#__PURE__*/function () {
       options.data.left.title = this.layout.qHyperCube.qMeasureInfo[0].qFallbackTitle;
 
       options.data.left.formatter = function (d) {
-        return _this6.formatValue(d, _this6.layout.qHyperCube.qMeasureInfo[0].options || {});
+        return _this8.formatValue(d, _this8.layout.qHyperCube.qMeasureInfo[0].options || {});
       };
 
       var series = [];
@@ -696,8 +756,8 @@ var Chart = /*#__PURE__*/function () {
         var bottomIndex = bottomKeys.indexOf(r[1].qText);
         var v = r[1].qText;
 
-        if ((_this6.layout.qHyperCube.qDimensionInfo[1].options || {}).scale === 'Time') {
-          v = _this6.fromQlikDate(r[1].qNum);
+        if ((_this8.layout.qHyperCube.qDimensionInfo[1].options || {}).scale === 'Time') {
+          v = _this8.fromQlikDate(r[1].qNum);
         }
 
         if (bottomIndex === -1) {
@@ -738,7 +798,7 @@ var Chart = /*#__PURE__*/function () {
   }, {
     key: "transformNoDimensions",
     value: function transformNoDimensions() {
-      var _this7 = this;
+      var _this9 = this;
 
       var options = _extends({}, this.optionDefaults, this.layout.options);
 
@@ -766,7 +826,7 @@ var Chart = /*#__PURE__*/function () {
       }
 
       options.data[yAxis].formatter = function (d) {
-        return _this7.formatValue(d, options || {});
+        return _this9.formatValue(d, options || {});
       };
 
       this.layout.qHyperCube.qMeasureInfo.forEach(function (m) {
@@ -800,7 +860,7 @@ var Chart = /*#__PURE__*/function () {
 
               return {
                 x: {
-                  value: _this7.layout.qHyperCube.qMeasureInfo[i].qFallbackTitle
+                  value: _this9.layout.qHyperCube.qMeasureInfo[i].qFallbackTitle
                 },
                 y: c
               };
@@ -814,7 +874,7 @@ var Chart = /*#__PURE__*/function () {
   }, {
     key: "transformMultiMeasure",
     value: function transformMultiMeasure() {
-      var _this8 = this;
+      var _this10 = this;
 
       var options = _extends({}, this.optionDefaults, this.layout.options);
 
@@ -841,14 +901,14 @@ var Chart = /*#__PURE__*/function () {
       options.data.series = this.layout.qHyperCube.qMeasureInfo.map(function (m, i) {
         var series = _extends({}, m.options);
 
-        series.key = _this8.createSeriesKey(m.qFallbackTitle);
+        series.key = _this10.createSeriesKey(m.qFallbackTitle);
         series.data = [];
         series.type = (m.options || {}).type || options.type || 'bar';
         series.accumulative = 0;
 
         if (m.axis === 'secondary') {
           // right hand axis
-          _this8.addOptions(options.data[y2Axis], m.options || {}); // options.data[y2Axis] = Object.assign({}, options.data[y2Axis], m.options)        
+          _this10.addOptions(options.data[y2Axis], m.options || {}); // options.data[y2Axis] = Object.assign({}, options.data[y2Axis], m.options)        
 
 
           if (options.grouping !== 'stacked') {
@@ -860,10 +920,10 @@ var Chart = /*#__PURE__*/function () {
           options.data[y2Axis].title = m.qFallbackTitle;
 
           options.data[y2Axis].formatter = function (d) {
-            return _this8.formatValue(d, _extends({}, m.options, options.data[y2Axis]));
+            return _this10.formatValue(d, _extends({}, m.options, options.data[y2Axis]));
           };
         } else {
-          _this8.addOptions(options.data[yAxis], m.options || {}); // options.data[yAxis] = Object.assign({}, options.data[yAxis], m.options)
+          _this10.addOptions(options.data[yAxis], m.options || {}); // options.data[yAxis] = Object.assign({}, options.data[yAxis], m.options)
 
 
           if (options.grouping !== 'stacked') {
@@ -876,7 +936,7 @@ var Chart = /*#__PURE__*/function () {
           options.data[yAxis].title = m.qFallbackTitle;
 
           options.data[yAxis].formatter = function (d) {
-            return _this8.formatValue(d, _extends({}, m.options, options.data[yAxis]));
+            return _this10.formatValue(d, _extends({}, m.options, options.data[yAxis]));
           };
         }
 
@@ -897,7 +957,7 @@ var Chart = /*#__PURE__*/function () {
 
       if (options.data[xAxis].scale !== 'Time') {
         options.data[xAxis].formatter = function (d) {
-          return _this8.formatValue(d, _this8.layout.qHyperCube.qDimensionInfo[0].options || {});
+          return _this10.formatValue(d, _this10.layout.qHyperCube.qDimensionInfo[0].options || {});
         };
       } else {
         options.data[xAxis].min = this.fromQlikDate(this.layout.qHyperCube.qDimensionInfo[0].qMin);
@@ -921,8 +981,8 @@ var Chart = /*#__PURE__*/function () {
           var x = r[0];
           x.value = x.qText;
 
-          if ((_this8.layout.qHyperCube.qDimensionInfo[0].options || {}).scale === 'Time') {
-            x.value = _this8.fromQlikDate(x.qNum);
+          if ((_this10.layout.qHyperCube.qDimensionInfo[0].options || {}).scale === 'Time') {
+            x.value = _this10.fromQlikDate(x.qNum);
           } // else {
           //   if (xKeys.indexOf(x.value) === -1) {
           //     xKeys.push(x.value)
@@ -940,7 +1000,7 @@ var Chart = /*#__PURE__*/function () {
 
           c.value = isNaN(c.qNum) ? 0 : c.qNum;
           xTotals[xKeys.indexOf(x.qElemNumber)] += c.value;
-          c.tooltipLabel = _this8.layout.qHyperCube.qMeasureInfo[cIndex - 1].qFallbackTitle;
+          c.tooltipLabel = _this10.layout.qHyperCube.qMeasureInfo[cIndex - 1].qFallbackTitle;
           c.tooltipValue = c.qText; // if (this.layout.qHyperCube.qMeasureInfo[cIndex - 1].options) {
           // c.color = this.layout.qHyperCube.qMeasureInfo[cIndex - 1].options.color 
           // }        
@@ -979,7 +1039,7 @@ var Chart = /*#__PURE__*/function () {
 
 var CurrentSelections = /*#__PURE__*/function () {
   function CurrentSelections(elementId, options) {
-    var _this9 = this;
+    var _this11 = this;
 
     _classCallCheck(this, CurrentSelections);
 
@@ -1005,10 +1065,10 @@ var CurrentSelections = /*#__PURE__*/function () {
     }
 
     this.options.app.createSessionObject(this.options.def).then(function (model) {
-      model.on('changed', _this9.render.bind(_this9));
-      _this9.options.model = model;
+      model.on('changed', _this11.render.bind(_this11));
+      _this11.options.model = model;
 
-      _this9.render();
+      _this11.render();
     });
   }
 
@@ -1025,26 +1085,30 @@ var CurrentSelections = /*#__PURE__*/function () {
   }, {
     key: "render",
     value: function render() {
-      var _this10 = this;
+      var _this12 = this;
 
       var el = document.getElementById("".concat(this.elementId, "_selections"));
       var noEl = document.getElementById("".concat(this.elementId, "_noselections"));
       this.options.model.getLayout().then(function (layout) {
         console.log(layout);
-        _this10.current = [];
+        _this12.current = [];
 
         if (layout.qSelectionObject.qSelections.length > 0) {
           el.classList.add('active');
           noEl.classList.remove('active');
           layout.qSelectionObject.qSelections.forEach(function (selection, index) {
+            if (selection.qIsHidden === true) {
+              return;
+            }
+
             var id = selection.qField.toLowerCase().replace(/ /g, '_');
 
-            _this10.current.push(id);
+            _this12.current.push(id);
 
-            if (!_this10.dropdowns[id]) {
+            if (!_this12.dropdowns[id]) {
               selection.id = id;
               var newEl = document.createElement('div');
-              newEl.id = "".concat(_this10.elementId, "_").concat(id);
+              newEl.id = "".concat(_this12.elementId, "_").concat(id);
               newEl.classList.add('selection-tabs');
               el.appendChild(newEl);
               var def = {
@@ -1065,9 +1129,9 @@ var CurrentSelections = /*#__PURE__*/function () {
                 }
               };
 
-              _this10.options.app.createSessionObject(def).then(function (model) {
-                _this10.dropdowns[id] = {
-                  instance: new WebsyDesignsQlikPlugins.Dropdown("".concat(_this10.elementId, "_").concat(id), {
+              _this12.options.app.createSessionObject(def).then(function (model) {
+                _this12.dropdowns[id] = {
+                  instance: new WebsyDesignsQlikPlugins.Dropdown("".concat(_this12.elementId, "_").concat(id), {
                     model: model,
                     multiSelect: true,
                     closeAfterSelection: false // onOpen: this.onDropdownOpen.bind(this),
@@ -1087,17 +1151,17 @@ var CurrentSelections = /*#__PURE__*/function () {
         } // Cleanup unused selections
 
 
-        for (var key in _this10.dropdowns) {
-          if (_this10.current.indexOf(key) === -1) {
-            var sEl = document.getElementById("".concat(_this10.elementId, "_").concat(key));
+        for (var key in _this12.dropdowns) {
+          if (_this12.current.indexOf(key) === -1) {
+            var sEl = document.getElementById("".concat(_this12.elementId, "_").concat(key));
 
             if (sEl) {
               el.removeChild(sEl);
             }
 
-            _this10.options.app.destroySessionObject(_this10.dropdowns[key].model.id);
+            _this12.options.app.destroySessionObject(_this12.dropdowns[key].model.id);
 
-            delete _this10.dropdowns[key];
+            delete _this12.dropdowns[key];
           }
         }
       });
@@ -1154,6 +1218,7 @@ var DatePicker = /*#__PURE__*/function () {
       pageSize: 1000
     };
     this.elementId = elementId;
+    this.monthYearIsDate = true;
     this.options = _extends({}, DEFAULTS, options);
     this.picker = new WebsyDesigns.WebsyDatePicker(elementId, _extends({}, options, {
       onChange: this.onChange.bind(this)
@@ -1165,23 +1230,23 @@ var DatePicker = /*#__PURE__*/function () {
   _createClass(DatePicker, [{
     key: "checkForData",
     value: function checkForData() {
-      var _this11 = this;
+      var _this13 = this;
 
       return new Promise(function (resolve, reject) {
-        if (_this11.listening === true) {
-          _this11.listening = false;
+        if (_this13.listening === true) {
+          _this13.listening = false;
 
-          _this11.options.model.getListObjectData('/qListObjectDef', [{
+          _this13.options.model.getListObjectData('/qListObjectDef', [{
             qTop: 0,
             qLeft: 0,
             qWidth: 1,
-            qHeight: _this11.options.pageSize
+            qHeight: _this13.options.pageSize
           }]).then(function (pages) {
-            _this11.layout.qListObject.qDataPages = [pages[0]];
-            _this11.listening = true;
+            _this13.layout.qListObject.qDataPages = [pages[0]];
+            _this13.listening = true;
             resolve();
           }, function (err) {
-            _this11.listening = true;
+            _this13.listening = true;
             reject(err);
           });
         }
@@ -1206,16 +1271,16 @@ var DatePicker = /*#__PURE__*/function () {
   }, {
     key: "getField",
     value: function getField(f) {
-      var _this12 = this;
+      var _this14 = this;
 
       return new Promise(function (resolve, reject) {
-        if (_this12.field) {
-          resolve(_this12.field);
+        if (_this14.field) {
+          resolve(_this14.field);
         } else {
-          _this12.options.app.getField(f).then(function (field) {
+          _this14.options.app.getField(f).then(function (field) {
             if (field) {
-              _this12.field = field;
-              resolve(_this12.field);
+              _this14.field = field;
+              resolve(_this14.field);
             }
           }, reject);
         }
@@ -1252,14 +1317,24 @@ var DatePicker = /*#__PURE__*/function () {
   }, {
     key: "onChange",
     value: function onChange(data, isRange) {
-      var _this13 = this;
+      var _this15 = this;
 
       console.log(data);
       var start;
       var end;
       var valueList = data.map(function (d) {
-        if (_this13.options.mode === 'date') {
-          return _this13.toQlikDate(d);
+        if (_this15.options.mode === 'date') {
+          return _this15.toQlikDate(d);
+        } else if (_this15.options.mode === 'monthyear') {
+          if (_this15.monthYearIsDate === true) {
+            return _this15.toQlikDate(d);
+          } else {
+            if (!d.getFullYear) {
+              d = new Date(d);
+            }
+
+            return +"".concat(d.getFullYear()).concat(d.getMonth() < 9 ? '0' : '').concat(d.getMonth() + 1);
+          }
         } else {
           return d;
         }
@@ -1281,19 +1356,20 @@ var DatePicker = /*#__PURE__*/function () {
 
 
       this.options.model.searchListObjectFor('/qListObjectDef', query).then(function () {
-        _this13.options.model.acceptListObjectSearch('/qListObjectDef', false).then();
+        _this15.options.model.acceptListObjectSearch('/qListObjectDef', false).then();
       }); // })    
       // })    
     }
   }, {
     key: "render",
     value: function render() {
-      var _this14 = this;
+      var _this16 = this;
 
       this.options.model.getLayout().then(function (layout) {
-        _this14.layout = layout;
+        _this16.layout = layout;
+        console.log(layout);
 
-        _this14.checkForData().then(function () {
+        _this16.checkForData().then(function () {
           var disabledDates = [];
           var min;
           var max;
@@ -1301,67 +1377,97 @@ var DatePicker = /*#__PURE__*/function () {
           var selectedMax;
           var selectedRange = [];
 
-          if (layout.qListObject.qDataPages[0] && _this14.listening === true) {
+          if (layout.qListObject.qDataPages[0] && _this16.listening === true) {
             // ensure we have a complete calendar
             var completeDateList = {};
             var oneDay = 1000 * 60 * 60 * 24;
             var start;
             var end;
 
-            if (_this14.options.mode === 'date') {
-              start = _this14.fromQlikDate(layout.qListObject.qDataPages[0].qMatrix[0][0].qNum).getTime();
-              end = _this14.fromQlikDate(layout.qListObject.qDataPages[0].qMatrix[layout.qListObject.qDataPages[0].qMatrix.length - 1][0].qNum).getTime();
-            } else if (_this14.options.mode === 'year') {
+            if (_this16.options.mode === 'date') {
+              start = _this16.fromQlikDate(layout.qListObject.qDataPages[0].qMatrix[0][0].qNum).getTime();
+              end = _this16.fromQlikDate(layout.qListObject.qDataPages[0].qMatrix[layout.qListObject.qDataPages[0].qMatrix.length - 1][0].qNum).getTime();
+            } else if (_this16.options.mode === 'year') {
               start = layout.qListObject.qDataPages[0].qMatrix[0][0].qNum;
               end = layout.qListObject.qDataPages[0].qMatrix[layout.qListObject.qDataPages[0].qMatrix.length - 1][0].qNum;
 
               if (start > end) {
                 end = layout.qListObject.qDataPages[0].qMatrix[0][0].qNum;
                 start = layout.qListObject.qDataPages[0].qMatrix[layout.qListObject.qDataPages[0].qMatrix.length - 1][0].qNum;
-                _this14.options.sortDirection = 'desc';
-                _this14.picker.options.sortDirection = 'desc';
+                _this16.options.sortDirection = 'desc';
+                _this16.picker.options.sortDirection = 'desc';
               }
 
               min = start;
               max = end;
-              _this14.picker.options.minAllowedYear = start;
-              _this14.picker.options.maxAllowedYear = end;
+              _this16.picker.options.minAllowedYear = start;
+              _this16.picker.options.maxAllowedYear = end;
+            } else if (_this16.options.mode === 'monthyear') {
+              start = layout.qListObject.qDataPages[0].qMatrix[0][0];
+              end = layout.qListObject.qDataPages[0].qMatrix[layout.qListObject.qDataPages[0].qMatrix.length - 1][0];
+
+              if (start.qNum.toString().length === 5) {
+                _this16.monthYearIsDate = true;
+                start = _this16.fromQlikDate(start.qNum);
+                end = _this16.fromQlikDate(end.qNum);
+              } else {
+                _this16.monthYearIsDate = false;
+                var startYear = +start.qNum.toString().substring(0, 4);
+                var startMonth = +start.qNum.toString().substring(4, 6) - 1;
+                var endYear = +end.qNum.toString().substring(0, 4);
+                var endMonth = +end.qNum.toString().substring(4, 6) - 1;
+                start = new Date(new Date(new Date(new Date().setDate(1)).setMonth(startMonth)).setFullYear(startYear));
+                end = new Date(new Date(new Date(new Date().setDate(1)).setMonth(endMonth)).setFullYear(endYear));
+              }
+            } else if (_this16.options.mode === 'hour') {// 
             }
 
             var diff = end - start;
 
-            if (_this14.options.mode === 'date') {
+            if (_this16.options.mode === 'date') {
               diff = diff / oneDay;
+            } else if (_this16.options.mode === 'monthyear') {
+              var yearDiff = (end.getFullYear() - start.getFullYear()) * 12;
+              diff = Math.floor(end.getMonth() - start.getMonth()) + yearDiff;
             }
 
             for (var i = 0; i < diff + 1; i++) {
-              if (_this14.options.mode === 'date') {
+              if (_this16.options.mode === 'date') {
                 var temp = new Date(start + i * oneDay);
                 temp.setHours(0, 0, 0);
                 completeDateList[temp.getTime()] = {
-                  qNum: _this14.toQlikDateNum(temp),
+                  qNum: _this16.toQlikDateNum(temp),
                   qState: 'Z'
                 };
-              } else if (_this14.options.mode === 'year') {
+              } else if (_this16.options.mode === 'year') {
                 completeDateList[start + i] = {
                   qNum: start + i,
                   qState: 'Z'
                 };
+              } else if (_this16.options.mode === 'monthyear') {
+                var _temp = _this16.floorDate(new Date(new Date(start.getTime()).setMonth(start.getMonth() + i))); // temp.setHours(0, 0, 0)
+
+
+                completeDateList[_temp.getTime()] = {
+                  qNum: _this16.monthYearIsDate === true ? _this16.toQlikDateNum(_temp) : "".concat(_temp.getFullYear()).concat(_temp.getMonth() < 9 ? '0' : '').concat(_temp.getMonth() + 1),
+                  qState: 'Z'
+                };
+              } else if (_this16.options.mode === 'hour') {// 
               }
             }
 
             layout.qListObject.qDataPages[0].qMatrix.forEach(function (r, i, arr) {
-              if (_this14.options.mode === 'date') {
-                if (completeDateList[_this14.fromQlikDate(r[0].qNum).getTime()]) {
-                  completeDateList[_this14.fromQlikDate(r[0].qNum).getTime()] = r[0];
+              if (_this16.options.mode === 'date') {
+                if (completeDateList[_this16.fromQlikDate(r[0].qNum).getTime()]) {
+                  completeDateList[_this16.fromQlikDate(r[0].qNum).getTime()] = r[0];
                 }
 
                 if (i === 0) {
-                  min = _this14.fromQlikDate(r[0].qNum);
+                  min = _this16.fromQlikDate(r[0].qNum);
                 } else if (i === arr.length - 1) {
-                  max = _this14.fromQlikDate(r[0].qNum);
+                  max = _this16.fromQlikDate(r[0].qNum);
                 }
-              } else if (_this14.options.mode === 'year') {
+              } else if (_this16.options.mode === 'year') {
                 if (completeDateList[r[0].qNum]) {
                   completeDateList[r[0].qNum] = r[0];
                 } // if (i === 0) {
@@ -1371,30 +1477,84 @@ var DatePicker = /*#__PURE__*/function () {
                 //   max = r[0].qNum
                 // } 
 
+              } else if (_this16.options.mode === 'monthyear') {
+                if (_this16.monthYearIsDate === true) {
+                  if (completeDateList[_this16.fromQlikDate(r[0].qNum).getTime()]) {
+                    completeDateList[_this16.fromQlikDate(r[0].qNum).getTime()] = r[0];
+                  }
+
+                  if (i === 0) {
+                    min = _this16.fromQlikDate(r[0].qNum);
+                  } else if (i === arr.length - 1) {
+                    max = _this16.fromQlikDate(r[0].qNum);
+                  }
+                } else {
+                  var d = r[0];
+
+                  var _startYear = +d.qNum.toString().substring(0, 4);
+
+                  var _startMonth = +d.qNum.toString().substring(4, 6) - 1;
+
+                  d = _this16.floorDate(new Date(new Date(new Date(new Date().setDate(1)).setMonth(_startMonth)).setFullYear(_startYear)));
+
+                  if (completeDateList[d.getTime()]) {
+                    completeDateList[d.getTime()] = r[0];
+                  }
+
+                  if (i === 0) {
+                    min = d;
+                  } else if (i === arr.length - 1) {
+                    max = d;
+                  }
+                }
+              } else if (_this16.options.mode === 'hour') {// 
               }
             });
             var completeDateListArr = Object.values(completeDateList);
             completeDateListArr.forEach(function (d) {
               if (d.qState === 'S') {
-                selectedRange.push(_this14.options.mode === 'date' ? _this14.fromQlikDate(d.qNum) : d.qNum);
+                if (_this16.options.mode === 'date') {
+                  selectedRange.push(_this16.fromQlikDate(d.qNum));
+                } else if (_this16.options.mode === 'monthyear') {
+                  if (_this16.monthYearIsDate === true) {
+                    selectedRange.push(_this16.fromQlikDate(d.qNum));
+                  } else {
+                    var year = +d.qNum.toString().substring(0, 4);
+                    var month = +d.qNum.toString().substring(4, 6) - 1;
+                    d = _this16.floorDate(new Date(new Date(new Date(new Date().setDate(1)).setMonth(month)).setFullYear(year)));
+                    selectedRange.push(d);
+                  }
+                } else {
+                  selectedRange.push(d.qNum);
+                }
               } // if (['X', 'XS', 'XL'].indexOf(d.qState) !== -1) {
 
 
               if (['Z'].indexOf(d.qState) !== -1) {
-                disabledDates.push(_this14.options.mode === 'date' ? _this14.fromQlikDate(d.qNum) : d.qNum);
+                if (_this16.options.mode === 'date') {
+                  disabledDates.push(_this16.fromQlikDate(d.qNum));
+                } else if (_this16.options.mode === 'monthyear') {
+                  if (_this16.monthYearIsDate === true) {
+                    disabledDates.push(_this16.fromQlikDate(d.qNum));
+                  } else {
+                    disabledDates.push(d.qNum);
+                  }
+                } else {
+                  disabledDates.push(d.qNum);
+                }
               }
             });
 
-            _this14.picker.setDateBounds([min, max]);
+            _this16.picker.setDateBounds([min, max]);
 
-            if (selectedRange.length !== layout.qListObject.qDataPages[0].qMatrix.length) {// do nothing because all values are selected
+            if (selectedRange.length === layout.qListObject.qDataPages[0].qMatrix.length) {// do nothing because all values are selected
             } else if (selectedRange.length > 0) {
-              _this14.picker.selectCustomRange([selectedRange[0], selectedRange[selectedRange.length - 1] || selectedRange[0]]);
+              _this16.picker.selectCustomRange([selectedRange[0], selectedRange[selectedRange.length - 1] || selectedRange[0]]);
             }
 
-            _this14.picker.render(disabledDates);
+            _this16.picker.render(disabledDates);
 
-            _this14.listening = true;
+            _this16.listening = true;
           }
         });
       });
@@ -1411,6 +1571,8 @@ var DatePicker = /*#__PURE__*/function () {
 
 var Dropdown = /*#__PURE__*/function () {
   function Dropdown(elementId, options) {
+    var _this17 = this;
+
     _classCallCheck(this, Dropdown);
 
     this.elementId = elementId;
@@ -1435,7 +1597,36 @@ var Dropdown = /*#__PURE__*/function () {
       onCancelSearch: this.cancelSearch.bind(this),
       onScroll: this.handleScroll.bind(this),
       onOpen: this.onOpen.bind(this),
-      onClose: this.onClose.bind(this)
+      onClose: this.onClose.bind(this),
+      customActions: [{
+        label: 'Select All',
+        fn: function fn() {
+          _this17.options.model.selectListObjectAll("/".concat(_this17.options.path, "/qListObjectDef").replace(/\/\//g, '/')).then(function () {
+            _this17.render();
+          });
+        }
+      }, {
+        label: 'Select Possible',
+        fn: function fn() {
+          _this17.options.model.selectListObjectPossible("/".concat(_this17.options.path, "/qListObjectDef").replace(/\/\//g, '/')).then(function () {
+            _this17.render();
+          });
+        }
+      }, {
+        label: 'Select Alternative',
+        fn: function fn() {
+          _this17.options.model.selectListObjectAlternative("/".concat(_this17.options.path, "/qListObjectDef").replace(/\/\//g, '/')).then(function () {
+            _this17.render();
+          });
+        }
+      }, {
+        label: 'Select Excluded',
+        fn: function fn() {
+          _this17.options.model.selectListObjectExcluded("/".concat(_this17.options.path, "/qListObjectDef").replace(/\/\//g, '/')).then(function () {
+            _this17.render();
+          });
+        }
+      }]
     });
     this.dropdown = new WebsyDesigns.WebsyDropdown(elementId, this.dropdownOptions);
     this.render();
@@ -1449,40 +1640,40 @@ var Dropdown = /*#__PURE__*/function () {
   }, {
     key: "checkForData",
     value: function checkForData() {
-      var _this15 = this;
+      var _this18 = this;
 
       return new Promise(function (resolve, reject) {
-        if (_this15.busy === false) {
-          _this15.busy = true;
+        if (_this18.busy === false) {
+          _this18.busy = true;
 
-          _this15.options.model.getListObjectData("/".concat(_this15.options.path, "/qListObjectDef").replace(/\/\//g, '/'), [{
-            qTop: _this15.rowsLoaded,
+          _this18.options.model.getListObjectData("/".concat(_this18.options.path, "/qListObjectDef").replace(/\/\//g, '/'), [{
+            qTop: _this18.rowsLoaded,
             qLeft: 0,
             qWidth: 1,
-            qHeight: _this15.options.pageSize
+            qHeight: _this18.options.pageSize
           }]).then(function (pages) {
-            if (_this15.options.path !== '') {
-              _this15.layout[_this15.options.path].qListObject.qDataPages[0].qMatrix = _this15.layout[_this15.options.path].qListObject.qDataPages[0].qMatrix.concat((pages[0] || {
+            if (_this18.options.path !== '') {
+              _this18.layout[_this18.options.path].qListObject.qDataPages[0].qMatrix = _this18.layout[_this18.options.path].qListObject.qDataPages[0].qMatrix.concat((pages[0] || {
                 qMatrix: []
               }).qMatrix);
-              _this15.rowsLoaded = _this15.layout[_this15.options.path].qListObject.qDataPages[0].qMatrix.length;
+              _this18.rowsLoaded = _this18.layout[_this18.options.path].qListObject.qDataPages[0].qMatrix.length;
             } else {
-              if (!_this15.layout.qListObject.qDataPages[0]) {
-                _this15.layout.qListObject.qDataPages[0] = {
+              if (!_this18.layout.qListObject.qDataPages[0]) {
+                _this18.layout.qListObject.qDataPages[0] = {
                   qMatrix: []
                 };
               }
 
-              _this15.layout.qListObject.qDataPages[0].qMatrix = _this15.layout.qListObject.qDataPages[0].qMatrix.concat((pages[0] || {
+              _this18.layout.qListObject.qDataPages[0].qMatrix = _this18.layout.qListObject.qDataPages[0].qMatrix.concat((pages[0] || {
                 qMatrix: []
               }).qMatrix);
-              _this15.rowsLoaded = _this15.layout.qListObject.qDataPages[0].qMatrix.length;
+              _this18.rowsLoaded = _this18.layout.qListObject.qDataPages[0].qMatrix.length;
             }
 
-            _this15.busy = false;
+            _this18.busy = false;
             resolve();
           }, function (err) {
-            _this15.busy = false;
+            _this18.busy = false;
             reject(err);
           });
         }
@@ -1491,11 +1682,11 @@ var Dropdown = /*#__PURE__*/function () {
   }, {
     key: "checkForVariable",
     value: function checkForVariable() {
-      var _this16 = this;
+      var _this19 = this;
 
       return new Promise(function (resolve, reject) {
-        if (_this16.options.useVariable === true && _this16.options.variable && _this16.options.app) {
-          _this16.options.app.getVariableByName(_this16.options.variable).then(function (v) {
+        if (_this19.options.useVariable === true && _this19.options.variable && _this19.options.app) {
+          _this19.options.app.getVariableByName(_this19.options.variable).then(function (v) {
             v.getLayout().then(function (layout) {
               resolve(layout);
             });
@@ -1518,39 +1709,39 @@ var Dropdown = /*#__PURE__*/function () {
   }, {
     key: "handleScroll",
     value: function handleScroll(event) {
-      var _this17 = this;
+      var _this20 = this;
 
       if (event.target.scrollTop / (event.target.scrollHeight - event.target.clientHeight) > 0.7) {
         this.checkForData().then(function () {
-          _this17.dropdown.data = _this17.transformData();
+          _this20.dropdown.data = _this20.transformData();
         });
       }
     }
   }, {
     key: "itemSelected",
     value: function itemSelected(item, selectedIndexes, items) {
-      var _this18 = this;
+      var _this21 = this;
 
       if (this.options.useVariable === true && this.options.variable && this.options.app) {
         this.options.app.getVariableByName(this.options.variable).then(function (v) {
           if (item.qNum === 'NaN') {
             v.setStringValue(item.qText).then(function () {
-              if (_this18.options.onItemSelected) {
-                _this18.options.onItemSelected(item, selectedIndexes, items);
+              if (_this21.options.onItemSelected) {
+                _this21.options.onItemSelected(item, selectedIndexes, items);
               }
             });
           } else {
             v.setNumValue(item.qNum).then(function () {
-              if (_this18.options.onItemSelected) {
-                _this18.options.onItemSelected(item, selectedIndexes, items);
+              if (_this21.options.onItemSelected) {
+                _this21.options.onItemSelected(item, selectedIndexes, items);
               }
             });
           }
         });
       } else {
         this.options.model.selectListObjectValues("/".concat(this.options.path, "/qListObjectDef").replace(/\/\//g, '/'), [item.qElemNumber], this.dropdown.options.multiSelect === true).then(function () {
-          if (_this18.options.onItemSelected) {
-            _this18.options.onItemSelected(item, selectedIndexes, items);
+          if (_this21.options.onItemSelected) {
+            _this21.options.onItemSelected(item, selectedIndexes, items);
           }
         });
       }
@@ -1569,14 +1760,14 @@ var Dropdown = /*#__PURE__*/function () {
   }, {
     key: "render",
     value: function render() {
-      var _this19 = this;
+      var _this22 = this;
 
       this.rowsLoaded = 0;
       this.options.model.getLayout().then(function (layout) {
-        _this19.layout = layout;
+        _this22.layout = layout;
 
-        _this19.checkForVariable().then(function (variableValue) {
-          var listObject = _this19.options.path !== '' ? _this19.layout[_this19.options.path].qListObject : _this19.layout.qListObject;
+        _this22.checkForVariable().then(function (variableValue) {
+          var listObject = _this22.options.path !== '' ? _this22.layout[_this22.options.path].qListObject : _this22.layout.qListObject;
 
           if (!listObject.qDataPages || listObject.qDataPages.length === 0) {
             listObject.qDataPages = [{
@@ -1584,12 +1775,12 @@ var Dropdown = /*#__PURE__*/function () {
             }];
           }
 
-          _this19.rowsLoaded = listObject.qDataPages[0].qMatrix.length;
+          _this22.rowsLoaded = listObject.qDataPages[0].qMatrix.length;
 
-          _this19.checkForData().then(function () {
+          _this22.checkForData().then(function () {
             if (listObject.qDataPages[0]) {
-              _this19.dropdown.options.label = listObject.qDimensionInfo.qFallbackTitle;
-              _this19.dropdown.data = _this19.transformData(variableValue);
+              _this22.dropdown.options.label = listObject.qDimensionInfo.qFallbackTitle;
+              _this22.dropdown.data = _this22.transformData(variableValue);
             }
           });
         });
@@ -1678,33 +1869,33 @@ var KPI = /*#__PURE__*/function () {
   }, {
     key: "render",
     value: function render() {
-      var _this20 = this;
+      var _this23 = this;
 
       this.options.model.getLayout().then(function (layout) {
         var decimals = 2;
         var v = layout.kpi.qHyperCube.qDataPages[0].qMatrix[0][0].qText;
-        _this20.kpiOptions.value = {
+        _this23.kpiOptions.value = {
           value: v
         };
-        _this20.kpiOptions.label = {
+        _this23.kpiOptions.label = {
           value: layout.kpi.qHyperCube.qMeasureInfo[0].qFallbackTitle
         };
 
         if (layout.icon) {
-          _this20.kpiOptions.icon = "".concat(window.location.origin, "/resources/svg/").concat(layout.icon, ".svg");
+          _this23.kpiOptions.icon = "".concat(window.location.origin, "/resources/svg/").concat(layout.icon, ".svg");
         }
 
         if (layout.tooltip && layout.tooltip.value) {
-          _this20.kpiOptions.tooltip = {
+          _this23.kpiOptions.tooltip = {
             value: layout.tooltip.value
           };
 
           if (layout.tooltip.classes) {
-            _this20.kpiOptions.tooltip.classes = layout.tooltip.classes;
+            _this23.kpiOptions.tooltip.classes = layout.tooltip.classes;
           }
         }
 
-        _this20.kpiOptions.subValue = {
+        _this23.kpiOptions.subValue = {
           value: ''
         };
 
@@ -1716,12 +1907,12 @@ var KPI = /*#__PURE__*/function () {
           }
 
           var v1 = layout.kpi.qHyperCube.qDataPages[0].qMatrix[0][1].qText;
-          _this20.kpiOptions.subValue = {
+          _this23.kpiOptions.subValue = {
             value: "".concat(layout.kpi.qHyperCube.qMeasureInfo[1].qFallbackTitle, " ").concat(v1)
           };
         }
 
-        _this20.kpi.render(_this20.kpiOptions);
+        _this23.kpi.render(_this23.kpiOptions);
       });
     }
   }, {
@@ -1738,7 +1929,7 @@ var KPI = /*#__PURE__*/function () {
 
 var GeoMap = /*#__PURE__*/function () {
   function GeoMap(elementId, options) {
-    var _this21 = this;
+    var _this24 = this;
 
     _classCallCheck(this, GeoMap);
 
@@ -1752,11 +1943,11 @@ var GeoMap = /*#__PURE__*/function () {
 
     if (this.options.geoJSON && typeof this.options.geoJSON === 'string') {
       WebsyDesigns.service.get(this.options.geoJSON).then(function (geoJSON) {
-        _this21.geoJSON = geoJSON;
-        delete _this21.options.geoJSON;
-        _this21.map = new WebsyDesigns.WebsyMap(elementId, _this21.options);
+        _this24.geoJSON = geoJSON;
+        delete _this24.options.geoJSON;
+        _this24.map = new WebsyDesigns.WebsyMap(elementId, _this24.options);
 
-        _this21.render();
+        _this24.render();
       });
     } else {
       this.map = new WebsyDesigns.WebsyMap(elementId, this.options);
@@ -1778,7 +1969,7 @@ var GeoMap = /*#__PURE__*/function () {
   }, {
     key: "render",
     value: function render() {
-      var _this22 = this;
+      var _this25 = this;
 
       var el = document.getElementById(this.elementId);
 
@@ -1788,21 +1979,21 @@ var GeoMap = /*#__PURE__*/function () {
 
       this.options.model.getLayout().then(function (layout) {
         if (layout.options) {
-          _this22.options = _extends({}, _this22.options, layout.options); // this.map.options = Object.assign({}, this.options, this.map.options, layout.options)
+          _this25.options = _extends({}, _this25.options, layout.options); // this.map.options = Object.assign({}, this.options, this.map.options, layout.options)
         }
 
         if (layout.qHyperCube.qDataPages[0]) {
-          if (_this22.geoJSON) {
+          if (_this25.geoJSON) {
             var geoJSON = {
               type: 'FeatureCollection',
               features: []
             };
             layout.qHyperCube.qDataPages[0].qMatrix.forEach(function (r) {
-              var p = _this22.findGeoJsonByProperty(r[0].qText);
+              var p = _this25.findGeoJsonByProperty(r[0].qText);
 
               if (p) {
-                if (_this22.options.geoAutoFill === true) {
-                  p.fillColor = _this22.options.geoFillColor;
+                if (_this25.options.geoAutoFill === true) {
+                  p.fillColor = _this25.options.geoFillColor;
                   p.fillOpacity = 0.4 + r[1].qNum / layout.qHyperCube.qMeasureInfo[0].qMax * 0.6;
                 }
 
@@ -1810,7 +2001,7 @@ var GeoMap = /*#__PURE__*/function () {
                   p.fillColor = r[1].qAttrExps.qValues[0].qText;
                 }
 
-                if (_this22.options.geoShowTooltip === true) {
+                if (_this25.options.geoShowTooltip === true) {
                   p.tooltip = "".concat(r[1].qText, "<br>").concat(p.properties.label);
                   p.tooltipClass = 'websy-map-tooltip';
                 }
@@ -1818,7 +2009,7 @@ var GeoMap = /*#__PURE__*/function () {
                 geoJSON.features.push(p);
               }
             });
-            _this22.map.options.geoJSON = geoJSON;
+            _this25.map.options.geoJSON = geoJSON;
           }
 
           var data = {};
@@ -1849,13 +2040,13 @@ var GeoMap = /*#__PURE__*/function () {
               }
             });
           });
-          _this22.map.options.data = data;
+          _this25.map.options.data = data;
 
           if (el.parentElement) {
             el.parentElement.classList.remove('loading');
           }
 
-          _this22.map.render();
+          _this25.map.render();
         }
       });
     }
@@ -1906,15 +2097,15 @@ var Table = /*#__PURE__*/function () {
   }, {
     key: "getData",
     value: function getData(callbackFn) {
-      var _this23 = this;
+      var _this26 = this;
 
       if (this.busy === false) {
         this.busy = true;
 
         if (this.options.getAllData === true) {
           getAllData('qHyperCube', this.options.model, this.layout, function (layout) {
-            _this23.rowCount = layout.qHyperCube.qDataPages[0].qMatrix.length;
-            _this23.busy = false;
+            _this26.rowCount = layout.qHyperCube.qDataPages[0].qMatrix.length;
+            _this26.busy = false;
 
             if (callbackFn) {
               callbackFn(layout.qHyperCube.qDataPages[0].qMatrix);
@@ -1937,24 +2128,24 @@ var Table = /*#__PURE__*/function () {
 
             this.options.model[method]('/qHyperCubeDef', pageDefs).then(function (pages) {
               if (pages && pages[0]) {
-                if (_this23.layout.qHyperCube.qMode === 'P') {
-                  _this23.layout.qHyperCube.qPivotDataPages.push(pages[0]);
+                if (_this26.layout.qHyperCube.qMode === 'P') {
+                  _this26.layout.qHyperCube.qPivotDataPages.push(pages[0]);
 
-                  _this23.rowCount += pages[0].qData.length;
+                  _this26.rowCount += pages[0].qData.length;
                 } else {
                   pages[0].qMatrix = pages[0].qMatrix.filter(function (r) {
                     return r[0].qText !== '-';
                   });
 
-                  _this23.layout.qHyperCube.qDataPages.push(pages[0]);
+                  _this26.layout.qHyperCube.qDataPages.push(pages[0]);
 
-                  _this23.rowCount += pages[0].qMatrix.length;
+                  _this26.rowCount += pages[0].qMatrix.length;
                 }
 
-                _this23.busy = false;
+                _this26.busy = false;
 
                 if (callbackFn) {
-                  if (_this23.layout.qHyperCube.qMode === 'P') {
+                  if (_this26.layout.qHyperCube.qMode === 'P') {
                     callbackFn(pages[0]);
                   } else {
                     callbackFn(pages[0].qMatrix);
@@ -1964,12 +2155,12 @@ var Table = /*#__PURE__*/function () {
             }, function (err) {
               var e = err;
 
-              if (_this23.errorCount < 50) {
-                _this23.errorCount++;
-                console.log('error getting data, attempt', _this23.errorCount);
-                clearTimeout(_this23.retryFn);
-                _this23.retryFn = setTimeout(function () {
-                  _this23.getData(callbackFn);
+              if (_this26.errorCount < 50) {
+                _this26.errorCount++;
+                console.log('error getting data, attempt', _this26.errorCount);
+                clearTimeout(_this26.retryFn);
+                _this26.retryFn = setTimeout(function () {
+                  _this26.getData(callbackFn);
                 }, 300);
               } // callbackFn({err})
 
@@ -2018,11 +2209,11 @@ var Table = /*#__PURE__*/function () {
   }, {
     key: "handleScroll",
     value: function handleScroll(event) {
-      var _this24 = this;
+      var _this27 = this;
 
       if (event.target.scrollTop / (event.target.scrollHeight - event.target.clientHeight) > 0.7) {
         this.getData(function (page) {
-          _this24.appendRows(_this24.transformData(page));
+          _this27.appendRows(_this27.transformData(page));
         });
       }
     }
@@ -2047,7 +2238,7 @@ var Table = /*#__PURE__*/function () {
   }, {
     key: "render",
     value: function render() {
-      var _this25 = this;
+      var _this28 = this;
 
       var pageNum = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
       this.table.showLoading({
@@ -2055,38 +2246,38 @@ var Table = /*#__PURE__*/function () {
       });
       this.options.model.getLayout().then(function (layout) {
         console.log(layout);
-        _this25.layout = layout;
-        _this25.rowCount = pageNum * _this25.options.pageSize;
-        _this25.errorCount = 0;
-        _this25.pageNum = pageNum;
-        _this25.pageCount = Math.ceil(layout.qHyperCube.qSize.qcy / _this25.options.pageSize);
-        _this25.table.options.pageNum = _this25.pageNum;
-        _this25.table.options.pageCount = _this25.pageCount;
+        _this28.layout = layout;
+        _this28.rowCount = pageNum * _this28.options.pageSize;
+        _this28.errorCount = 0;
+        _this28.pageNum = pageNum;
+        _this28.pageCount = Math.ceil(layout.qHyperCube.qSize.qcy / _this28.options.pageSize);
+        _this28.table.options.pageNum = _this28.pageNum;
+        _this28.table.options.pageCount = _this28.pageCount;
 
         if (layout.qHyperCube.qError && layout.qHyperCube.qCalcCondMsg) {
-          _this25.table.hideLoading();
+          _this28.table.hideLoading();
 
-          _this25.table.showError({
-            message: _this25.options.customError || layout.qHyperCube.qCalcCondMsg
+          _this28.table.showError({
+            message: _this28.options.customError || layout.qHyperCube.qCalcCondMsg
           });
 
           return;
         }
 
-        _this25.dataWidth = _this25.layout.qHyperCube.qSize.qcx;
-        _this25.columnOrder = _this25.layout.qHyperCube.qColumnOrder;
+        _this28.dataWidth = _this28.layout.qHyperCube.qSize.qcx;
+        _this28.columnOrder = _this28.layout.qHyperCube.qColumnOrder;
 
-        if (typeof _this25.columnOrder === 'undefined') {
-          _this25.columnOrder = new Array(_this25.layout.qHyperCube.qSize.qcx).fill({}).map(function (r, i) {
+        if (typeof _this28.columnOrder === 'undefined') {
+          _this28.columnOrder = new Array(_this28.layout.qHyperCube.qSize.qcx).fill({}).map(function (r, i) {
             return i;
           });
         }
 
-        var columns = _this25.layout.qHyperCube.qDimensionInfo.concat(_this25.layout.qHyperCube.qMeasureInfo);
+        var columns = _this28.layout.qHyperCube.qDimensionInfo.concat(_this28.layout.qHyperCube.qMeasureInfo);
 
-        var activeSort = _this25.layout.qHyperCube.qEffectiveInterColumnSortOrder[0];
+        var activeSort = _this28.layout.qHyperCube.qEffectiveInterColumnSortOrder[0];
         columns = columns.map(function (c, i) {
-          c.colIndex = _this25.columnOrder.indexOf(i);
+          c.colIndex = _this28.columnOrder.indexOf(i);
           c.name = c.qFallbackTitle;
 
           if (c.tooltip) {
@@ -2108,31 +2299,31 @@ var Table = /*#__PURE__*/function () {
           return a.colIndex - b.colIndex;
         });
 
-        _this25.getData(function (page) {
-          _this25.table.options.columns = columns;
-          _this25.table.options.activeSort = activeSort;
+        _this28.getData(function (page) {
+          _this28.table.options.columns = columns;
+          _this28.table.options.activeSort = activeSort;
 
-          _this25.table.hideLoading();
+          _this28.table.hideLoading();
 
-          _this25.table.render();
+          _this28.table.render();
 
           if (page.err) {
-            var tableEl = document.getElementById("".concat(_this25.elementId, "_foot"));
+            var tableEl = document.getElementById("".concat(_this28.elementId, "_foot"));
             tableEl.innerHTML = "\n            <div class='request-abort-error'>Could not fetch data. Click <strong class='table-try-again'>here</strong> to try again</div>\n          ";
           } else {
-            _this25.appendRows(_this25.transformData(page));
+            _this28.appendRows(_this28.transformData(page));
           }
         });
       }, function (err) {
         // try again      
         var e = err;
 
-        if (_this25.errorCount < 50) {
-          _this25.errorCount++;
-          console.log('error getting layout, attempt', _this25.errorCount);
-          clearTimeout(_this25.retryFn);
-          _this25.retryFn = setTimeout(function () {
-            _this25.render();
+        if (_this28.errorCount < 50) {
+          _this28.errorCount++;
+          console.log('error getting layout, attempt', _this28.errorCount);
+          clearTimeout(_this28.retryFn);
+          _this28.retryFn = setTimeout(function () {
+            _this28.render();
           }, 300);
         }
       });
@@ -2151,14 +2342,14 @@ var Table = /*#__PURE__*/function () {
   }, {
     key: "transformData",
     value: function transformData(page) {
-      var _this26 = this;
+      var _this29 = this;
 
       console.log('page', page);
 
       if (this.layout.qHyperCube.qMode === 'S') {
         return page.map(function (r) {
           return r.map(function (c, i) {
-            if (_this26.table.options.columns[i].showAsLink === true || _this26.table.options.columns[i].showAsNavigatorLink === true) {
+            if (_this29.table.options.columns[i].showAsLink === true || _this29.table.options.columns[i].showAsNavigatorLink === true) {
               if (c.qAttrExps && c.qAttrExps.qValues && c.qAttrExps.qValues[0].qText) {
                 c.value = c.qAttrExps.qValues[0].qText;
 
@@ -2178,16 +2369,16 @@ var Table = /*#__PURE__*/function () {
               var t = 'qDimensionInfo';
               var tIndex = i;
 
-              if (i > _this26.layout.qHyperCube.qDimensionInfo.length - 1) {
+              if (i > _this29.layout.qHyperCube.qDimensionInfo.length - 1) {
                 t = 'qMeasureInfo';
-                tIndex -= _this26.layout.qHyperCube.qDimensionInfo.length;
+                tIndex -= _this29.layout.qHyperCube.qDimensionInfo.length;
               }
 
               c.qAttrExps.qValues.forEach(function (a, aI) {
                 if (a.qText && a.qText !== '') {
-                  if (_this26.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                  if (_this29.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                     c.color = a.qText;
-                  } else if (_this26.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                  } else if (_this29.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                     c.backgroundColor = a.qText;
                   }
                 }
@@ -2563,15 +2754,15 @@ var Table2 = /*#__PURE__*/function () {
   }, {
     key: "getData",
     value: function getData(callbackFn) {
-      var _this27 = this;
+      var _this30 = this;
 
       if (this.busy === false) {
         this.busy = true;
 
         if (this.options.getAllData === true) {
           getAllData('qHyperCube', this.options.model, this.layout, function (layout) {
-            _this27.rowCount = layout.qHyperCube.qDataPages[0].qMatrix.length;
-            _this27.busy = false;
+            _this30.rowCount = layout.qHyperCube.qDataPages[0].qMatrix.length;
+            _this30.busy = false;
 
             if (callbackFn) {
               callbackFn(layout.qHyperCube.qDataPages[0].qMatrix);
@@ -2594,24 +2785,24 @@ var Table2 = /*#__PURE__*/function () {
 
             this.options.model[method]('/qHyperCubeDef', pageDefs).then(function (pages) {
               if (pages && pages[0]) {
-                if (_this27.layout.qHyperCube.qMode === 'P') {
-                  _this27.layout.qHyperCube.qPivotDataPages.push(pages[0]);
+                if (_this30.layout.qHyperCube.qMode === 'P') {
+                  _this30.layout.qHyperCube.qPivotDataPages.push(pages[0]);
 
-                  _this27.rowCount += pages[0].qData.length;
+                  _this30.rowCount += pages[0].qData.length;
                 } else {
                   pages[0].qMatrix = pages[0].qMatrix.filter(function (r) {
                     return r[0].qText !== '-';
                   });
 
-                  _this27.layout.qHyperCube.qDataPages.push(pages[0]);
+                  _this30.layout.qHyperCube.qDataPages.push(pages[0]);
 
-                  _this27.rowCount += pages[0].qMatrix.length;
+                  _this30.rowCount += pages[0].qMatrix.length;
                 }
 
-                _this27.busy = false;
+                _this30.busy = false;
 
                 if (callbackFn) {
-                  if (_this27.layout.qHyperCube.qMode === 'P') {
+                  if (_this30.layout.qHyperCube.qMode === 'P') {
                     callbackFn(pages[0]);
                   } else {
                     callbackFn(pages[0].qMatrix);
@@ -2621,12 +2812,12 @@ var Table2 = /*#__PURE__*/function () {
             }, function (err) {
               var e = err;
 
-              if (_this27.errorCount < 50) {
-                _this27.errorCount++;
-                console.log('error getting data, attempt', _this27.errorCount);
-                clearTimeout(_this27.retryFn);
-                _this27.retryFn = setTimeout(function () {
-                  _this27.getData(callbackFn);
+              if (_this30.errorCount < 50) {
+                _this30.errorCount++;
+                console.log('error getting data, attempt', _this30.errorCount);
+                clearTimeout(_this30.retryFn);
+                _this30.retryFn = setTimeout(function () {
+                  _this30.getData(callbackFn);
                 }, 300);
               } // callbackFn({err})
 
@@ -2675,11 +2866,11 @@ var Table2 = /*#__PURE__*/function () {
   }, {
     key: "handleScroll",
     value: function handleScroll(event) {
-      var _this28 = this;
+      var _this31 = this;
 
       if (event.target.scrollTop / (event.target.scrollHeight - event.target.clientHeight) > 0.7) {
         this.getData(function (page) {
-          _this28.appendRows(_this28.transformData(page));
+          _this31.appendRows(_this31.transformData(page));
         });
       }
     }
@@ -2753,7 +2944,7 @@ var Table2 = /*#__PURE__*/function () {
   }, {
     key: "prepDropdowns",
     value: function prepDropdowns() {
-      var _this29 = this;
+      var _this32 = this;
 
       // this.table.options.columns.forEach((c, i) => {
       //   if (c.searchable === true && c.searchField && this.layout[c.searchField] && this.layout[c.searchField].qListObject) {
@@ -2764,11 +2955,11 @@ var Table2 = /*#__PURE__*/function () {
       //   }
       // })
       this.layout.qHyperCube.qDimensionInfo.forEach(function (d, i) {
-        if (!_this29.dropdowns["dim".concat(i)]) {
-          _this29.dropdowns["dim".concat(i)] = new WebsyDesignsQlikPlugins.Dropdown("".concat(_this29.elementId, "_columnSearch_").concat(i), {
-            model: _this29.options.model,
-            // path: `dim${i}`,
-            onClose: _this29.handleCloseSearch
+        if (!_this32.dropdowns["dim".concat(i)]) {
+          _this32.dropdowns["dim".concat(i)] = new WebsyDesignsQlikPlugins.Dropdown("".concat(_this32.elementId, "_columnSearch_").concat(i), {
+            model: _this32.options.model,
+            path: "dim".concat(i),
+            onClose: _this32.handleCloseSearch
           });
         }
       });
@@ -2776,7 +2967,7 @@ var Table2 = /*#__PURE__*/function () {
   }, {
     key: "prepSearch",
     value: function prepSearch() {
-      var _this30 = this;
+      var _this33 = this;
 
       this.busy = true;
       this.options.model.getProperties().then(function (props) {
@@ -2788,25 +2979,30 @@ var Table2 = /*#__PURE__*/function () {
             qPath: "/dim".concat(i),
             qValue: JSON.stringify({
               qListObjectDef: {
-                qDef: d.qDef,
+                qDef: _objectSpread(_objectSpread({}, d.qDef), {}, {
+                  qSortCriterias: [{
+                    qSortByState: 1,
+                    qSortByAscii: 1
+                  }]
+                }),
                 qLibraryId: d.qLibraryId
               }
             })
           });
         });
 
-        _this30.options.model.applyPatches(patches, true).then(function () {
-          _this30.busy = false;
-          _this30.searchPrepped = true;
+        _this33.options.model.applyPatches(patches, true).then(function () {
+          _this33.busy = false;
+          _this33.searchPrepped = true;
 
-          _this30.render();
+          _this33.render();
         });
       });
     }
   }, {
     key: "render",
     value: function render() {
-      var _this31 = this;
+      var _this34 = this;
 
       var pageNum = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
 
@@ -2819,71 +3015,71 @@ var Table2 = /*#__PURE__*/function () {
         message: 'Loading...'
       });
       this.options.model.getLayout().then(function (layout) {
-        _this31.layout = layout;
-        console.log('table layout', layout);
-        _this31.rowCount = pageNum * _this31.options.pageSize;
+        _this34.layout = layout;
+        _this34.rowCount = pageNum * _this34.options.pageSize;
 
-        if (_this31.layout.qHyperCube.qPivotDataPages[0]) {
-          _this31.layout.qHyperCube.qPivotDataPages = [];
+        if (_this34.layout.qHyperCube.qPivotDataPages[0]) {
+          _this34.layout.qHyperCube.qPivotDataPages = [];
         }
 
-        _this31.errorCount = 0;
-        _this31.pageNum = pageNum;
-        _this31.pageCount = Math.ceil(layout.qHyperCube.qSize.qcy / _this31.options.pageSize);
-        _this31.table.options.pageNum = _this31.pageNum;
+        _this34.errorCount = 0;
+        _this34.pageNum = pageNum;
+        _this34.pageCount = Math.ceil(layout.qHyperCube.qSize.qcy / _this34.options.pageSize);
+        _this34.table.options.pageNum = _this34.pageNum;
 
-        if (_this31.layout.qHyperCube.qNoOfLeftDims) {
-          _this31.table.options.leftColumns = _this31.options.freezeColumns || _this31.layout.qHyperCube.qNoOfLeftDims;
+        if (_this34.layout.qHyperCube.qNoOfLeftDims) {
+          _this34.table.options.leftColumns = _this34.options.freezeColumns || _this34.layout.qHyperCube.qNoOfLeftDims;
         }
 
-        _this31.table.options.pageCount = _this31.pageCount;
+        _this34.table.options.pageCount = _this34.pageCount;
 
         if (layout.qHyperCube.qError && layout.qHyperCube.qCalcCondMsg) {
-          _this31.table.hideLoading();
+          _this34.table.hideLoading();
 
-          _this31.table.showError({
-            message: _this31.options.customError || layout.qHyperCube.qCalcCondMsg
+          _this34.table.showError({
+            message: _this34.options.customError || layout.qHyperCube.qCalcCondMsg
           });
 
           return;
         }
 
-        _this31.table.hideError();
+        _this34.table.hideError();
 
-        _this31.dataWidth = _this31.layout.qHyperCube.qSize.qcx;
-        _this31.columnOrder = _this31.layout.qHyperCube.qColumnOrder;
+        _this34.dataWidth = _this34.layout.qHyperCube.qSize.qcx;
+        _this34.columnOrder = _this34.layout.qHyperCube.qColumnOrder;
 
-        if (typeof _this31.columnOrder === 'undefined') {
-          _this31.columnOrder = new Array(_this31.layout.qHyperCube.qSize.qcx).fill({}).map(function (r, i) {
+        if (typeof _this34.columnOrder === 'undefined') {
+          _this34.columnOrder = new Array(_this34.layout.qHyperCube.qSize.qcx).fill({}).map(function (r, i) {
             return i;
           });
         }
 
-        _this31.layout.qHyperCube.qDimensionInfo = _this31.layout.qHyperCube.qDimensionInfo.map(function (c, i) {
-          if (_this31.options.columnOverrides[i]) {
+        _this34.layout.qHyperCube.qDimensionInfo = _this34.layout.qHyperCube.qDimensionInfo.map(function (c, i) {
+          c.searchable = true;
+
+          if (_this34.options.columnOverrides[i]) {
             c = _objectSpread(_objectSpread({}, c), {}, {
-              searchable: true,
-              onSearch: _this31.handleSearch.bind(_this31),
-              onCloseSearch: _this31.handleCloseSearch.bind(_this31)
-            }, _this31.options.columnOverrides[i]);
+              onSearch: _this34.handleSearch.bind(_this34),
+              onCloseSearch: _this34.handleCloseSearch.bind(_this34)
+            }, _this34.options.columnOverrides[i]);
           }
 
           c.searchField = "dim".concat(i);
           return c;
         });
-        _this31.layout.qHyperCube.qMeasureInfo = _this31.layout.qHyperCube.qMeasureInfo.map(function (c, i) {
-          if (_this31.options.columnOverrides[_this31.layout.qHyperCube.qDimensionInfo.length + i]) {
-            c = _objectSpread(_objectSpread({}, c), _this31.options.columnOverrides[_this31.layout.qHyperCube.qDimensionInfo.length + i]);
+        _this34.layout.qHyperCube.qMeasureInfo = _this34.layout.qHyperCube.qMeasureInfo.map(function (c, i) {
+          if (_this34.options.columnOverrides[_this34.layout.qHyperCube.qDimensionInfo.length + i]) {
+            c = _objectSpread(_objectSpread({}, c), _this34.options.columnOverrides[_this34.layout.qHyperCube.qDimensionInfo.length + i]);
           }
 
           return c;
         });
 
-        var columns = _this31.layout.qHyperCube.qDimensionInfo.concat(_this31.layout.qHyperCube.qMeasureInfo);
+        var columns = _this34.layout.qHyperCube.qDimensionInfo.concat(_this34.layout.qHyperCube.qMeasureInfo);
 
-        var activeSort = _this31.layout.qHyperCube.qEffectiveInterColumnSortOrder[0];
+        var activeSort = _this34.layout.qHyperCube.qEffectiveInterColumnSortOrder[0];
         columns = columns.map(function (c, i) {
-          c.colIndex = _this31.columnOrder.indexOf(i);
+          c.colIndex = _this34.columnOrder.indexOf(i);
           c.name = c.qFallbackTitle;
 
           if (c.tooltip) {
@@ -2893,7 +3089,7 @@ var Table2 = /*#__PURE__*/function () {
           c.reverseSort = activeSort === i && c.qReverseSort !== true;
           c.activeSort = activeSort === i;
 
-          if (_this31.layout.qHyperCube.qMode === 'S') {
+          if (_this34.layout.qHyperCube.qMode === 'S') {
             if (c.qSortIndicator === 'A') {
               c.sort = 'asc';
             } else if (c.qSortIndicator === 'D') {
@@ -2906,7 +3102,7 @@ var Table2 = /*#__PURE__*/function () {
 
           if (c.searchable === true) {
             if (!c.onSearch) {
-              c.onSearch = _this31.handleSearch.bind(_this31);
+              c.onSearch = _this34.handleSearch.bind(_this34);
             }
           }
 
@@ -2916,79 +3112,79 @@ var Table2 = /*#__PURE__*/function () {
           return a.colIndex - b.colIndex;
         });
 
-        if (_this31.layout.qHyperCube.qMode === 'P') {
+        if (_this34.layout.qHyperCube.qMode === 'P') {
           columns = columns.filter(function (c, i) {
-            return i < _this31.layout.qHyperCube.qNoOfLeftDims;
+            return i < _this34.layout.qHyperCube.qNoOfLeftDims;
           });
         }
 
         columns = columns.filter(function (c) {
           return !c.qError;
         });
-        _this31.table.options.columns = columns;
+        _this34.table.options.columns = columns;
 
-        var activeDimensions = _this31.layout.qHyperCube.qDimensionInfo.filter(function (c) {
+        var activeDimensions = _this34.layout.qHyperCube.qDimensionInfo.filter(function (c) {
           return !c.qError;
         });
 
         var columnParamValues = activeDimensions.filter(function (c, i) {
-          return _this31.layout.qHyperCube.qMode === 'S' || i < _this31.layout.qHyperCube.qNoOfLeftDims;
+          return _this34.layout.qHyperCube.qMode === 'S' || i < _this34.layout.qHyperCube.qNoOfLeftDims;
         }).map(function (c, i) {
           return {
-            value: new Array(Math.max(c.qApprMaxGlyphCount, _this31.layout.qHyperCube.qDimensionInfo[i].qFallbackTitle.length)).fill('X').join(''),
+            value: new Array(Math.max(c.qApprMaxGlyphCount, _this34.layout.qHyperCube.qDimensionInfo[i].qFallbackTitle.length)).fill('X').join(''),
             width: c.width || null
           };
         });
         var measureLabel = activeDimensions.pop(); // const maxMValue = this.layout.qHyperCube.qMeasureInfo.reduce((a, b) => a.qApprMaxGlyphCount > b.qApprMaxGlyphCount ? a : b)
         // columnParamValues.push({ value: new Array(maxMValue.qApprMaxGlyphCount).fill('x').join(''), width)
 
-        columnParamValues = columnParamValues.concat(_this31.layout.qHyperCube.qMeasureInfo.filter(function (c) {
+        columnParamValues = columnParamValues.concat(_this34.layout.qHyperCube.qMeasureInfo.filter(function (c) {
           return !c.qError;
         }).map(function (c) {
           return {
-            value: new Array(_this31.layout.qHyperCube.qMode === 'S' ? c.qApprMaxGlyphCount : Math.max(c.qApprMaxGlyphCount, measureLabel.qApprMaxGlyphCount)).fill('X').join(''),
-            width: _this31.layout.qHyperCube.qMode === 'S' ? c.width || null : c.width || measureLabel.width || null
+            value: new Array(_this34.layout.qHyperCube.qMode === 'S' ? c.qApprMaxGlyphCount : Math.max(c.qApprMaxGlyphCount, measureLabel.qApprMaxGlyphCount)).fill('X').join(''),
+            width: _this34.layout.qHyperCube.qMode === 'S' ? c.width || null : c.width || measureLabel.width || null
           };
         }));
-        _this31.columnParams = _this31.table.getColumnParameters(columnParamValues);
+        _this34.columnParams = _this34.table.getColumnParameters(columnParamValues);
 
         for (var i = 0; i < columns.length; i++) {
-          columns[i].width = "".concat(_this31.columnParams.cellWidths[i] || _this31.columnParams.cellWidths[_this31.columnParams.cellWidths.length - 1], "px");
+          columns[i].width = "".concat(_this34.columnParams.cellWidths[i] || _this34.columnParams.cellWidths[_this34.columnParams.cellWidths.length - 1], "px");
         } // this.columnsToRender = Math.ceil(this.columnParams.availableWidth / this.columnParams.cellWidth)
 
 
-        _this31.rowsToRender = Math.ceil(_this31.columnParams.availableHeight / _this31.columnParams.cellHeight);
+        _this34.rowsToRender = Math.ceil(_this34.columnParams.availableHeight / _this34.columnParams.cellHeight);
 
-        _this31.getData(function (page) {
-          _this31.table.options.activeSort = activeSort;
+        _this34.getData(function (page) {
+          _this34.table.options.activeSort = activeSort;
 
-          _this31.table.hideLoading();
+          _this34.table.hideLoading();
 
-          if (_this31.layout.qHyperCube.qMode === 'S') {
-            _this31.table.render();
+          if (_this34.layout.qHyperCube.qMode === 'S') {
+            _this34.table.render();
 
-            _this31.prepDropdowns();
+            _this34.prepDropdowns();
           }
 
           if (page.err) {
-            var tableEl = document.getElementById("".concat(_this31.elementId, "_foot"));
+            var tableEl = document.getElementById("".concat(_this34.elementId, "_foot"));
             tableEl.innerHTML = "\n            <div class='request-abort-error'>Could not fetch data. Click <strong class='table-try-again'>here</strong> to try again</div>\n          ";
           } else {
-            _this31.fullData = page;
+            _this34.fullData = page;
 
-            _this31.resize();
+            _this34.resize();
           }
         });
       }, function (err) {
         // try again      
         var e = err;
 
-        if (_this31.errorCount < 50) {
-          _this31.errorCount++;
-          console.log('error getting layout, attempt', _this31.errorCount);
-          clearTimeout(_this31.retryFn);
-          _this31.retryFn = setTimeout(function () {
-            _this31.render();
+        if (_this34.errorCount < 50) {
+          _this34.errorCount++;
+          console.log('error getting layout, attempt', _this34.errorCount);
+          clearTimeout(_this34.retryFn);
+          _this34.retryFn = setTimeout(function () {
+            _this34.render();
           }, 300);
         }
       });
@@ -3012,12 +3208,12 @@ var Table2 = /*#__PURE__*/function () {
   }, {
     key: "transformData",
     value: function transformData(page) {
-      var _this32 = this;
+      var _this35 = this;
 
       if (this.layout.qHyperCube.qMode === 'S') {
         return page.map(function (r) {
           return r.map(function (c, i) {
-            if (_this32.table.options.columns[i].showAsLink === true || _this32.table.options.columns[i].showAsNavigatorLink === true) {
+            if (_this35.table.options.columns[i].showAsLink === true || _this35.table.options.columns[i].showAsNavigatorLink === true) {
               if (c.qAttrExps && c.qAttrExps.qValues && c.qAttrExps.qValues[0].qText) {
                 c.value = c.qAttrExps.qValues[0].qText;
 
@@ -3037,16 +3233,16 @@ var Table2 = /*#__PURE__*/function () {
               var t = 'qDimensionInfo';
               var tIndex = i;
 
-              if (i > _this32.layout.qHyperCube.qDimensionInfo.length - 1) {
+              if (i > _this35.layout.qHyperCube.qDimensionInfo.length - 1) {
                 t = 'qMeasureInfo';
-                tIndex -= _this32.layout.qHyperCube.qDimensionInfo.length;
+                tIndex -= _this35.layout.qHyperCube.qDimensionInfo.length;
               }
 
               c.qAttrExps.qValues.forEach(function (a, aI) {
                 if (a.qText && a.qText !== '') {
-                  if (_this32.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                  if (_this35.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                     c.color = a.qText;
-                  } else if (_this32.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                  } else if (_this35.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                     c.backgroundColor = a.qText;
                   }
                 }
@@ -3118,7 +3314,7 @@ var Table2 = /*#__PURE__*/function () {
   }, {
     key: "transformPivotTable",
     value: function transformPivotTable(page) {
-      var _this33 = this;
+      var _this36 = this;
 
       var output = [];
       var leftNodes = [];
@@ -3140,7 +3336,7 @@ var Table2 = /*#__PURE__*/function () {
       }
 
       leftNodes[0] && leftNodes[0].forEach(function (c, i) {
-        c.width = _this33.columnParams.cellWidths[i];
+        c.width = _this36.columnParams.cellWidths[i];
       });
       var scrollableColumns = this.layout.qHyperCube.qSize.qcx; // - (this.options.freezeColumns || this.layout.qHyperCube.qNoOfLeftDims)
 
@@ -3162,7 +3358,7 @@ var Table2 = /*#__PURE__*/function () {
         left: 0
       });
       topNodesTransposed[topNodesTransposed.length - 1].forEach(function (c, i) {
-        c.width = "".concat(_this33.columnParams.cellWidths[(_this33.options.freezeColumns || _this33.layout.qHyperCube.qNoOfLeftDims) + i] || _this33.columnParams.cellWidths[_this33.columnParams.cellWidths.length - 1], "px");
+        c.width = "".concat(_this36.columnParams.cellWidths[(_this36.options.freezeColumns || _this36.layout.qHyperCube.qNoOfLeftDims) + i] || _this36.columnParams.cellWidths[_this36.columnParams.cellWidths.length - 1], "px");
       });
 
       for (var r = 0; r < page.qData.length; r++) {
@@ -3225,7 +3421,7 @@ var Table2 = /*#__PURE__*/function () {
             }).map(function (d, dI) {
               return _extends({}, d, {
                 name: d.qFallbackTitle,
-                width: "".concat(_this33.columnParams.cellWidths[dI] || _this33.columnParams.cellWidths[_this33.columnParams.cellWidths.length - 1], "px")
+                width: "".concat(_this36.columnParams.cellWidths[dI] || _this36.columnParams.cellWidths[_this36.columnParams.cellWidths.length - 1], "px")
               });
             }).concat(topNodesTransposed[_i12]);
           } else {
@@ -3557,14 +3753,14 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "init",
       value: function init() {
-        var _this34 = this;
+        var _this37 = this;
 
         return new Promise(function (resolve, reject) {
-          _this34.prep('global');
+          _this37.prep('global');
 
-          _this34.connectToApp().then(function () {
-            _this34.executeAction(0, _this34.options.initialActions, function () {
-              _this34.selectFromUrl(function () {
+          _this37.connectToApp().then(function () {
+            _this37.executeAction(0, _this37.options.initialActions, function () {
+              _this37.selectFromUrl(function () {
                 resolve();
               });
             });
@@ -3645,7 +3841,7 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "prep",
       value: function prep(view) {
-        var _this35 = this;
+        var _this38 = this;
 
         // for (let view in this.options.views) {
         // sort out the elements in each view
@@ -3667,29 +3863,29 @@ if (typeof WebsyDesigns !== 'undefined') {
 
 
         var _loop = function _loop(a) {
-          var el = document.getElementById(_this35.options.actions[a].elementId);
+          var el = document.getElementById(_this38.options.actions[a].elementId);
 
           if (el) {
-            el.addEventListener(_this35.options.actions[a].event, function () {
+            el.addEventListener(_this38.options.actions[a].event, function () {
               var _loop2 = function _loop2(i) {
-                var item = _this35.options.actions[a].items[i];
+                var item = _this38.options.actions[a].items[i];
 
                 if (typeof item.params === 'undefined') {
                   item.params = [];
                 }
 
                 if (item.field) {
-                  _this35.app.getField(item.field).then(function (field) {
+                  _this38.app.getField(item.field).then(function (field) {
                     field[item.method].apply(field, _toConsumableArray(item.params));
                   });
                 } else {
-                  var _this35$app;
+                  var _this38$app;
 
-                  (_this35$app = _this35.app)[item.method].apply(_this35$app, _toConsumableArray(item.params));
+                  (_this38$app = _this38.app)[item.method].apply(_this38$app, _toConsumableArray(item.params));
                 }
               };
 
-              for (var i = 0; i < _this35.options.actions[a].items.length; i++) {
+              for (var i = 0; i < _this38.options.actions[a].items.length; i++) {
                 _loop2(i);
               }
             });
@@ -3705,14 +3901,14 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "connectToApp",
       value: function connectToApp() {
-        var _this36 = this;
+        var _this39 = this;
 
         return new Promise(function (resolve, reject) {
           // check for enigma.js      
-          var originalId = _this36.options.enigmaConfig.app;
+          var originalId = _this39.options.enigmaConfig.app;
 
-          if (_this36.options.enigmaConfig.app) {
-            _this36.options.enigmaConfig.app = _this36.normalizeId(_this36.options.enigmaConfig.app);
+          if (_this39.options.enigmaConfig.app) {
+            _this39.options.enigmaConfig.app = _this39.normalizeId(_this39.options.enigmaConfig.app);
           }
 
           if (typeof enigma === 'undefined') {
@@ -3722,46 +3918,46 @@ if (typeof WebsyDesigns !== 'undefined') {
             return;
           }
 
-          if (typeof _this36.options.enigmaSchema === 'undefined') {
+          if (typeof _this39.options.enigmaSchema === 'undefined') {
             reject({
               error: 'enigmaSchema property not found.'
             });
             return;
           }
 
-          var url = _this36.options.enigmaConfig.url;
+          var url = _this39.options.enigmaConfig.url;
 
-          if (_this36.options.enigmaConfig.ticket) {
+          if (_this39.options.enigmaConfig.ticket) {
             if (url.indexOf('?') === -1) {
               url += '?';
             } else {
               url += '&';
             }
 
-            url += "qlikTicket=".concat(_this36.options.enigmaConfig.ticket);
+            url += "qlikTicket=".concat(_this39.options.enigmaConfig.ticket);
           }
 
           var config = {
-            schema: _this36.options.enigmaSchema,
+            schema: _this39.options.enigmaSchema,
             url: url
           };
           var session = enigma.create(config);
-          _this36.session = session;
+          _this39.session = session;
           session.open().then(function (global) {
-            _this36.global = global;
+            _this39.global = global;
             global.getActiveDoc().then(function (app) {
               if (app) {
-                _this36.app = app;
+                _this39.app = app;
 
-                if (_this36.options.views.global) {
-                  _this36.executeActions('global').then(function () {
+                if (_this39.options.views.global) {
+                  _this39.executeActions('global').then(function () {
                     resolve();
                   });
                 } else {
                   resolve();
                 }
               } else {
-                return _this36.openApp(originalId).then(function () {
+                return _this39.openApp(originalId).then(function () {
                   resolve();
                 });
               }
@@ -3769,10 +3965,10 @@ if (typeof WebsyDesigns !== 'undefined') {
               var e = err;
 
               if (originalId) {
-                return _this36.openApp(originalId).then(function () {
+                return _this39.openApp(originalId).then(function () {
                   resolve();
                 }, function (err) {
-                  _this36.sessionOnNotification({
+                  _this39.sessionOnNotification({
                     err: err
                   });
                 });
@@ -3781,40 +3977,40 @@ if (typeof WebsyDesigns !== 'undefined') {
               }
             });
 
-            if (_this36.options.keepAlive === true) {
-              _this36.keepAlive();
+            if (_this39.options.keepAlive === true) {
+              _this39.keepAlive();
             }
           }, function (err) {
             reject(err);
           });
           session.on('traffic:received', function (data) {
             if (typeof data.suspend !== 'undefined') {
-              _this36.sessionSuspended();
+              _this39.sessionSuspended();
             }
           });
           session.on('notification:*', function (eventName, data) {
             if (eventName === 'OnAuthenticationInformation') {
               if (data.mustAuthenticate === true) {
-                if (_this36.options.enigmaConfig.authUrl) {
-                  window.location = _this36.options.enigmaConfig.authUrl + window.location.search.replace('?', '%3F').replace('=', '%3D');
-                } else if (_this36.options.enigmaConfig.onMustAuthenticate) {
-                  _this36.options.enigmaConfig.onMustAuthenticate();
+                if (_this39.options.enigmaConfig.authUrl) {
+                  window.location = _this39.options.enigmaConfig.authUrl + window.location.search.replace('?', '%3F').replace('=', '%3D');
+                } else if (_this39.options.enigmaConfig.onMustAuthenticate) {
+                  _this39.options.enigmaConfig.onMustAuthenticate();
                 } else if (data.loginUri) {
                   window.location = data.loginUri;
                 }
               } else if (data.mustAuthenticate === false) {
-                _this36.user = {
+                _this39.user = {
                   userDirectory: data.userDirectory,
                   userId: data.userId
                 };
               }
             } else {
-              _this36.sessionOnNotification(data, eventName);
+              _this39.sessionOnNotification(data, eventName);
             }
           });
-          session.on('suspended', _this36.sessionSuspended.bind(_this36));
-          session.on('resumed', _this36.sessionResumed.bind(_this36));
-          session.on('closed', _this36.sessionClosed.bind(_this36));
+          session.on('suspended', _this39.sessionSuspended.bind(_this39));
+          session.on('resumed', _this39.sessionResumed.bind(_this39));
+          session.on('closed', _this39.sessionClosed.bind(_this39));
         });
       }
     }, {
@@ -3835,24 +4031,24 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "keepAlive",
       value: function keepAlive() {
-        var _this37 = this;
+        var _this40 = this;
 
         this.global.engineVersion();
         setTimeout(function () {
-          _this37.keepAlive();
+          _this40.keepAlive();
         }, 59000);
       }
     }, {
       key: "openApp",
       value: function openApp(appId) {
-        var _this38 = this;
+        var _this41 = this;
 
         return new Promise(function (resolve, reject) {
-          _this38.global.openDoc(appId).then(function (app) {
-            _this38.app = app;
+          _this41.global.openDoc(appId).then(function (app) {
+            _this41.app = app;
 
-            if (_this38.options.views.global) {
-              _this38.executeActions('global').then(function () {
+            if (_this41.options.views.global) {
+              _this41.executeActions('global').then(function () {
                 resolve();
               });
             } else {
@@ -3866,7 +4062,7 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "loadView",
       value: function loadView(view, force) {
-        var _this39 = this;
+        var _this42 = this;
 
         if (typeof force === 'undefined') {
           force = false;
@@ -3886,23 +4082,23 @@ if (typeof WebsyDesigns !== 'undefined') {
 
         if (this.options.views[view].controller && this.options.views[view].initialized !== true) {
           this.options.views[view].controller.init(function () {
-            _this39.options.views[view].initialized = true;
+            _this42.options.views[view].initialized = true;
 
-            if (_this39.options.views[view].prepped !== true) {
-              _this39.prep(view);
+            if (_this42.options.views[view].prepped !== true) {
+              _this42.prep(view);
             }
 
-            _this39.executeActions(view).then(function () {
-              if ((_this39.globalObjectsLoaded === false || _this39.options.alwaysLoadGlobal === true) && view !== 'global') {
-                _this39.loadObjects('global', force);
+            _this42.executeActions(view).then(function () {
+              if ((_this42.globalObjectsLoaded === false || _this42.options.alwaysLoadGlobal === true) && view !== 'global') {
+                _this42.loadObjects('global', force);
 
-                _this39.globalObjectsLoaded = true;
+                _this42.globalObjectsLoaded = true;
               }
 
-              _this39.loadObjects(view, force);
+              _this42.loadObjects(view, force);
 
               if (view === 'global') {
-                _this39.globalObjectsLoaded = true;
+                _this42.globalObjectsLoaded = true;
               }
             });
           });
@@ -3915,16 +4111,16 @@ if (typeof WebsyDesigns !== 'undefined') {
           this.executeActions(view).then(function () {
             console.log('Actions complete', view);
 
-            if ((_this39.globalObjectsLoaded === false || _this39.options.alwaysLoadGlobal === true) && view !== 'global') {
-              _this39.loadObjects('global', force);
+            if ((_this42.globalObjectsLoaded === false || _this42.options.alwaysLoadGlobal === true) && view !== 'global') {
+              _this42.loadObjects('global', force);
 
-              _this39.globalObjectsLoaded = true;
+              _this42.globalObjectsLoaded = true;
             }
 
-            _this39.loadObjects(view, force);
+            _this42.loadObjects(view, force);
 
             if (view === 'global') {
-              _this39.globalObjectsLoaded = true;
+              _this42.globalObjectsLoaded = true;
             }
           });
         }
@@ -3932,7 +4128,7 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "executeAction",
       value: function executeAction(index, actionList, callbackFn) {
-        var _this40 = this;
+        var _this43 = this;
 
         var item = actionList[index];
 
@@ -3950,7 +4146,7 @@ if (typeof WebsyDesigns !== 'undefined') {
                   if (index === actionList.length) {
                     callbackFn();
                   } else {
-                    _this40.executeAction(index, actionList, callbackFn);
+                    _this43.executeAction(index, actionList, callbackFn);
                   }
                 });
               } else {
@@ -3959,7 +4155,7 @@ if (typeof WebsyDesigns !== 'undefined') {
                 if (index === actionList.length) {
                   callbackFn();
                 } else {
-                  _this40.executeAction(index, actionList, callbackFn);
+                  _this43.executeAction(index, actionList, callbackFn);
                 }
               }
             });
@@ -3973,7 +4169,7 @@ if (typeof WebsyDesigns !== 'undefined') {
             if (index === actionList.length) {
               callbackFn();
             } else {
-              _this40.executeAction(index, actionList, callbackFn);
+              _this43.executeAction(index, actionList, callbackFn);
             }
           });
         }
@@ -3981,20 +4177,20 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "executeActions",
       value: function executeActions(view) {
-        var _this41 = this;
+        var _this44 = this;
 
         return new Promise(function (resolve, reject) {
-          if (!_this41.options.views[view] || !_this41.options.views[view].actions || _this41.options.views[view].actions.length === 0) {
+          if (!_this44.options.views[view] || !_this44.options.views[view].actions || _this44.options.views[view].actions.length === 0) {
             resolve();
           }
 
-          _this41.executeAction(0, _this41.options.views[view].actions, resolve);
+          _this44.executeAction(0, _this44.options.views[view].actions, resolve);
         });
       }
     }, {
       key: "loadObjects",
       value: function loadObjects(view, force) {
-        var _this42 = this;
+        var _this45 = this;
 
         console.log('Loading objects', view);
 
@@ -4020,16 +4216,16 @@ if (typeof WebsyDesigns !== 'undefined') {
               }
             } else if (objList[i].definition) {
               if (typeof objList[i].definition === 'string' && objList[i].definition.toLowerCase().indexOf('.json') !== -1) {
-                _this42.request('GET', objList[i].definition).then(function (def) {
+                _this45.request('GET', objList[i].definition).then(function (def) {
                   objList[i].definition = def;
 
-                  _this42.createObjectFromDefinition(objList[i]);
+                  _this45.createObjectFromDefinition(objList[i]);
                 });
               } else {
-                _this42.createObjectFromDefinition(objList[i]);
+                _this45.createObjectFromDefinition(objList[i]);
               }
             } else {
-              _this42.createObjectFromDefinition(objList[i]);
+              _this45.createObjectFromDefinition(objList[i]);
             }
           };
 
@@ -4090,7 +4286,7 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "createObjectFromDefinition",
       value: function createObjectFromDefinition(objectConfig) {
-        var _this43 = this;
+        var _this46 = this;
 
         if (objectConfig.retries) {
           objectConfig.retries = 0;
@@ -4110,16 +4306,16 @@ if (typeof WebsyDesigns !== 'undefined') {
             objectConfig.objectId = model.id;
             objectConfig.attached = true;
 
-            if (_this43.supportedChartTypes.indexOf(objectConfig.definition.qInfo.qType) !== -1) {
+            if (_this46.supportedChartTypes.indexOf(objectConfig.definition.qInfo.qType) !== -1) {
               var options = _extends({}, objectConfig.options, {
                 model: model,
                 def: objectConfig.definition,
-                app: _this43.app
+                app: _this46.app
               });
 
-              objectConfig.vis = new _this43.chartLibrary[objectConfig.definition.qInfo.qType]("".concat(objectConfig.elementId, "_vis"), options);
+              objectConfig.vis = new _this46.chartLibrary[objectConfig.definition.qInfo.qType]("".concat(objectConfig.elementId, "_vis"), options);
               model.on('changed', function () {
-                if (objectConfig.attached === true && _this43.paused === false) {
+                if (objectConfig.attached === true && _this46.paused === false) {
                   objectConfig.vis.render();
                 }
               });
@@ -4129,7 +4325,7 @@ if (typeof WebsyDesigns !== 'undefined') {
               objectConfig.model = model;
               objectConfig.render(objectConfig, model);
               model.on('changed', function () {
-                if (objectConfig.attached === true && _this43.paused === false) {
+                if (objectConfig.attached === true && _this46.paused === false) {
                   objectConfig.render(objectConfig, model);
                 }
               });
@@ -4137,11 +4333,11 @@ if (typeof WebsyDesigns !== 'undefined') {
           }, function (err) {
             console.log('Error creating object', err);
 
-            if (objectConfig.retries < _this43.options.retryCount) {
+            if (objectConfig.retries < _this46.options.retryCount) {
               console.log('retrying');
               objectConfig.retries++;
 
-              _this43.createObjectFromDefinition(objectConfig);
+              _this46.createObjectFromDefinition(objectConfig);
             } else {
               console.log('Max retries reached.');
             }
@@ -4290,7 +4486,7 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "select",
       value: function select(index, selections, callbackFn) {
-        var _this44 = this;
+        var _this47 = this;
 
         if (index === selections.length) {
           callbackFn();
@@ -4325,13 +4521,13 @@ if (typeof WebsyDesigns !== 'undefined') {
             f.selectValues(values).then(function () {
               index++;
 
-              _this44.select(index, selections, callbackFn);
+              _this47.select(index, selections, callbackFn);
             });
           }, function (err) {
             console.log('field for selection not found', err);
             index++;
 
-            _this44.select(index, selections, callbackFn);
+            _this47.select(index, selections, callbackFn);
           });
         }
       }
