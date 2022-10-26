@@ -5,6 +5,10 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports["default"] = void 0;
 
+var _websyDesignsEs = _interopRequireDefault(require("@websy/websy-designs/dist/websy-designs-es6"));
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); enumerableOnly && (symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; })), keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = null != arguments[i] ? arguments[i] : {}; i % 2 ? ownKeys(Object(source), !0).forEach(function (key) { _defineProperty(target, key, source[key]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } return target; }
@@ -32,22 +36,6 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
 
 function _readOnlyError(name) { throw new TypeError("\"" + name + "\" is read-only"); }
-
-/* global
-  include
-  WebsyDesigns
-  Bookmarks
-  Chart
-  CurrentSelections
-  Table
-  Table2
-  GeoMap
-  Dropdown
-  DatePicker
-  KPI
-  ObjectManager
-*/
-// import WebsyDesigns from '@websy/websy-designs/dist/websy-designs-es6'
 
 /* global Bookmark */
 var Bookmarks = /*#__PURE__*/function () {
@@ -569,7 +557,7 @@ var Chart = /*#__PURE__*/function () {
         series: []
       }
     };
-    this.chart = new WebsyDesigns.WebsyChart(elementId);
+    this.chart = new _websyDesignsEs["default"].WebsyChart(elementId);
     window.addEventListener('resize', function () {
       return _this4.chart.render();
     });
@@ -650,7 +638,7 @@ var Chart = /*#__PURE__*/function () {
         // if (d.toReduced(decimals, isPercentage, true) % 1 === 0) {
         //   decimals = 0
         // }
-        d = WebsyDesigns.Utils.toReduced(d, decimals, isPercentage, false, options.max);
+        d = _websyDesignsEs["default"].Utils.toReduced(d, decimals, isPercentage, false, options.max);
 
         if (options.showAsCurrency === true) {
           d = d.toCurrency();
@@ -1228,7 +1216,7 @@ var DatePicker = /*#__PURE__*/function () {
     this.elementId = elementId;
     this.monthYearIsDate = true;
     this.options = _extends({}, DEFAULTS, options);
-    this.picker = new WebsyDesigns.WebsyDatePicker(elementId, _extends({}, options, {
+    this.picker = new _websyDesignsEs["default"].WebsyDatePicker(elementId, _extends({}, options, {
       onChange: this.onChange.bind(this)
     }));
     this.listening = true;
@@ -1314,8 +1302,9 @@ var DatePicker = /*#__PURE__*/function () {
       }
 
       var year = d.getFullYear(); // return `${day}/${month}/${year}`
+      // return `${year}-${month}-${day}`
 
-      return "".concat(year, "-").concat(month, "-").concat(day);
+      return "".concat(month, "/").concat(day, "/").concat(year);
     }
   }, {
     key: "toQlikDateNum",
@@ -1363,10 +1352,17 @@ var DatePicker = /*#__PURE__*/function () {
       // this.options.model.beginSelections('/qListObjectDef').then(() => {
 
 
-      this.options.model.searchListObjectFor('/qListObjectDef', query).then(function () {
-        _this15.options.model.acceptListObjectSearch('/qListObjectDef', false).then();
-      }); // })    
+      if (this.options.mode === 'hour') {
+        this.options.model.selectListObjectValues('/qListObjectDef', data.map(function (v) {
+          return v.qElemNumber;
+        }), false);
+      } else {
+        this.options.model.searchListObjectFor('/qListObjectDef', query).then(function () {
+          _this15.options.model.acceptListObjectSearch('/qListObjectDef', false).then();
+        });
+      } // })    
       // })    
+
     }
   }, {
     key: "render",
@@ -1392,7 +1388,12 @@ var DatePicker = /*#__PURE__*/function () {
             var start;
             var end;
 
-            if (_this16.options.mode === 'date') {
+            if (_this16.options.minAllowedDate || _this16.options.maxAllowedDate) {
+              start = _this16.options.minAllowedDate;
+              end = _this16.options.maxAllowedDate;
+              _this16.picker.options.minAllowedDate = start;
+              _this16.picker.options.maxAllowedDate = end;
+            } else if (_this16.options.mode === 'date') {
               start = _this16.fromQlikDate(layout.qListObject.qDataPages[0].qMatrix[0][0].qNum).getTime();
               end = _this16.fromQlikDate(layout.qListObject.qDataPages[0].qMatrix[layout.qListObject.qDataPages[0].qMatrix.length - 1][0].qNum).getTime();
             } else if (_this16.options.mode === 'year') {
@@ -1464,6 +1465,7 @@ var DatePicker = /*#__PURE__*/function () {
               }
             }
 
+            var hours = [];
             layout.qListObject.qDataPages[0].qMatrix.forEach(function (r, i, arr) {
               if (_this16.options.mode === 'date') {
                 if (completeDateList[_this16.fromQlikDate(r[0].qNum).getTime()]) {
@@ -1515,10 +1517,19 @@ var DatePicker = /*#__PURE__*/function () {
                     max = d;
                   }
                 }
-              } else if (_this16.options.mode === 'hour') {// 
+              } else if (_this16.options.mode === 'hour') {
+                hours.push(_extends({}, r[0], {
+                  text: r[0].qText,
+                  num: r[0].qNum
+                }));
               }
             });
             var completeDateListArr = Object.values(completeDateList);
+
+            if (_this16.options.mode === 'hour') {
+              completeDateListArr = hours;
+            }
+
             completeDateListArr.forEach(function (d) {
               if (d.qState === 'S') {
                 if (_this16.options.mode === 'date') {
@@ -1532,6 +1543,8 @@ var DatePicker = /*#__PURE__*/function () {
                     d = _this16.floorDate(new Date(new Date(new Date(new Date().setDate(1)).setMonth(month)).setFullYear(year)));
                     selectedRange.push(d);
                   }
+                } else if (_this16.options.mode === 'hour') {
+                  selectedRange.push(d.qText);
                 } else {
                   selectedRange.push(d.qNum);
                 }
@@ -1547,11 +1560,17 @@ var DatePicker = /*#__PURE__*/function () {
                   } else {
                     disabledDates.push(d.qNum);
                   }
+                } else if (_this16.options.mode === 'hour') {
+                  disabledDates.push(d.qText);
                 } else {
                   disabledDates.push(d.qNum);
                 }
               }
             });
+
+            if (_this16.options.mode === 'hour') {
+              _this16.picker.options.hours = completeDateListArr;
+            }
 
             _this16.picker.setDateBounds([min, max]);
 
@@ -1636,7 +1655,7 @@ var Dropdown = /*#__PURE__*/function () {
         }
       }]
     });
-    this.dropdown = new WebsyDesigns.WebsyDropdown(elementId, this.dropdownOptions);
+    this.dropdown = new _websyDesignsEs["default"].WebsyDropdown(elementId, this.dropdownOptions);
     this.render();
   }
 
@@ -1859,7 +1878,7 @@ var KPI = /*#__PURE__*/function () {
     this.elementId = elementId;
     this.options = _extends({}, options);
     this.kpiOptions = {};
-    this.kpi = new WebsyDesigns.WebsyKPI(elementId, this.kpiOptions);
+    this.kpi = new _websyDesignsEs["default"].WebsyKPI(elementId, this.kpiOptions);
     this.render();
   }
 
@@ -1950,15 +1969,15 @@ var GeoMap = /*#__PURE__*/function () {
     this.options = _extends({}, DEFAULTS, options, options.def.options);
 
     if (this.options.geoJSON && typeof this.options.geoJSON === 'string') {
-      WebsyDesigns.service.get(this.options.geoJSON).then(function (geoJSON) {
+      _websyDesignsEs["default"].service.get(this.options.geoJSON).then(function (geoJSON) {
         _this24.geoJSON = geoJSON;
         delete _this24.options.geoJSON;
-        _this24.map = new WebsyDesigns.WebsyMap(elementId, _this24.options);
+        _this24.map = new _websyDesignsEs["default"].WebsyMap(elementId, _this24.options);
 
         _this24.render();
       });
     } else {
-      this.map = new WebsyDesigns.WebsyMap(elementId, this.options);
+      this.map = new _websyDesignsEs["default"].WebsyMap(elementId, this.options);
       this.render();
     }
   }
@@ -2081,7 +2100,7 @@ var Table = /*#__PURE__*/function () {
     this.retryFn = null;
     this.pivotIndent = false;
     this.busy = false;
-    this.table = new WebsyDesigns.WebsyTable(this.elementId, _extends({}, {
+    this.table = new _websyDesignsEs["default"].WebsyTable(this.elementId, _extends({}, {
       onClick: this.handleClick.bind(this),
       onScroll: this.handleScroll.bind(this),
       onSort: this.handleSort.bind(this),
@@ -2737,7 +2756,7 @@ var Table2 = /*#__PURE__*/function () {
     this.dimensionWidth = 0;
     this.dropdowns = [];
     this.searchPrepped = false;
-    this.table = new WebsyDesigns.WebsyTable2(this.elementId, _extends({}, {
+    this.table = new _websyDesignsEs["default"].WebsyTable2(this.elementId, _extends({}, {
       onClick: this.handleClick.bind(this),
       onScroll: this.handleScroll.bind(this),
       onSort: this.handleSort.bind(this),
@@ -4504,7 +4523,7 @@ var ObjectManager = /*#__PURE__*/function () {
 
               if (!isNaN(dateRep.getDate())) {
                 return {
-                  qNumber: WebsyDesigns.Utils.toQlikDate(dateRep),
+                  qNumber: _websyDesignsEs["default"].Utils.toQlikDate(dateRep),
                   qIsNumeric: true
                 };
               } else {

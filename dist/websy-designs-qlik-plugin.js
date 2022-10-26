@@ -1306,8 +1306,9 @@ var DatePicker = /*#__PURE__*/function () {
       }
 
       var year = d.getFullYear(); // return `${day}/${month}/${year}`
+      // return `${year}-${month}-${day}`
 
-      return "".concat(year, "-").concat(month, "-").concat(day);
+      return "".concat(month, "/").concat(day, "/").concat(year);
     }
   }, {
     key: "toQlikDateNum",
@@ -1355,10 +1356,17 @@ var DatePicker = /*#__PURE__*/function () {
       // this.options.model.beginSelections('/qListObjectDef').then(() => {
 
 
-      this.options.model.searchListObjectFor('/qListObjectDef', query).then(function () {
-        _this15.options.model.acceptListObjectSearch('/qListObjectDef', false).then();
-      }); // })    
+      if (this.options.mode === 'hour') {
+        this.options.model.selectListObjectValues('/qListObjectDef', data.map(function (v) {
+          return v.qElemNumber;
+        }), false);
+      } else {
+        this.options.model.searchListObjectFor('/qListObjectDef', query).then(function () {
+          _this15.options.model.acceptListObjectSearch('/qListObjectDef', false).then();
+        });
+      } // })    
       // })    
+
     }
   }, {
     key: "render",
@@ -1384,7 +1392,12 @@ var DatePicker = /*#__PURE__*/function () {
             var start;
             var end;
 
-            if (_this16.options.mode === 'date') {
+            if (_this16.options.minAllowedDate || _this16.options.maxAllowedDate) {
+              start = _this16.options.minAllowedDate;
+              end = _this16.options.maxAllowedDate;
+              _this16.picker.options.minAllowedDate = start;
+              _this16.picker.options.maxAllowedDate = end;
+            } else if (_this16.options.mode === 'date') {
               start = _this16.fromQlikDate(layout.qListObject.qDataPages[0].qMatrix[0][0].qNum).getTime();
               end = _this16.fromQlikDate(layout.qListObject.qDataPages[0].qMatrix[layout.qListObject.qDataPages[0].qMatrix.length - 1][0].qNum).getTime();
             } else if (_this16.options.mode === 'year') {
@@ -1456,6 +1469,7 @@ var DatePicker = /*#__PURE__*/function () {
               }
             }
 
+            var hours = [];
             layout.qListObject.qDataPages[0].qMatrix.forEach(function (r, i, arr) {
               if (_this16.options.mode === 'date') {
                 if (completeDateList[_this16.fromQlikDate(r[0].qNum).getTime()]) {
@@ -1507,10 +1521,19 @@ var DatePicker = /*#__PURE__*/function () {
                     max = d;
                   }
                 }
-              } else if (_this16.options.mode === 'hour') {// 
+              } else if (_this16.options.mode === 'hour') {
+                hours.push(_extends({}, r[0], {
+                  text: r[0].qText,
+                  num: r[0].qNum
+                }));
               }
             });
             var completeDateListArr = Object.values(completeDateList);
+
+            if (_this16.options.mode === 'hour') {
+              completeDateListArr = hours;
+            }
+
             completeDateListArr.forEach(function (d) {
               if (d.qState === 'S') {
                 if (_this16.options.mode === 'date') {
@@ -1524,6 +1547,8 @@ var DatePicker = /*#__PURE__*/function () {
                     d = _this16.floorDate(new Date(new Date(new Date(new Date().setDate(1)).setMonth(month)).setFullYear(year)));
                     selectedRange.push(d);
                   }
+                } else if (_this16.options.mode === 'hour') {
+                  selectedRange.push(d.qText);
                 } else {
                   selectedRange.push(d.qNum);
                 }
@@ -1539,11 +1564,17 @@ var DatePicker = /*#__PURE__*/function () {
                   } else {
                     disabledDates.push(d.qNum);
                   }
+                } else if (_this16.options.mode === 'hour') {
+                  disabledDates.push(d.qText);
                 } else {
                   disabledDates.push(d.qNum);
                 }
               }
             });
+
+            if (_this16.options.mode === 'hour') {
+              _this16.picker.options.hours = completeDateListArr;
+            }
 
             _this16.picker.setDateBounds([min, max]);
 

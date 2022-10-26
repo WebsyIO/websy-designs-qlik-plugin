@@ -13,7 +13,7 @@
   ObjectManager
 */ 
 
-// import WebsyDesigns from '@websy/websy-designs/dist/websy-designs-es6'
+import WebsyDesigns from '@websy/websy-designs/dist/websy-designs-es6'
 /* global Bookmark */ 
 class Bookmarks {
   constructor (elementId, options) {
@@ -1150,7 +1150,8 @@ class DatePicker {
     }
     let year = d.getFullYear()
     // return `${day}/${month}/${year}`
-    return `${year}-${month}-${day}`
+    // return `${year}-${month}-${day}`
+    return `${month}/${day}/${year}`
   }
   toQlikDateNum (d) {
     return Math.floor((d.getTime() / 86400000 + 25569))
@@ -1192,9 +1193,14 @@ class DatePicker {
     // set listening to false to stop Qlik from updating the state of the datepicker
     // this.listening = false
     // this.options.model.beginSelections('/qListObjectDef').then(() => {
-    this.options.model.searchListObjectFor('/qListObjectDef', query).then(() => {
-      this.options.model.acceptListObjectSearch('/qListObjectDef', false).then()
-    })
+    if (this.options.mode === 'hour') {
+      this.options.model.selectListObjectValues('/qListObjectDef', data.map(v => v.qElemNumber), false)
+    }
+    else {
+      this.options.model.searchListObjectFor('/qListObjectDef', query).then(() => {
+        this.options.model.acceptListObjectSearch('/qListObjectDef', false).then()
+      })
+    }    
     // })    
     // })    
   }
@@ -1215,7 +1221,13 @@ class DatePicker {
           let oneDay = (1000 * 60 * 60 * 24)
           let start
           let end
-          if (this.options.mode === 'date') {
+          if (this.options.minAllowedDate || this.options.maxAllowedDate) {
+            start = this.options.minAllowedDate
+            end = this.options.maxAllowedDate
+            this.picker.options.minAllowedDate = start
+            this.picker.options.maxAllowedDate = end
+          }
+          else if (this.options.mode === 'date') {
             start = this.fromQlikDate(layout.qListObject.qDataPages[0].qMatrix[0][0].qNum).getTime()
             end = this.fromQlikDate(layout.qListObject.qDataPages[0].qMatrix[layout.qListObject.qDataPages[0].qMatrix.length - 1][0].qNum).getTime()
           }
@@ -1229,7 +1241,7 @@ class DatePicker {
               this.picker.options.sortDirection = 'desc'
             }
             min = start
-            max = end
+            max = end          
             this.picker.options.minAllowedYear = start
             this.picker.options.maxAllowedYear = end
           }
@@ -1289,6 +1301,7 @@ class DatePicker {
               // 
             }        
           }
+          let hours = []
           layout.qListObject.qDataPages[0].qMatrix.forEach((r, i, arr) => {
             if (this.options.mode === 'date') {
               if (completeDateList[this.fromQlikDate(r[0].qNum).getTime()]) {
@@ -1341,10 +1354,16 @@ class DatePicker {
               }
             }
             else if (this.options.mode === 'hour') {
-              // 
+              hours.push(Object.assign({}, r[0], {
+                text: r[0].qText,
+                num: r[0].qNum
+              })) 
             }             
           })
-          const completeDateListArr = Object.values(completeDateList)
+          let completeDateListArr = Object.values(completeDateList)
+          if (this.options.mode === 'hour') {
+            completeDateListArr = hours
+          }
           completeDateListArr.forEach(d => {
             if (d.qState === 'S') {
               if (this.options.mode === 'date') {
@@ -1360,6 +1379,9 @@ class DatePicker {
                   d = this.floorDate(new Date(new Date(new Date(new Date().setDate(1)).setMonth(month)).setFullYear(year)))
                   selectedRange.push(d)
                 }
+              }
+              else if (this.options.mode === 'hour') {
+                selectedRange.push(d.qText)
               } 
               else {
                 selectedRange.push(d.qNum)
@@ -1378,11 +1400,17 @@ class DatePicker {
                   disabledDates.push(d.qNum)
                 }
               } 
+              else if (this.options.mode === 'hour') {
+                disabledDates.push(d.qText)
+              }
               else {
                 disabledDates.push(d.qNum)
               }
             }
           })
+          if (this.options.mode === 'hour') {
+            this.picker.options.hours = completeDateListArr
+          }
           this.picker.setDateBounds([min, max])
           if (selectedRange.length === layout.qListObject.qDataPages[0].qMatrix.length) {
             // do nothing because all values are selected

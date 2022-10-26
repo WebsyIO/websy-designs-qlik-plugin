@@ -13,7 +13,7 @@
   ObjectManager
 */ 
 
-// import WebsyDesigns from '@websy/websy-designs/dist/websy-designs-es6'
+import WebsyDesigns from '@websy/websy-designs/dist/websy-designs-es6'
 include('./components/bookmarks/index.js')
 include('./components/chart/index.js')
 include('./components/current-selections/index.js')
