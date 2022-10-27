@@ -1202,6 +1202,7 @@ var CurrentSelections = /*#__PURE__*/function () {
 /*
   global
   WebsyDesigns
+  d3
 */
 
 
@@ -1211,7 +1212,8 @@ var DatePicker = /*#__PURE__*/function () {
 
     var DEFAULTS = {
       mode: 'date',
-      pageSize: 1000
+      pageSize: 1000,
+      dateFormat: '%_m/%_d/%Y'
     };
     this.elementId = elementId;
     this.monthYearIsDate = true;
@@ -1221,6 +1223,7 @@ var DatePicker = /*#__PURE__*/function () {
       onClear: this.onClear.bind(this)
     }));
     this.listening = true;
+    this.formatDate = d3.timeFormat(this.options.dateFormat);
     this.render();
   }
 
@@ -1288,24 +1291,21 @@ var DatePicker = /*#__PURE__*/function () {
     value: function toQlikDate(d) {
       if (typeof d === 'number') {
         d = new Date(d);
-      }
+      } // let day = d.getDate()
+      // if (day.toString().length === 1) {
+      //   day = `0${day}`
+      // }
+      // let month = d.getMonth() + 1
+      // if (month.toString().length === 1) {
+      //   month = `0${month}`
+      // }
+      // let year = d.getFullYear()
+      // // return `${day}/${month}/${year}`
+      // // return `${year}-${month}-${day}`
+      // return `${month}/${day}/${year}`
 
-      var day = d.getDate();
 
-      if (day.toString().length === 1) {
-        day = "0".concat(day);
-      }
-
-      var month = d.getMonth() + 1;
-
-      if (month.toString().length === 1) {
-        month = "0".concat(month);
-      }
-
-      var year = d.getFullYear(); // return `${day}/${month}/${year}`
-      // return `${year}-${month}-${day}`
-
-      return "".concat(month, "/").concat(day, "/").concat(year);
+      return this.formatDate(d);
     }
   }, {
     key: "toQlikDateNum",
