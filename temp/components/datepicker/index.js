@@ -18,7 +18,7 @@ class DatePicker {
       onClear: this.onClear.bind(this)
     }))
     this.listening = true
-    this.formatDate = d3.timeFormat(this.options.dateFormat)
+    this.formatDate = d3.timeFormat ? d3.timeFormat(this.options.dateFormat) : d3.time.format(this.options.dateFormat)
     this.render()
   }
   checkForData () {
