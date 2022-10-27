@@ -1539,25 +1539,12 @@ var DatePicker = /*#__PURE__*/function () {
               completeDateListArr = hours;
             }
 
-            var selectedIsRange = true;
             completeDateListArr.forEach(function (d) {
               if (d.qState === 'S') {
                 if (_this16.options.mode === 'date') {
-                  if (selectedRange.length > 0) {
-                    if (d.qNum - _this16.toQlikDate(selectedRange[selectedRange.length - 1]) > 1) {
-                      selectedIsRange = false;
-                    }
-                  }
-
                   selectedRange.push(_this16.fromQlikDate(d.qNum));
                 } else if (_this16.options.mode === 'monthyear') {
                   if (_this16.monthYearIsDate === true) {
-                    if (selectedRange.length > 0) {
-                      if (d.qNum - _this16.toQlikDate(selectedRange[selectedRange.length - 1]) > 1) {
-                        selectedIsRange = false;
-                      }
-                    }
-
                     selectedRange.push(_this16.fromQlikDate(d.qNum));
                   } else {
                     var year = +d.qNum.toString().substring(0, 4);
@@ -1569,23 +1556,11 @@ var DatePicker = /*#__PURE__*/function () {
                   var hourIndex = _this16.hourList.indexOf(d.qText);
 
                   if (hourIndex !== -1) {
-                    if (selectedRange.length > 0) {
-                      if (d.qNum - selectedRange[selectedRange.length - 1] > 1) {
-                        selectedIsRange = false;
-                      }
-                    }
-
                     selectedRange.push(hourIndex);
                   } else {
                     hourIndex = _this16.altHourList.indexOf(d.qText);
 
                     if (hourIndex !== -1) {
-                      if (selectedRange.length > 0) {
-                        if (d.qNum - selectedRange[selectedRange.length - 1] > 1) {
-                          selectedIsRange = false;
-                        }
-                      }
-
                       selectedRange.push(hourIndex);
                     }
                   }
@@ -1625,7 +1600,7 @@ var DatePicker = /*#__PURE__*/function () {
 
             if (selectedRange.length === layout.qListObject.qDataPages[0].qMatrix.length) {// do nothing because all values are selected
             } else if (selectedRange.length > 0) {
-              _this16.picker.selectCustomRange([selectedRange[0], selectedRange[selectedRange.length - 1] || selectedRange[0]]);
+              _this16.picker.selectCustomRange(selectedRange);
             } else if (selectedRange.length === 0) {
               _this16.picker.selectRange(0, false);
             }

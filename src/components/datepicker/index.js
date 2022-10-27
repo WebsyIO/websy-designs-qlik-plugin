@@ -292,25 +292,14 @@ class DatePicker {
           let completeDateListArr = Object.values(completeDateList)
           if (this.options.mode === 'hour') {
             completeDateListArr = hours
-          }
-          let selectedIsRange = true
+          }          
           completeDateListArr.forEach(d => {
             if (d.qState === 'S') {
-              if (this.options.mode === 'date') {
-                if (selectedRange.length > 0) {
-                  if (d.qNum - this.toQlikDate(selectedRange[selectedRange.length - 1]) > 1) {
-                    selectedIsRange = false
-                  }
-                }
+              if (this.options.mode === 'date') {                
                 selectedRange.push(this.fromQlikDate(d.qNum))
               }            
               else if (this.options.mode === 'monthyear') {
-                if (this.monthYearIsDate === true) {
-                  if (selectedRange.length > 0) {
-                    if (d.qNum - this.toQlikDate(selectedRange[selectedRange.length - 1]) > 1) {
-                      selectedIsRange = false
-                    }
-                  }
+                if (this.monthYearIsDate === true) {                  
                   selectedRange.push(this.fromQlikDate(d.qNum))
                 }
                 else {
@@ -322,22 +311,12 @@ class DatePicker {
               }
               else if (this.options.mode === 'hour') {
                 let hourIndex = this.hourList.indexOf(d.qText)
-                if (hourIndex !== -1) {
-                  if (selectedRange.length > 0) {
-                    if (d.qNum - selectedRange[selectedRange.length - 1] > 1) {
-                      selectedIsRange = false
-                    }
-                  }
+                if (hourIndex !== -1) {                  
                   selectedRange.push(hourIndex) 
                 }                
                 else {
                   hourIndex = this.altHourList.indexOf(d.qText)
-                  if (hourIndex !== -1) {
-                    if (selectedRange.length > 0) {
-                      if (d.qNum - selectedRange[selectedRange.length - 1] > 1) {
-                        selectedIsRange = false
-                      }
-                    }
+                  if (hourIndex !== -1) {                    
                     selectedRange.push(hourIndex) 
                   }               
                 }                
@@ -379,7 +358,7 @@ class DatePicker {
             // do nothing because all values are selected
           }
           else if (selectedRange.length > 0) {
-            this.picker.selectCustomRange([selectedRange[0], selectedRange[selectedRange.length - 1] || selectedRange[0]])
+            this.picker.selectCustomRange(selectedRange)
           }
           else if (selectedRange.length === 0) {
             this.picker.selectRange(0, false)
