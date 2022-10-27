@@ -1228,16 +1228,10 @@ var DatePicker = /*#__PURE__*/function () {
     }));
     this.listening = true;
     this.hourList = new Array(24).fill(0).map(function (d, i) {
-      return {
-        text: (i < 10 ? '0' : '') + i + ':00',
-        num: 1 / 24 * i
-      };
+      return (i < 10 ? '0' : '') + i + ':00';
     });
     this.altHourList = new Array(24).fill(0).map(function (d, i) {
-      return {
-        text: i + ':00',
-        num: 1 / 24 * i
-      };
+      return i + ':00';
     });
     this.formatDate = d3.timeFormat ? d3.timeFormat(this.options.dateFormat) : d3.time.format(this.options.dateFormat);
     this.render();
@@ -1333,7 +1327,6 @@ var DatePicker = /*#__PURE__*/function () {
     value: function onChange(data, isRange) {
       var _this15 = this;
 
-      console.log(data);
       var start;
       var end;
       var valueList = data.map(function (d) {
@@ -1393,7 +1386,6 @@ var DatePicker = /*#__PURE__*/function () {
 
       this.options.model.getLayout().then(function (layout) {
         _this16.layout = layout;
-        console.log(layout);
 
         _this16.checkForData().then(function () {
           var disabledDates = [];

@@ -1089,8 +1089,8 @@ class DatePicker {
       onClear: this.onClear.bind(this)
     }))
     this.listening = true
-    this.hourList = new Array(24).fill(0).map((d, i) => ({text: (i < 10 ? '0' : '') + i + ':00', num: (1 / 24 * i)}))
-    this.altHourList = new Array(24).fill(0).map((d, i) => ({text: i + ':00', num: (1 / 24 * i)})) 
+    this.hourList = new Array(24).fill(0).map((d, i) => (i < 10 ? '0' : '') + i + ':00')
+    this.altHourList = new Array(24).fill(0).map((d, i) => (i + ':00')) 
     this.formatDate = d3.timeFormat ? d3.timeFormat(this.options.dateFormat) : d3.time.format(this.options.dateFormat)
     this.render()
   }
@@ -1161,8 +1161,7 @@ class DatePicker {
   toQlikDateNum (d) {
     return Math.floor((d.getTime() / 86400000 + 25569))
   }
-  onChange (data, isRange) {
-    console.log(data)
+  onChange (data, isRange) {    
     let start    
     let end    
     let valueList = data.map(d => {
@@ -1214,8 +1213,7 @@ class DatePicker {
   }
   render () {
     this.options.model.getLayout().then(layout => {
-      this.layout = layout
-      console.log(layout)
+      this.layout = layout      
       this.checkForData().then(() => {
         let disabledDates = []
         let min
