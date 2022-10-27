@@ -343,6 +343,9 @@ class DatePicker {
           else if (selectedRange.length > 0) {
             this.picker.selectCustomRange([selectedRange[0], selectedRange[selectedRange.length - 1] || selectedRange[0]])
           }
+          else if (selectedRange.length === 0) {
+            this.picker.selectRange(0)
+          }
           this.picker.render(disabledDates)
           this.listening = true
         }

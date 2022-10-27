@@ -1581,6 +1581,8 @@ var DatePicker = /*#__PURE__*/function () {
             if (selectedRange.length === layout.qListObject.qDataPages[0].qMatrix.length) {// do nothing because all values are selected
             } else if (selectedRange.length > 0) {
               _this16.picker.selectCustomRange([selectedRange[0], selectedRange[selectedRange.length - 1] || selectedRange[0]]);
+            } else if (selectedRange.length === 0) {
+              _this16.picker.selectRange(0);
             }
 
             _this16.picker.render(disabledDates);
