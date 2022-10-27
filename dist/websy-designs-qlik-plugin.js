@@ -1392,12 +1392,7 @@ var DatePicker = /*#__PURE__*/function () {
             var start;
             var end;
 
-            if (_this16.options.minAllowedDate || _this16.options.maxAllowedDate) {
-              start = _this16.options.minAllowedDate;
-              end = _this16.options.maxAllowedDate;
-              _this16.picker.options.minAllowedDate = start;
-              _this16.picker.options.maxAllowedDate = end;
-            } else if (_this16.options.mode === 'date') {
+            if (_this16.options.mode === 'date') {
               start = _this16.fromQlikDate(layout.qListObject.qDataPages[0].qMatrix[0][0].qNum).getTime();
               end = _this16.fromQlikDate(layout.qListObject.qDataPages[0].qMatrix[layout.qListObject.qDataPages[0].qMatrix.length - 1][0].qNum).getTime();
             } else if (_this16.options.mode === 'year') {
@@ -1571,6 +1566,11 @@ var DatePicker = /*#__PURE__*/function () {
                 }
               }
             });
+
+            if (_this16.options.minAllowedDate || _this16.options.maxAllowedDate) {
+              start = _this16.options.minAllowedDate;
+              end = _this16.options.maxAllowedDate;
+            }
 
             if (_this16.options.mode === 'hour') {
               _this16.picker.options.hours = completeDateListArr;

@@ -1220,14 +1220,8 @@ class DatePicker {
           const completeDateList = {}
           let oneDay = (1000 * 60 * 60 * 24)
           let start
-          let end
-          if (this.options.minAllowedDate || this.options.maxAllowedDate) {
-            start = this.options.minAllowedDate
-            end = this.options.maxAllowedDate
-            this.picker.options.minAllowedDate = start
-            this.picker.options.maxAllowedDate = end
-          }
-          else if (this.options.mode === 'date') {
+          let end          
+          if (this.options.mode === 'date') {
             start = this.fromQlikDate(layout.qListObject.qDataPages[0].qMatrix[0][0].qNum).getTime()
             end = this.fromQlikDate(layout.qListObject.qDataPages[0].qMatrix[layout.qListObject.qDataPages[0].qMatrix.length - 1][0].qNum).getTime()
           }
@@ -1408,6 +1402,10 @@ class DatePicker {
               }
             }
           })
+          if (this.options.minAllowedDate || this.options.maxAllowedDate) {
+            start = this.options.minAllowedDate
+            end = this.options.maxAllowedDate            
+          }
           if (this.options.mode === 'hour') {
             this.picker.options.hours = completeDateListArr
           }
