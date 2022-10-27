@@ -1083,7 +1083,8 @@ class DatePicker {
     this.monthYearIsDate = true  
     this.options = Object.assign({}, DEFAULTS, options)
     this.picker = new WebsyDesigns.WebsyDatePicker(elementId, Object.assign({}, options, {
-      onChange: this.onChange.bind(this)
+      onChange: this.onChange.bind(this),
+      onClear: this.onClear.bind(this)
     }))
     this.listening = true
     this.render()
@@ -1201,6 +1202,9 @@ class DatePicker {
     }    
     // })    
     // })    
+  }
+  onClear () {
+    this.options.model.clear()
   }
   render () {
     this.options.model.getLayout().then(layout => {
@@ -1415,7 +1419,7 @@ class DatePicker {
             this.picker.selectCustomRange([selectedRange[0], selectedRange[selectedRange.length - 1] || selectedRange[0]])
           }
           else if (selectedRange.length === 0) {
-            this.picker.selectRange(0)
+            this.picker.selectRange(0, false)
           }
           this.picker.render(disabledDates)
           this.listening = true

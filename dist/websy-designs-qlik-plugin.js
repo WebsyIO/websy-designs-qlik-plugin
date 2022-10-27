@@ -1221,7 +1221,8 @@ var DatePicker = /*#__PURE__*/function () {
     this.monthYearIsDate = true;
     this.options = _extends({}, DEFAULTS, options);
     this.picker = new WebsyDesigns.WebsyDatePicker(elementId, _extends({}, options, {
-      onChange: this.onChange.bind(this)
+      onChange: this.onChange.bind(this),
+      onClear: this.onClear.bind(this)
     }));
     this.listening = true;
     this.render();
@@ -1367,6 +1368,11 @@ var DatePicker = /*#__PURE__*/function () {
       } // })    
       // })    
 
+    }
+  }, {
+    key: "onClear",
+    value: function onClear() {
+      this.options.model.clear();
     }
   }, {
     key: "render",
@@ -1582,7 +1588,7 @@ var DatePicker = /*#__PURE__*/function () {
             } else if (selectedRange.length > 0) {
               _this16.picker.selectCustomRange([selectedRange[0], selectedRange[selectedRange.length - 1] || selectedRange[0]]);
             } else if (selectedRange.length === 0) {
-              _this16.picker.selectRange(0);
+              _this16.picker.selectRange(0, false);
             }
 
             _this16.picker.render(disabledDates);
