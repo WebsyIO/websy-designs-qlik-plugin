@@ -1568,8 +1568,8 @@ var DatePicker = /*#__PURE__*/function () {
             });
 
             if (_this16.options.minAllowedDate || _this16.options.maxAllowedDate) {
-              start = _this16.options.minAllowedDate;
-              end = _this16.options.maxAllowedDate;
+              min = _this16.options.minAllowedDate;
+              max = _this16.options.maxAllowedDate;
             }
 
             if (_this16.options.mode === 'hour') {

@@ -1403,8 +1403,8 @@ class DatePicker {
             }
           })
           if (this.options.minAllowedDate || this.options.maxAllowedDate) {
-            start = this.options.minAllowedDate
-            end = this.options.maxAllowedDate            
+            min = this.options.minAllowedDate
+            max = this.options.maxAllowedDate            
           }
           if (this.options.mode === 'hour') {
             this.picker.options.hours = completeDateListArr
