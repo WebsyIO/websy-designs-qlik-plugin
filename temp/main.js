@@ -1364,13 +1364,24 @@ class DatePicker {
           if (this.options.mode === 'hour') {
             completeDateListArr = hours
           }
+          let selectedIsRange = true
           completeDateListArr.forEach(d => {
             if (d.qState === 'S') {
               if (this.options.mode === 'date') {
+                if (selectedRange.length > 0) {
+                  if (d.qNum - this.toQlikDate(selectedRange[selectedRange.length - 1]) > 1) {
+                    selectedIsRange = false
+                  }
+                }
                 selectedRange.push(this.fromQlikDate(d.qNum))
               }            
               else if (this.options.mode === 'monthyear') {
                 if (this.monthYearIsDate === true) {
+                  if (selectedRange.length > 0) {
+                    if (d.qNum - this.toQlikDate(selectedRange[selectedRange.length - 1]) > 1) {
+                      selectedIsRange = false
+                    }
+                  }
                   selectedRange.push(this.fromQlikDate(d.qNum))
                 }
                 else {
@@ -1383,14 +1394,24 @@ class DatePicker {
               else if (this.options.mode === 'hour') {
                 let hourIndex = this.hourList.indexOf(d.qText)
                 if (hourIndex !== -1) {
+                  if (selectedRange.length > 0) {
+                    if (d.qNum - selectedRange[selectedRange.length - 1] > 1) {
+                      selectedIsRange = false
+                    }
+                  }
                   selectedRange.push(hourIndex) 
                 }                
                 else {
                   hourIndex = this.altHourList.indexOf(d.qText)
                   if (hourIndex !== -1) {
+                    if (selectedRange.length > 0) {
+                      if (d.qNum - selectedRange[selectedRange.length - 1] > 1) {
+                        selectedIsRange = false
+                      }
+                    }
                     selectedRange.push(hourIndex) 
                   }               
-                }
+                }                
               } 
               else {
                 selectedRange.push(d.qNum)
