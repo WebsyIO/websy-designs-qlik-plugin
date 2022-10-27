@@ -1223,6 +1223,18 @@ var DatePicker = /*#__PURE__*/function () {
       onClear: this.onClear.bind(this)
     }));
     this.listening = true;
+    this.hourList = new Array(24).fill(0).map(function (d, i) {
+      return {
+        text: (i < 10 ? '0' : '') + i + ':00',
+        num: 1 / 24 * i
+      };
+    });
+    this.altHourList = new Array(24).fill(0).map(function (d, i) {
+      return {
+        text: i + ':00',
+        num: 1 / 24 * i
+      };
+    });
     this.formatDate = d3.timeFormat ? d3.timeFormat(this.options.dateFormat) : d3.time.format(this.options.dateFormat);
     this.render();
   }
@@ -1305,7 +1317,7 @@ var DatePicker = /*#__PURE__*/function () {
       // return `${month}/${day}/${year}`
 
 
-      return this.formatDate(d);
+      return this.formatDate(d).replace(/ /g, '');
     }
   }, {
     key: "toQlikDateNum",
@@ -1545,7 +1557,17 @@ var DatePicker = /*#__PURE__*/function () {
                     selectedRange.push(d);
                   }
                 } else if (_this16.options.mode === 'hour') {
-                  selectedRange.push(d.qText);
+                  var hourIndex = _this16.hourList.indexOf(d.qText);
+
+                  if (hourIndex !== -1) {
+                    selectedRange.push(hourIndex);
+                  } else {
+                    hourIndex = _this16.altHourList.indexOf(d.qText);
+
+                    if (hourIndex !== -1) {
+                      selectedRange.push(hourIndex);
+                    }
+                  }
                 } else {
                   selectedRange.push(d.qNum);
                 }

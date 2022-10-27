@@ -18,6 +18,8 @@ class DatePicker {
       onClear: this.onClear.bind(this)
     }))
     this.listening = true
+    this.hourList = new Array(24).fill(0).map((d, i) => ({text: (i < 10 ? '0' : '') + i + ':00', num: (1 / 24 * i)}))
+    this.altHourList = new Array(24).fill(0).map((d, i) => ({text: i + ':00', num: (1 / 24 * i)})) 
     this.formatDate = d3.timeFormat ? d3.timeFormat(this.options.dateFormat) : d3.time.format(this.options.dateFormat)
     this.render()
   }
@@ -83,7 +85,7 @@ class DatePicker {
     // // return `${day}/${month}/${year}`
     // // return `${year}-${month}-${day}`
     // return `${month}/${day}/${year}`
-    return this.formatDate(d)
+    return this.formatDate(d).replace(/ /g, '')
   }
   toQlikDateNum (d) {
     return Math.floor((d.getTime() / 86400000 + 25569))
@@ -310,7 +312,16 @@ class DatePicker {
                 }
               }
               else if (this.options.mode === 'hour') {
-                selectedRange.push(d.qText)
+                let hourIndex = this.hourList.indexOf(d.qText)
+                if (hourIndex !== -1) {
+                  selectedRange.push(hourIndex) 
+                }                
+                else {
+                  hourIndex = this.altHourList.indexOf(d.qText)
+                  if (hourIndex !== -1) {
+                    selectedRange.push(hourIndex) 
+                  }               
+                }
               } 
               else {
                 selectedRange.push(d.qNum)
