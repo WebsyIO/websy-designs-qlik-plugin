@@ -6,6 +6,7 @@
   CurrentSelections
   Table
   Table2
+  Table3
   GeoMap
   Dropdown
   DatePicker
@@ -23,6 +24,7 @@ include('./components/kpi/index.js')
 include('./components/map/index.js')
 include('./components/table/index.js')
 include('./components/table2/index.js')
+include('./components/table3/index.js')
 
 const WebsyDesignsQlikPlugins = {
   Bookmarks,
@@ -30,6 +32,7 @@ const WebsyDesignsQlikPlugins = {
   CurrentSelections,
   Table,
   Table2,
+  Table3,
   GeoMap,
   Dropdown,
   DatePicker,
