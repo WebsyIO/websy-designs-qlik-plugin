@@ -2630,7 +2630,12 @@ class Table2 {
         }
         return c
       })
-      let columns = this.layout.qHyperCube.qDimensionInfo.concat(this.layout.qHyperCube.qMeasureInfo)
+      let columns = this.layout.qHyperCube.qDimensionInfo.concat(this.layout.qHyperCube.qMeasureInfo)            
+      this.orderedColumns = columns.map((c, i, a) => {
+        return a[this.columnOrder[i]]
+      }).filter(c => !c.qError)
+      this.dimensions = this.layout.qHyperCube.qDimensionInfo.filter(d => !d.qError)
+      this.measures = this.layout.qHyperCube.qMeasureInfo.filter(d => !d.qError)
       let activeSort = this.layout.qHyperCube.qEffectiveInterColumnSortOrder[0]      
       columns = columns.map((c, i) => {
         c.colIndex = this.columnOrder.indexOf(i)
@@ -2754,18 +2759,18 @@ class Table2 {
             c.value = c.qText || '-'
           }
           if (c.qAttrExps && c.qAttrExps.qValues) {
-            let t = 'qDimensionInfo'
+            // let t = 'dimensions'
             let tIndex = i
-            if (i > this.layout.qHyperCube.qDimensionInfo.length - 1) {
-              t = 'qMeasureInfo'
-              tIndex -= this.layout.qHyperCube.qDimensionInfo.length
-            }
+            // if (i > this.dimensions.length - 1) {
+            //   t = 'measures'
+            //   tIndex -= this.dimensions.length
+            // }
             c.qAttrExps.qValues.forEach((a, aI) => {
               if (a.qText && a.qText !== '') {
-                if (this.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                if (this.orderedColumns[tIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                   c.color = a.qText
                 }
-                else if (this.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                else if (this.orderedColumns[tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                   c.backgroundColor = a.qText
                 }
               }
