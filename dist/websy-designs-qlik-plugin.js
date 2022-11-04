@@ -3131,6 +3131,17 @@ var Table2 = /*#__PURE__*/function () {
 
         var columns = _this34.layout.qHyperCube.qDimensionInfo.concat(_this34.layout.qHyperCube.qMeasureInfo);
 
+        _this34.orderedColumns = columns.map(function (c, i, a) {
+          return a[_this34.columnOrder[i]];
+        }).filter(function (c) {
+          return !c.qError;
+        });
+        _this34.dimensions = _this34.layout.qHyperCube.qDimensionInfo.filter(function (d) {
+          return !d.qError;
+        });
+        _this34.measures = _this34.layout.qHyperCube.qMeasureInfo.filter(function (d) {
+          return !d.qError;
+        });
         var activeSort = _this34.layout.qHyperCube.qEffectiveInterColumnSortOrder[0];
         columns = columns.map(function (c, i) {
           c.colIndex = _this34.columnOrder.indexOf(i);
@@ -3284,19 +3295,17 @@ var Table2 = /*#__PURE__*/function () {
             }
 
             if (c.qAttrExps && c.qAttrExps.qValues) {
-              var t = 'qDimensionInfo';
-              var tIndex = i;
-
-              if (i > _this35.layout.qHyperCube.qDimensionInfo.length - 1) {
-                t = 'qMeasureInfo';
-                tIndex -= _this35.layout.qHyperCube.qDimensionInfo.length;
-              }
+              // let t = 'dimensions'
+              var tIndex = i; // if (i > this.dimensions.length - 1) {
+              //   t = 'measures'
+              //   tIndex -= this.dimensions.length
+              // }
 
               c.qAttrExps.qValues.forEach(function (a, aI) {
                 if (a.qText && a.qText !== '') {
-                  if (_this35.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                  if (_this35.orderedColumns[tIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                     c.color = a.qText;
-                  } else if (_this35.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                  } else if (_this35.orderedColumns[tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                     c.backgroundColor = a.qText;
                   }
                 }
