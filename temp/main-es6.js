@@ -1090,6 +1090,7 @@ class DatePicker {
       onClear: this.onClear.bind(this)
     }))
     this.listening = true
+    this.dateList = []
     this.hourList = new Array(24).fill(0).map((d, i) => (i < 10 ? '0' : '') + i + ':00')
     this.altHourList = new Array(24).fill(0).map((d, i) => (i + ':00')) 
     this.formatDate = d3.timeFormat ? d3.timeFormat(this.options.dateFormat) : d3.time.format(this.options.dateFormat)
@@ -1145,18 +1146,6 @@ class DatePicker {
     if (typeof d === 'number') {
       d = new Date(d)
     }
-    // let day = d.getDate()
-    // if (day.toString().length === 1) {
-    //   day = `0${day}`
-    // }
-    // let month = d.getMonth() + 1
-    // if (month.toString().length === 1) {
-    //   month = `0${month}`
-    // }
-    // let year = d.getFullYear()
-    // // return `${day}/${month}/${year}`
-    // // return `${year}-${month}-${day}`
-    // return `${month}/${day}/${year}`
     return this.formatDate(d).replace(/ /g, '')
   }
   toQlikDateNum (d) {
@@ -1167,7 +1156,11 @@ class DatePicker {
     let end    
     let valueList = data.map(d => {
       if (this.options.mode === 'date') {
-        return this.toQlikDate(d)
+        if (typeof d === 'number') {
+          return d
+        }
+        return d.getTime()
+        // return this.toQlikDate(d)
       }
       else if (this.options.mode === 'monthyear') {
         if (this.monthYearIsDate === true) {
@@ -1185,14 +1178,33 @@ class DatePicker {
       }  
     })
     let query = ''      
+    let elemNums = []
     if (isRange) {
-      query = `${valueList[0]}`
-      if (valueList.length > 1) {
-        query = `>=${valueList[0]}<=${valueList[valueList.length - 1]}`  
+      if (this.options.mode === 'date') {
+        if (valueList.length === 2 && valueList[0] !== valueList[1]) {
+          let diff = valueList[1] - valueList[0]
+          for (let i = valueList[0]; i < valueList[1]; i++) {
+            elemNums.push(this.completeDateList[i].qElemNumber)
+          }
+        }
+        else {
+          elemNums.push(this.completeDateList[valueList[0]].qElemNumber)
+        }
       }
+      else {
+        query = `${valueList[0]}`
+        if (valueList.length > 1) {
+          query = `>=${valueList[0]}<=${valueList[valueList.length - 1]}`  
+        }
+      }      
     }    
     else {
-      query = valueList.join(' ')
+      if (this.options.mode === 'date') {
+        elemNums = valueList.map(d => this.completeDateList[d].qElemNumber)
+      }
+      else {
+        query = valueList.join(' ')
+      }
     }
     // this.getField(this.options.selectField).then(field => {
     // set listening to false to stop Qlik from updating the state of the datepicker
@@ -1201,9 +1213,12 @@ class DatePicker {
     if (this.options.mode === 'hour') {
       this.options.model.selectListObjectValues('/qListObjectDef', data.map(v => v.qElemNumber), false, this.options.softLock)
     }
+    else if (this.options.mode === 'date') {
+      this.options.model.selectListObjectValues('/qListObjectDef', elemNums, false, this.options.softLock)
+    }
     else {
       this.options.model.searchListObjectFor('/qListObjectDef', query).then(() => {
-        this.options.model.acceptListObjectSearch('/qListObjectDef', false, this.options.softLock).then()
+        this.options.model.acceptListObjectSearch('/qListObjectDef', false, this.options.softLock)
       })
     }    
     // })    
@@ -1224,7 +1239,7 @@ class DatePicker {
         let selectedRange = []
         if (layout.qListObject.qDataPages[0] && this.listening === true) {
           // ensure we have a complete calendar
-          const completeDateList = {}
+          this.completeDateList = {}
           let oneDay = (1000 * 60 * 60 * 24)
           let start
           let end          
@@ -1279,13 +1294,13 @@ class DatePicker {
             if (this.options.mode === 'date') {
               let temp = new Date(start + (i * oneDay))
               temp.setHours(0, 0, 0)      
-              completeDateList[temp.getTime()] = {
+              this.completeDateList[temp.getTime()] = {
                 qNum: this.toQlikDateNum(temp),
                 qState: 'Z'
               } 
             }
             else if (this.options.mode === 'year') {
-              completeDateList[start + i] = {
+              this.completeDateList[start + i] = {
                 qNum: start + i,
                 qState: 'Z'
               }
@@ -1293,7 +1308,7 @@ class DatePicker {
             else if (this.options.mode === 'monthyear') {
               let temp = this.floorDate(new Date(new Date(start.getTime()).setMonth(start.getMonth() + i)))
               // temp.setHours(0, 0, 0)
-              completeDateList[temp.getTime()] = {
+              this.completeDateList[temp.getTime()] = {
                 qNum: this.monthYearIsDate === true ? this.toQlikDateNum(temp) : `${temp.getFullYear()}${temp.getMonth() < 9 ? '0' : ''}${temp.getMonth() + 1}`,
                 qState: 'Z'
               }
@@ -1305,8 +1320,8 @@ class DatePicker {
           let hours = []
           layout.qListObject.qDataPages[0].qMatrix.forEach((r, i, arr) => {
             if (this.options.mode === 'date') {
-              if (completeDateList[this.fromQlikDate(r[0].qNum).getTime()]) {
-                completeDateList[this.fromQlikDate(r[0].qNum).getTime()] = r[0]
+              if (this.completeDateList[this.fromQlikDate(r[0].qNum).getTime()]) {
+                this.completeDateList[this.fromQlikDate(r[0].qNum).getTime()] = r[0]
               }
               if (i === 0) {
                 min = this.fromQlikDate(r[0].qNum)
@@ -1316,8 +1331,8 @@ class DatePicker {
               }   
             }    
             else if (this.options.mode === 'year') {
-              if (completeDateList[r[0].qNum]) {
-                completeDateList[r[0].qNum] = r[0]
+              if (this.completeDateList[r[0].qNum]) {
+                this.completeDateList[r[0].qNum] = r[0]
               }
               // if (i === 0) {
               //   min = r[0].qNum
@@ -1328,8 +1343,8 @@ class DatePicker {
             }
             else if (this.options.mode === 'monthyear') {
               if (this.monthYearIsDate === true) {
-                if (completeDateList[this.fromQlikDate(r[0].qNum).getTime()]) {
-                  completeDateList[this.fromQlikDate(r[0].qNum).getTime()] = r[0]
+                if (this.completeDateList[this.fromQlikDate(r[0].qNum).getTime()]) {
+                  this.completeDateList[this.fromQlikDate(r[0].qNum).getTime()] = r[0]
                 }
                 if (i === 0) {
                   min = this.fromQlikDate(r[0].qNum)
@@ -1343,8 +1358,8 @@ class DatePicker {
                 let startYear = +d.qNum.toString().substring(0, 4)
                 let startMonth = +d.qNum.toString().substring(4, 6) - 1
                 d = this.floorDate(new Date(new Date(new Date(new Date().setDate(1)).setMonth(startMonth)).setFullYear(startYear)))
-                if (completeDateList[d.getTime()]) {
-                  completeDateList[d.getTime()] = r[0]
+                if (this.completeDateList[d.getTime()]) {
+                  this.completeDateList[d.getTime()] = r[0]
                 }
                 if (i === 0) {
                   min = d
@@ -1361,7 +1376,7 @@ class DatePicker {
               })) 
             }             
           })
-          let completeDateListArr = Object.values(completeDateList)
+          let completeDateListArr = Object.values(this.completeDateList)
           if (this.options.mode === 'hour') {
             completeDateListArr = hours
           }          

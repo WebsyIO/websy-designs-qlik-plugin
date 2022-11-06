@@ -1223,6 +1223,7 @@ var DatePicker = /*#__PURE__*/function () {
       onClear: this.onClear.bind(this)
     }));
     this.listening = true;
+    this.dateList = [];
     this.hourList = new Array(24).fill(0).map(function (d, i) {
       return (i < 10 ? '0' : '') + i + ':00';
     });
@@ -1297,19 +1298,7 @@ var DatePicker = /*#__PURE__*/function () {
     value: function toQlikDate(d) {
       if (typeof d === 'number') {
         d = new Date(d);
-      } // let day = d.getDate()
-      // if (day.toString().length === 1) {
-      //   day = `0${day}`
-      // }
-      // let month = d.getMonth() + 1
-      // if (month.toString().length === 1) {
-      //   month = `0${month}`
-      // }
-      // let year = d.getFullYear()
-      // // return `${day}/${month}/${year}`
-      // // return `${year}-${month}-${day}`
-      // return `${month}/${day}/${year}`
-
+      }
 
       return this.formatDate(d).replace(/ /g, '');
     }
@@ -1327,7 +1316,11 @@ var DatePicker = /*#__PURE__*/function () {
       var end;
       var valueList = data.map(function (d) {
         if (_this15.options.mode === 'date') {
-          return _this15.toQlikDate(d);
+          if (typeof d === 'number') {
+            return d;
+          }
+
+          return d.getTime(); // return this.toQlikDate(d)
         } else if (_this15.options.mode === 'monthyear') {
           if (_this15.monthYearIsDate === true) {
             return _this15.toQlikDate(d);
@@ -1343,15 +1336,34 @@ var DatePicker = /*#__PURE__*/function () {
         }
       });
       var query = '';
+      var elemNums = [];
 
       if (isRange) {
-        query = "".concat(valueList[0]);
+        if (this.options.mode === 'date') {
+          if (valueList.length === 2 && valueList[0] !== valueList[1]) {
+            var diff = valueList[1] - valueList[0];
 
-        if (valueList.length > 1) {
-          query = ">=".concat(valueList[0], "<=").concat(valueList[valueList.length - 1]);
+            for (var i = valueList[0]; i < valueList[1]; i++) {
+              elemNums.push(this.completeDateList[i].qElemNumber);
+            }
+          } else {
+            elemNums.push(this.completeDateList[valueList[0]].qElemNumber);
+          }
+        } else {
+          query = "".concat(valueList[0]);
+
+          if (valueList.length > 1) {
+            query = ">=".concat(valueList[0], "<=").concat(valueList[valueList.length - 1]);
+          }
         }
       } else {
-        query = valueList.join(' ');
+        if (this.options.mode === 'date') {
+          elemNums = valueList.map(function (d) {
+            return _this15.completeDateList[d].qElemNumber;
+          });
+        } else {
+          query = valueList.join(' ');
+        }
       } // this.getField(this.options.selectField).then(field => {
       // set listening to false to stop Qlik from updating the state of the datepicker
       // this.listening = false
@@ -1362,9 +1374,11 @@ var DatePicker = /*#__PURE__*/function () {
         this.options.model.selectListObjectValues('/qListObjectDef', data.map(function (v) {
           return v.qElemNumber;
         }), false, this.options.softLock);
+      } else if (this.options.mode === 'date') {
+        this.options.model.selectListObjectValues('/qListObjectDef', elemNums, false, this.options.softLock);
       } else {
         this.options.model.searchListObjectFor('/qListObjectDef', query).then(function () {
-          _this15.options.model.acceptListObjectSearch('/qListObjectDef', false, _this15.options.softLock).then();
+          _this15.options.model.acceptListObjectSearch('/qListObjectDef', false, _this15.options.softLock);
         });
       } // })    
       // })    
@@ -1393,7 +1407,7 @@ var DatePicker = /*#__PURE__*/function () {
 
           if (layout.qListObject.qDataPages[0] && _this16.listening === true) {
             // ensure we have a complete calendar
-            var completeDateList = {};
+            _this16.completeDateList = {};
             var oneDay = 1000 * 60 * 60 * 24;
             var start;
             var end;
@@ -1449,12 +1463,12 @@ var DatePicker = /*#__PURE__*/function () {
               if (_this16.options.mode === 'date') {
                 var temp = new Date(start + i * oneDay);
                 temp.setHours(0, 0, 0);
-                completeDateList[temp.getTime()] = {
+                _this16.completeDateList[temp.getTime()] = {
                   qNum: _this16.toQlikDateNum(temp),
                   qState: 'Z'
                 };
               } else if (_this16.options.mode === 'year') {
-                completeDateList[start + i] = {
+                _this16.completeDateList[start + i] = {
                   qNum: start + i,
                   qState: 'Z'
                 };
@@ -1462,7 +1476,7 @@ var DatePicker = /*#__PURE__*/function () {
                 var _temp = _this16.floorDate(new Date(new Date(start.getTime()).setMonth(start.getMonth() + i))); // temp.setHours(0, 0, 0)
 
 
-                completeDateList[_temp.getTime()] = {
+                _this16.completeDateList[_temp.getTime()] = {
                   qNum: _this16.monthYearIsDate === true ? _this16.toQlikDateNum(_temp) : "".concat(_temp.getFullYear()).concat(_temp.getMonth() < 9 ? '0' : '').concat(_temp.getMonth() + 1),
                   qState: 'Z'
                 };
@@ -1473,8 +1487,8 @@ var DatePicker = /*#__PURE__*/function () {
             var hours = [];
             layout.qListObject.qDataPages[0].qMatrix.forEach(function (r, i, arr) {
               if (_this16.options.mode === 'date') {
-                if (completeDateList[_this16.fromQlikDate(r[0].qNum).getTime()]) {
-                  completeDateList[_this16.fromQlikDate(r[0].qNum).getTime()] = r[0];
+                if (_this16.completeDateList[_this16.fromQlikDate(r[0].qNum).getTime()]) {
+                  _this16.completeDateList[_this16.fromQlikDate(r[0].qNum).getTime()] = r[0];
                 }
 
                 if (i === 0) {
@@ -1483,8 +1497,8 @@ var DatePicker = /*#__PURE__*/function () {
                   max = _this16.fromQlikDate(r[0].qNum);
                 }
               } else if (_this16.options.mode === 'year') {
-                if (completeDateList[r[0].qNum]) {
-                  completeDateList[r[0].qNum] = r[0];
+                if (_this16.completeDateList[r[0].qNum]) {
+                  _this16.completeDateList[r[0].qNum] = r[0];
                 } // if (i === 0) {
                 //   min = r[0].qNum
                 // }
@@ -1494,8 +1508,8 @@ var DatePicker = /*#__PURE__*/function () {
 
               } else if (_this16.options.mode === 'monthyear') {
                 if (_this16.monthYearIsDate === true) {
-                  if (completeDateList[_this16.fromQlikDate(r[0].qNum).getTime()]) {
-                    completeDateList[_this16.fromQlikDate(r[0].qNum).getTime()] = r[0];
+                  if (_this16.completeDateList[_this16.fromQlikDate(r[0].qNum).getTime()]) {
+                    _this16.completeDateList[_this16.fromQlikDate(r[0].qNum).getTime()] = r[0];
                   }
 
                   if (i === 0) {
@@ -1512,8 +1526,8 @@ var DatePicker = /*#__PURE__*/function () {
 
                   d = _this16.floorDate(new Date(new Date(new Date(new Date().setDate(1)).setMonth(_startMonth)).setFullYear(_startYear)));
 
-                  if (completeDateList[d.getTime()]) {
-                    completeDateList[d.getTime()] = r[0];
+                  if (_this16.completeDateList[d.getTime()]) {
+                    _this16.completeDateList[d.getTime()] = r[0];
                   }
 
                   if (i === 0) {
@@ -1529,7 +1543,7 @@ var DatePicker = /*#__PURE__*/function () {
                 }));
               }
             });
-            var completeDateListArr = Object.values(completeDateList);
+            var completeDateListArr = Object.values(_this16.completeDateList);
 
             if (_this16.options.mode === 'hour') {
               completeDateListArr = hours;
