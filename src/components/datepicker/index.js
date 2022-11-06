@@ -8,7 +8,8 @@ class DatePicker {
     const DEFAULTS = {
       mode: 'date',
       pageSize: 1000,
-      dateFormat: '%_m/%_d/%Y'
+      dateFormat: '%_m/%_d/%Y',
+      softLock: false
     }
     this.elementId = elementId  
     this.monthYearIsDate = true  
@@ -127,11 +128,11 @@ class DatePicker {
     // this.listening = false
     // this.options.model.beginSelections('/qListObjectDef').then(() => {
     if (this.options.mode === 'hour') {
-      this.options.model.selectListObjectValues('/qListObjectDef', data.map(v => v.qElemNumber), false)
+      this.options.model.selectListObjectValues('/qListObjectDef', data.map(v => v.qElemNumber), false, this.options.softLock)
     }
     else {
       this.options.model.searchListObjectFor('/qListObjectDef', query).then(() => {
-        this.options.model.acceptListObjectSearch('/qListObjectDef', false).then()
+        this.options.model.acceptListObjectSearch('/qListObjectDef', false, this.options.softLock).then()
       })
     }    
     // })    

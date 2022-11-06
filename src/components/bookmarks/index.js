@@ -218,17 +218,15 @@ class Bookmarks {
         }
       })
       let publicHtml = `<div id="info-popup-mask" class="info-popup-mask"></div>`
-      this.publicBookmarks.forEach(bookmark => {
-        if (this.options.hidePrefix && bookmark.qMeta.title.indexOf(this.options.hidePrefix) === 0) {
-          return 
-        }
-        console.log('public', bookmark)
+      this.publicBookmarks = this.publicBookmarks.filter(bookmark => !(this.options.hidePrefix && bookmark.qMeta.title.indexOf(this.options.hidePrefix) === 0))
+      this.publicBookmarks.forEach(bookmark => {        
+        // console.log('public', bookmark)
         publicHtml += this.createBookmarkHtml(bookmark)        
       })
-      console.log('publicHtml', publicHtml)
+      // console.log('publicHtml', publicHtml)
       let bookmarkHtml = ''
       this.myBookmarks.forEach(bookmark => {
-        console.log('my bookmark', bookmark)
+        // console.log('my bookmark', bookmark)
         let createDate = new Date()
         if (bookmark.qMeta.createdDate) {
           createDate = new Date(bookmark.qMeta.createdDate)

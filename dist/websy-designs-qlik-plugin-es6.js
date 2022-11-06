@@ -142,21 +142,20 @@ var Bookmarks = /*#__PURE__*/function () {
           }
         });
         var publicHtml = "<div id=\"info-popup-mask\" class=\"info-popup-mask\"></div>";
-
-        _this2.publicBookmarks.forEach(function (bookmark) {
-          if (_this2.options.hidePrefix && bookmark.qMeta.title.indexOf(_this2.options.hidePrefix) === 0) {
-            return;
-          }
-
-          console.log('public', bookmark);
-          publicHtml += _this2.createBookmarkHtml(bookmark);
+        _this2.publicBookmarks = _this2.publicBookmarks.filter(function (bookmark) {
+          return !(_this2.options.hidePrefix && bookmark.qMeta.title.indexOf(_this2.options.hidePrefix) === 0);
         });
 
-        console.log('publicHtml', publicHtml);
+        _this2.publicBookmarks.forEach(function (bookmark) {
+          // console.log('public', bookmark)
+          publicHtml += _this2.createBookmarkHtml(bookmark);
+        }); // console.log('publicHtml', publicHtml)
+
+
         var bookmarkHtml = '';
 
         _this2.myBookmarks.forEach(function (bookmark) {
-          console.log('my bookmark', bookmark);
+          // console.log('my bookmark', bookmark)
           var createDate = new Date();
 
           if (bookmark.qMeta.createdDate) {
@@ -1213,7 +1212,8 @@ var DatePicker = /*#__PURE__*/function () {
     var DEFAULTS = {
       mode: 'date',
       pageSize: 1000,
-      dateFormat: '%_m/%_d/%Y'
+      dateFormat: '%_m/%_d/%Y',
+      softLock: false
     };
     this.elementId = elementId;
     this.monthYearIsDate = true;
@@ -1361,10 +1361,10 @@ var DatePicker = /*#__PURE__*/function () {
       if (this.options.mode === 'hour') {
         this.options.model.selectListObjectValues('/qListObjectDef', data.map(function (v) {
           return v.qElemNumber;
-        }), false);
+        }), false, this.options.softLock);
       } else {
         this.options.model.searchListObjectFor('/qListObjectDef', query).then(function () {
-          _this15.options.model.acceptListObjectSearch('/qListObjectDef', false).then();
+          _this15.options.model.acceptListObjectSearch('/qListObjectDef', false, _this15.options.softLock).then();
         });
       } // })    
       // })    

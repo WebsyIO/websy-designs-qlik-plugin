@@ -232,17 +232,15 @@ class Bookmarks {
         }
       })
       let publicHtml = `<div id="info-popup-mask" class="info-popup-mask"></div>`
-      this.publicBookmarks.forEach(bookmark => {
-        if (this.options.hidePrefix && bookmark.qMeta.title.indexOf(this.options.hidePrefix) === 0) {
-          return 
-        }
-        console.log('public', bookmark)
+      this.publicBookmarks = this.publicBookmarks.filter(bookmark => !(this.options.hidePrefix && bookmark.qMeta.title.indexOf(this.options.hidePrefix) === 0))
+      this.publicBookmarks.forEach(bookmark => {        
+        // console.log('public', bookmark)
         publicHtml += this.createBookmarkHtml(bookmark)        
       })
-      console.log('publicHtml', publicHtml)
+      // console.log('publicHtml', publicHtml)
       let bookmarkHtml = ''
       this.myBookmarks.forEach(bookmark => {
-        console.log('my bookmark', bookmark)
+        // console.log('my bookmark', bookmark)
         let createDate = new Date()
         if (bookmark.qMeta.createdDate) {
           createDate = new Date(bookmark.qMeta.createdDate)
@@ -1079,7 +1077,8 @@ class DatePicker {
     const DEFAULTS = {
       mode: 'date',
       pageSize: 1000,
-      dateFormat: '%_m/%_d/%Y'
+      dateFormat: '%_m/%_d/%Y',
+      softLock: false
     }
     this.elementId = elementId  
     this.monthYearIsDate = true  
@@ -1198,11 +1197,11 @@ class DatePicker {
     // this.listening = false
     // this.options.model.beginSelections('/qListObjectDef').then(() => {
     if (this.options.mode === 'hour') {
-      this.options.model.selectListObjectValues('/qListObjectDef', data.map(v => v.qElemNumber), false)
+      this.options.model.selectListObjectValues('/qListObjectDef', data.map(v => v.qElemNumber), false, this.options.softLock)
     }
     else {
       this.options.model.searchListObjectFor('/qListObjectDef', query).then(() => {
-        this.options.model.acceptListObjectSearch('/qListObjectDef', false).then()
+        this.options.model.acceptListObjectSearch('/qListObjectDef', false, this.options.softLock).then()
       })
     }    
     // })    
