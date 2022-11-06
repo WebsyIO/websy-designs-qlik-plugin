@@ -1536,7 +1536,7 @@ var DatePicker = /*#__PURE__*/function () {
             }
 
             completeDateListArr.forEach(function (d) {
-              if (d.qState === 'S') {
+              if (['S', 'L', 'XS', 'XL'].indexOf(d.qState) !== -1) {
                 if (_this16.options.mode === 'date') {
                   selectedRange.push(_this16.fromQlikDate(d.qNum));
                 } else if (_this16.options.mode === 'monthyear') {

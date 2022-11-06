@@ -295,7 +295,7 @@ class DatePicker {
             completeDateListArr = hours
           }          
           completeDateListArr.forEach(d => {
-            if (d.qState === 'S') {
+            if (['S', 'L', 'XS', 'XL'].indexOf(d.qState) !== -1) {
               if (this.options.mode === 'date') {                
                 selectedRange.push(this.fromQlikDate(d.qNum))
               }            
