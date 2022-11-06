@@ -1347,7 +1347,7 @@ var DatePicker = /*#__PURE__*/function () {
           if (valueList.length === 2 && valueList[0] !== valueList[1]) {
             var diff = valueList[1] - valueList[0];
 
-            for (var i = valueList[0]; i < valueList[1]; i++) {
+            for (var i = valueList[0]; i < valueList[1]; i += 1000 * 60 * 60 * 24) {
               elemNums.push(this.completeDateList[i].qElemNumber);
             }
           } else {
