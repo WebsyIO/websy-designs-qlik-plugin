@@ -1181,7 +1181,7 @@ class DatePicker {
       if (this.options.mode === 'date') {
         if (valueList.length === 2 && valueList[0] !== valueList[1]) {
           let diff = valueList[1] - valueList[0]
-          for (let i = valueList[0]; i < valueList[1]; i += (1000 * 60 * 60 * 24)) {
+          for (let i = valueList[0]; i < (valueList[1] + 1); i += (1000 * 60 * 60 * 24)) {
             elemNums.push(this.completeDateList[i].qElemNumber)
           }
         }
