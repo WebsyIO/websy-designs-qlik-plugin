@@ -3,7 +3,9 @@ class Bookmarks {
   constructor (elementId, options) {
     this.elementId = elementId
     const DEFAULTS = {
-      dock: 'left'
+      dock: 'left',
+      bookmarkIcon: `<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 512 512'><path d='M352 48H160a48 48 0 00-48 48v368l144-128 144 128V96a48 48 0 00-48-48z' fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='32' /></svg>`,
+      closeIcon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 512 512"><line x1="368" y1="368" x2="144" y2="144" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><line x1="368" y1="144" x2="144" y2="368" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></svg>`
     }
     this.options = Object.assign({}, DEFAULTS, options)
     const el = document.getElementById(this.elementId)
@@ -15,15 +17,16 @@ class Bookmarks {
       let html = `
         <div class='websy-bookmark'>
           <div class='bookmarkBtn'>
-            <svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 512 512'>        
-              <path d='M352 48H160a48 48 0 00-48 48v368l144-128 144 128V96a48 48 0 00-48-48z' fill='none' stroke='currentColor'
-                stroke-linecap='round' stroke-linejoin='round' stroke-width='32' />
-            </svg>
+            ${this.options.bookmarkIcon}
           </div>
           <div class='bookmark-mask' id='${this.elementId}_bookmarkPopup'></div>
           <div class='bookmarkContainer dock-${this.options.dock}' id='bookmarkContainer'>
             <div class='bookmark-topline'>
-              <span class="heading">Bookmarks</span><button class='createNew'>Create new bookmark</button>
+              <span class="heading">Bookmarks</span>
+              <button class='createNew'>Create new bookmark</button>
+              <button class="closeButton close-panel">
+                ${this.options.closeIcon}
+              </button>
             </div>            
             <div style='position: relative;'>
               <input class='search-input' type='text' id="${this.elementId}_search" placeholder="Search">
@@ -261,7 +264,7 @@ class Bookmarks {
     if (event.target.classList.contains('bookmarkBtn')) {
       this.openForm() 
     } 
-    if (event.target.classList.contains('bookmark-mask')) {
+    if (event.target.classList.contains('bookmark-mask') || event.target.classList.contains('close-panel')) {
       this.closeForm()
       this.closeBookmark()
       const infoList = Array.from(document.getElementsByClassName('info-popup'))
@@ -297,7 +300,7 @@ class Bookmarks {
           },
           qMetaDef: {
             title: `${bookmarkTitle.value}`,
-            description: `${bookmarkDescription.value}`
+            description: `${(bookmarkDescription || {}).value || ''}`
           }
         }
       )

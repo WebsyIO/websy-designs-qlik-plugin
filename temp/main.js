@@ -17,7 +17,9 @@ class Bookmarks {
   constructor (elementId, options) {
     this.elementId = elementId
     const DEFAULTS = {
-      dock: 'left'
+      dock: 'left',
+      bookmarkIcon: `<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 512 512'><path d='M352 48H160a48 48 0 00-48 48v368l144-128 144 128V96a48 48 0 00-48-48z' fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='32' /></svg>`,
+      closeIcon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 512 512"><line x1="368" y1="368" x2="144" y2="144" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><line x1="368" y1="144" x2="144" y2="368" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></svg>`
     }
     this.options = Object.assign({}, DEFAULTS, options)
     const el = document.getElementById(this.elementId)
@@ -29,15 +31,16 @@ class Bookmarks {
       let html = `
         <div class='websy-bookmark'>
           <div class='bookmarkBtn'>
-            <svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 512 512'>        
-              <path d='M352 48H160a48 48 0 00-48 48v368l144-128 144 128V96a48 48 0 00-48-48z' fill='none' stroke='currentColor'
-                stroke-linecap='round' stroke-linejoin='round' stroke-width='32' />
-            </svg>
+            ${this.options.bookmarkIcon}
           </div>
           <div class='bookmark-mask' id='${this.elementId}_bookmarkPopup'></div>
           <div class='bookmarkContainer dock-${this.options.dock}' id='bookmarkContainer'>
             <div class='bookmark-topline'>
-              <span class="heading">Bookmarks</span><button class='createNew'>Create new bookmark</button>
+              <span class="heading">Bookmarks</span>
+              <button class='createNew'>Create new bookmark</button>
+              <button class="closeButton close-panel">
+                ${this.options.closeIcon}
+              </button>
             </div>            
             <div style='position: relative;'>
               <input class='search-input' type='text' id="${this.elementId}_search" placeholder="Search">
@@ -275,7 +278,7 @@ class Bookmarks {
     if (event.target.classList.contains('bookmarkBtn')) {
       this.openForm() 
     } 
-    if (event.target.classList.contains('bookmark-mask')) {
+    if (event.target.classList.contains('bookmark-mask') || event.target.classList.contains('close-panel')) {
       this.closeForm()
       this.closeBookmark()
       const infoList = Array.from(document.getElementsByClassName('info-popup'))
@@ -311,7 +314,7 @@ class Bookmarks {
           },
           qMetaDef: {
             title: `${bookmarkTitle.value}`,
-            description: `${bookmarkDescription.value}`
+            description: `${(bookmarkDescription || {}).value || ''}`
           }
         }
       )
@@ -931,8 +934,10 @@ class CurrentSelections {
       def: {
         qInfo: {qType: 'currentSelections'},
         qSelectionObjectDef: {}
-      }
-
+      },
+      backIcon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M448,440a16,16,0,0,1-12.61-6.15c-22.86-29.27-44.07-51.86-73.32-67C335,352.88,301,345.59,256,344.23V424A16,16,0,0,1,229,435.57l-176-168a16,16,0,0,1,0-23.14l176-168A16,16,0,0,1,256,88v80.36c74.14,3.41,129.38,30.91,164.35,81.87C449.32,292.44,464,350.9,464,424a16,16,0,0,1-16,16Z"/></svg>`,
+      forwardIcon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M58.79,439.13A16,16,0,0,1,48,424c0-73.1,14.68-131.56,43.65-173.77,35-51,90.21-78.46,164.35-81.87V88a16,16,0,0,1,27.05-11.57l176,168a16,16,0,0,1,0,23.14l-176,168A16,16,0,0,1,256,424V344.23c-45,1.36-79,8.65-106.07,22.64-29.25,15.12-50.46,37.71-73.32,67a16,16,0,0,1-17.82,5.28Z"/></svg>`,
+      clearIcon: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><line x1="368" y1="368" x2="144" y2="144" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><line x1="368" y1="144" x2="144" y2="368" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></svg>`      
     }
     this.options = Object.assign({}, DEFAULTS, options)    
     this.hasOpenDropdown = false
@@ -945,13 +950,13 @@ class CurrentSelections {
       <div class="websy-selection-bar">
         <div class="left-group">
           <div class="back">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M448,440a16,16,0,0,1-12.61-6.15c-22.86-29.27-44.07-51.86-73.32-67C335,352.88,301,345.59,256,344.23V424A16,16,0,0,1,229,435.57l-176-168a16,16,0,0,1,0-23.14l176-168A16,16,0,0,1,256,88v80.36c74.14,3.41,129.38,30.91,164.35,81.87C449.32,292.44,464,350.9,464,424a16,16,0,0,1-16,16Z"/></svg>
+            ${this.options.backIcon}
           </div>
           <div class="forward">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M58.79,439.13A16,16,0,0,1,48,424c0-73.1,14.68-131.56,43.65-173.77,35-51,90.21-78.46,164.35-81.87V88a16,16,0,0,1,27.05-11.57l176,168a16,16,0,0,1,0,23.14l-176,168A16,16,0,0,1,256,424V344.23c-45,1.36-79,8.65-106.07,22.64-29.25,15.12-50.46,37.71-73.32,67a16,16,0,0,1-17.82,5.28Z"/></svg>
+            ${this.options.forwardIcon}
           </div>
           <div class="clear-all">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><line x1="368" y1="368" x2="144" y2="144" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><line x1="368" y1="144" x2="144" y2="368" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></svg>
+            ${this.options.clearIcon}
           </div>
         </div>
         <div class="no-selections" id="${this.elementId}_noselections">No Selections</div>
@@ -1007,15 +1012,25 @@ class CurrentSelections {
                   }
                 }
               }
+              let additionalOptions = {}
+              if (typeof this.options.clearIcon !== 'undefined') {
+                additionalOptions.clearIcon = this.options.clearIcon
+              }
+              if (typeof this.options.searchIcon !== 'undefined') {
+                additionalOptions.searchIcon = this.options.searchIcon  
+              }
+              if (typeof this.options.arrowIcon !== 'undefined') {
+                additionalOptions.arrowIcon = this.options.arrowIcon
+              }
               this.options.app.createSessionObject(def).then(model => {
                 this.dropdowns[id] = {
-                  instance: new WebsyDesignsQlikPlugins.Dropdown(`${this.elementId}_${id}`, {
+                  instance: new WebsyDesignsQlikPlugins.Dropdown(`${this.elementId}_${id}`, Object.assign({}, additionalOptions, {
                     model,
                     multiSelect: true,
                     closeAfterSelection: false
                     // onOpen: this.onDropdownOpen.bind(this),
                     // onClose: this.onDropdownClose.bind(this)
-                  }),
+                  })),
                   model
                 }
                 // model.on('changed', () => {
