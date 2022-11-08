@@ -130,11 +130,15 @@ class DatePicker {
         if (valueList.length === 2 && valueList[0] !== valueList[1]) {
           let diff = valueList[1] - valueList[0]
           for (let i = valueList[0]; i < (valueList[1] + 1); i += (1000 * 60 * 60 * 24)) {
-            elemNums.push(this.completeDateList[i].qElemNumber)
+            if (this.completeDateList[i]) {
+              elemNums.push(this.completeDateList[i].qElemNumber)
+            }
           }
         }
         else {
-          elemNums.push(this.completeDateList[valueList[0]].qElemNumber)
+          if (this.completeDateList[valueList[0]]) {
+            elemNums.push(this.completeDateList[valueList[0]].qElemNumber)
+          }          
         }
       }
       else {
