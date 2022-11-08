@@ -14,7 +14,6 @@
 */ 
 
 import WebsyDesigns from '@websy/websy-designs/dist/websy-designs-es6'
-import * as d3 from 'd3'
 /* global Bookmark */ 
 class Bookmarks {
   constructor (elementId, options) {
