@@ -5,7 +5,8 @@ class Bookmarks {
     const DEFAULTS = {
       dock: 'left',
       bookmarkIcon: `<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 512 512'><path d='M352 48H160a48 48 0 00-48 48v368l144-128 144 128V96a48 48 0 00-48-48z' fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='32' /></svg>`,
-      closeIcon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 512 512"><line x1="368" y1="368" x2="144" y2="144" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><line x1="368" y1="144" x2="144" y2="368" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></svg>`
+      closeIcon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 512 512"><line x1="368" y1="368" x2="144" y2="144" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><line x1="368" y1="144" x2="144" y2="368" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></svg>`,
+      searchIcon: `<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 512 512"><path d="M221.09 64a157.09 157.09 0 10157.09 157.09A157.1 157.1 0 00221.09 64z" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="32"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="32" d="M338.29 338.29L448 448"/></svg>`
     }
     this.options = Object.assign({}, DEFAULTS, options)
     const el = document.getElementById(this.elementId)
@@ -22,15 +23,15 @@ class Bookmarks {
           <div class='bookmark-mask' id='${this.elementId}_bookmarkPopup'></div>
           <div class='bookmarkContainer dock-${this.options.dock}' id='bookmarkContainer'>
             <div class='bookmark-topline'>
-              <span class="heading">Bookmarks</span>
+              <span class="heading">${this.options.title || 'Bookmarks'}</span>
               <button class='createNew'>Create new bookmark</button>
               <button class="closeButton close-panel">
                 ${this.options.closeIcon}
               </button>
             </div>            
-            <div style='position: relative;'>
+            <div style='position: relative;' class='websy-bookmark-search'>              
               <input class='search-input' type='text' id="${this.elementId}_search" placeholder="Search">
-              <svg xmlns="http://www.w3.org/2000/svg" class="ionicon" viewBox="0 0 512 512"><title>Search</title><path d="M221.09 64a157.09 157.09 0 10157.09 157.09A157.1 157.1 0 00221.09 64z" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="32"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="32" d="M338.29 338.29L448 448"/></svg>            
+              ${this.options.searchIcon}
             </div>            
             <div class='public'>
               <div class="public-heading-caret">

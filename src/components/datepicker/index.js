@@ -22,7 +22,24 @@ class DatePicker {
     this.dateList = []
     this.hourList = new Array(24).fill(0).map((d, i) => (i < 10 ? '0' : '') + i + ':00')
     this.altHourList = new Array(24).fill(0).map((d, i) => (i + ':00')) 
-    this.formatDate = d3.timeFormat ? d3.timeFormat(this.options.dateFormat) : d3.time.format(this.options.dateFormat)
+    if (typeof d3 !== 'undefined') {
+      if (d3.timeFormat) {
+        this.formatDate = d3.timeFormat(this.options.dateFormat)
+      }
+      else if (d3.time && d3.time.format) {
+        this.formatDate = d3.time.format(this.options.dateFormat)
+      }  
+      else {
+        this.formatDate = (d) => {
+          return d
+        }
+      }     
+    }
+    else {
+      this.formatDate = (d) => {
+        return d
+      }
+    }    
     this.render()
   }
   checkForData () {

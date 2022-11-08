@@ -14,6 +14,7 @@
 */ 
 
 import WebsyDesigns from '@websy/websy-designs/dist/websy-designs-es6'
+import * as d3 from 'd3'
 include('./components/bookmarks/index.js')
 include('./components/chart/index.js')
 include('./components/current-selections/index.js')

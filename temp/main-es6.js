@@ -14,6 +14,7 @@
 */ 
 
 import WebsyDesigns from '@websy/websy-designs/dist/websy-designs-es6'
+import * as d3 from 'd3'
 /* global Bookmark */ 
 class Bookmarks {
   constructor (elementId, options) {
@@ -21,7 +22,8 @@ class Bookmarks {
     const DEFAULTS = {
       dock: 'left',
       bookmarkIcon: `<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 512 512'><path d='M352 48H160a48 48 0 00-48 48v368l144-128 144 128V96a48 48 0 00-48-48z' fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='32' /></svg>`,
-      closeIcon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 512 512"><line x1="368" y1="368" x2="144" y2="144" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><line x1="368" y1="144" x2="144" y2="368" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></svg>`
+      closeIcon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 512 512"><line x1="368" y1="368" x2="144" y2="144" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><line x1="368" y1="144" x2="144" y2="368" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></svg>`,
+      searchIcon: `<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 512 512"><path d="M221.09 64a157.09 157.09 0 10157.09 157.09A157.1 157.1 0 00221.09 64z" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="32"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="32" d="M338.29 338.29L448 448"/></svg>`
     }
     this.options = Object.assign({}, DEFAULTS, options)
     const el = document.getElementById(this.elementId)
@@ -38,15 +40,15 @@ class Bookmarks {
           <div class='bookmark-mask' id='${this.elementId}_bookmarkPopup'></div>
           <div class='bookmarkContainer dock-${this.options.dock}' id='bookmarkContainer'>
             <div class='bookmark-topline'>
-              <span class="heading">Bookmarks</span>
+              <span class="heading">${this.options.title || 'Bookmarks'}</span>
               <button class='createNew'>Create new bookmark</button>
               <button class="closeButton close-panel">
                 ${this.options.closeIcon}
               </button>
             </div>            
-            <div style='position: relative;'>
+            <div style='position: relative;' class='websy-bookmark-search'>              
               <input class='search-input' type='text' id="${this.elementId}_search" placeholder="Search">
-              <svg xmlns="http://www.w3.org/2000/svg" class="ionicon" viewBox="0 0 512 512"><title>Search</title><path d="M221.09 64a157.09 157.09 0 10157.09 157.09A157.1 157.1 0 00221.09 64z" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="32"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="32" d="M338.29 338.29L448 448"/></svg>            
+              ${this.options.searchIcon}
             </div>            
             <div class='public'>
               <div class="public-heading-caret">
@@ -1108,7 +1110,24 @@ class DatePicker {
     this.dateList = []
     this.hourList = new Array(24).fill(0).map((d, i) => (i < 10 ? '0' : '') + i + ':00')
     this.altHourList = new Array(24).fill(0).map((d, i) => (i + ':00')) 
-    this.formatDate = d3.timeFormat ? d3.timeFormat(this.options.dateFormat) : d3.time.format(this.options.dateFormat)
+    if (typeof d3 !== 'undefined') {
+      if (d3.timeFormat) {
+        this.formatDate = d3.timeFormat(this.options.dateFormat)
+      }
+      else if (d3.time && d3.time.format) {
+        this.formatDate = d3.time.format(this.options.dateFormat)
+      }  
+      else {
+        this.formatDate = (d) => {
+          return d
+        }
+      }     
+    }
+    else {
+      this.formatDate = (d) => {
+        return d
+      }
+    }    
     this.render()
   }
   checkForData () {
@@ -2528,18 +2547,19 @@ class Table2 {
     let el = document.getElementById(id)
     el.classList.remove('active')
   }
-  handleSort (event, column, colIndex) {
+  handleSort (event, column, colIndex, sortIndex) {
+    this.table.showLoading({message: 'Loading...'})    
     const reverse = column.reverseSort === true
     const patchDefs = [{
       qOp: 'replace',
       qPath: '/qHyperCubeDef/qInterColumnSortOrder',
-      qValue: JSON.stringify([colIndex])
+      qValue: JSON.stringify([this.columnOrder[sortIndex]])
     }]
     let sortType = colIndex < this.layout.qHyperCube.qDimensionInfo.length ? 'qDimensions' : 'qMeasures'
-    let sortIndex = colIndex < this.layout.qHyperCube.qDimensionInfo.length ? colIndex : colIndex - this.layout.qHyperCube.qDimensionInfo.length    
+    let realIndex = this.columnOrder[sortIndex] < this.layout.qHyperCube.qDimensionInfo.length ? this.columnOrder[sortIndex] : this.columnOrder[sortIndex] - this.layout.qHyperCube.qDimensionInfo.length    
     patchDefs.push({
       qOp: 'replace',
-      qPath: `/qHyperCubeDef/${sortType}/${sortIndex}/qDef/qReverseSort`,
+      qPath: `/qHyperCubeDef/${sortType}/${realIndex}/qDef/qReverseSort`,
       qValue: JSON.stringify(reverse)
     })
     this.options.model.applyPatches(patchDefs, true)
@@ -2670,6 +2690,7 @@ class Table2 {
       let activeSort = this.layout.qHyperCube.qEffectiveInterColumnSortOrder[0]      
       columns = columns.map((c, i) => {
         c.colIndex = this.columnOrder.indexOf(i)
+        c.sortIndex = this.columnOrder.indexOf(i)
         c.name = c.qFallbackTitle
         if (c.tooltip) {
           c.name += `
@@ -2678,8 +2699,8 @@ class Table2 {
           </div>
           `
         }
-        c.reverseSort = activeSort === i && c.qReverseSort !== true
-        c.activeSort = activeSort === i
+        c.reverseSort = activeSort === c.colIndex && c.qReverseSort !== true
+        c.activeSort = activeSort === c.colIndex
         if (this.layout.qHyperCube.qMode === 'S') {
           if (c.qSortIndicator === 'A') {
             c.sort = 'asc'

@@ -52,7 +52,8 @@ var Bookmarks = /*#__PURE__*/function () {
     var DEFAULTS = {
       dock: 'left',
       bookmarkIcon: "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 512 512'><path d='M352 48H160a48 48 0 00-48 48v368l144-128 144 128V96a48 48 0 00-48-48z' fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='32' /></svg>",
-      closeIcon: "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 512 512\"><line x1=\"368\" y1=\"368\" x2=\"144\" y2=\"144\" style=\"fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px\"/><line x1=\"368\" y1=\"144\" x2=\"144\" y2=\"368\" style=\"fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px\"/></svg>"
+      closeIcon: "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 512 512\"><line x1=\"368\" y1=\"368\" x2=\"144\" y2=\"144\" style=\"fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px\"/><line x1=\"368\" y1=\"144\" x2=\"144\" y2=\"368\" style=\"fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px\"/></svg>",
+      searchIcon: "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"30\" height=\"30\" viewBox=\"0 0 512 512\"><path d=\"M221.09 64a157.09 157.09 0 10157.09 157.09A157.1 157.1 0 00221.09 64z\" fill=\"none\" stroke=\"currentColor\" stroke-miterlimit=\"10\" stroke-width=\"32\"/><path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-miterlimit=\"10\" stroke-width=\"32\" d=\"M338.29 338.29L448 448\"/></svg>"
     };
     this.options = _extends({}, DEFAULTS, options);
     var el = document.getElementById(this.elementId);
@@ -62,7 +63,7 @@ var Bookmarks = /*#__PURE__*/function () {
       el.addEventListener('keyup', this.handleKeyUp.bind(this));
       el.addEventListener('change', this.handleChange.bind(this));
       el.addEventListener('contextmenu', this.handleContextMenu.bind(this));
-      var html = "\n        <div class='websy-bookmark'>\n          <div class='bookmarkBtn'>\n            ".concat(this.options.bookmarkIcon, "\n          </div>\n          <div class='bookmark-mask' id='").concat(this.elementId, "_bookmarkPopup'></div>\n          <div class='bookmarkContainer dock-").concat(this.options.dock, "' id='bookmarkContainer'>\n            <div class='bookmark-topline'>\n              <span class=\"heading\">Bookmarks</span>\n              <button class='createNew'>Create new bookmark</button>\n              <button class=\"closeButton close-panel\">\n                ").concat(this.options.closeIcon, "\n              </button>\n            </div>            \n            <div style='position: relative;'>\n              <input class='search-input' type='text' id=\"").concat(this.elementId, "_search\" placeholder=\"Search\">\n              <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"ionicon\" viewBox=\"0 0 512 512\"><title>Search</title><path d=\"M221.09 64a157.09 157.09 0 10157.09 157.09A157.1 157.1 0 00221.09 64z\" fill=\"none\" stroke=\"currentColor\" stroke-miterlimit=\"10\" stroke-width=\"32\"/><path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-miterlimit=\"10\" stroke-width=\"32\" d=\"M338.29 338.29L448 448\"/></svg>            \n            </div>            \n            <div class='public'>\n              <div class=\"public-heading-caret\">\n                <svg class='public-caret caret' xmlns='http://www.w3.org/2000/svg' viewbox='0 0 512 512'>\n                  <title>Caret Down</title>\n                  <path d='M98 190.06l139.78 163.12a24 24 0 0036.44 0L414 190.06c13.34-15.57 2.28-39.62-18.22-39.62h-279.6c-20.5 0-31.56 24.05-18.18 39.62z' />\n                </svg>\n                <span class=\"heading\">Public bookmarks <span id=\"publicCount\">(0)</span></span>\n              </div>\n              <div id=\"public-placeholder\" class=\"active\"><p class='public-text'>You have no public bookmarks</p>\n                <p class='public-text'>Right-click on a bookmark and select 'Make public'.</p>              \n              </div>\n            </div>\n            <div class='my-bookmarks'>\n              <div class=\"heading-caret\">\n                <svg class='myBookmarks-caret caret' xmlns='http://www.w3.org/2000/svg' viewbox='0 0 512 512'>\n                  <title>Caret Down</title>\n                  <path\n                    d='M98 190.06l139.78 163.12a24 24 0 0036.44 0L414 190.06c13.34-15.57 2.28-39.62-18.22-39.62h-279.6c-20.5 0-31.56 24.05-18.18 39.62z' />\n                </svg>\n                <span class=\"heading\">My bookmarks <span id=\"myBookmarksCount\">(0)</span></span>\n              </div>\n              <div id=\"myBookmarks-placeholder\" class=\"active\"></div>\n            </div>\n          </div> \n          <div class='bookmark-mask-dark' id='bookmarkNewPopup'></div>       \n          <div class='createNewPopup' id='createForm'>\n            <div class='createTopline'>\n              <span class=\"heading\">Create bookmark</span>\n              <span class='closeCreate'>\n                <svg xmlns='http://www.w3.org/2000/svg' viewbox='0 0 512 512'>    \n                  <path fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='32'\n                    d='M368 368L144 144M368 144L144 368' />\n                </svg>\n              </span>\n            </div>\n            <div class=\"create-input\">\n              <label for='bookmarkName' class=\"title\">Title</label>\n              <input type='text' class=\"bookmark-name\" id='bookmarkName' name='bookmarkName'>\n              <label for='bookmarkDescription' class=\"description\">Description <span class='optional'>(optional)</span></label>\n              <textarea type='text' id='").concat(this.elementId, "_bookmarkDescription' name='bookmarkDescription'></textarea>\n              <div class=\"create-flex\">\n                <button type=\"button\" disabled class='create-submit' id='createSubmit'>Create</button>\n            </div>\n          </div>\n        </div>\n      </div>\n    ");
+      var html = "\n        <div class='websy-bookmark'>\n          <div class='bookmarkBtn'>\n            ".concat(this.options.bookmarkIcon, "\n          </div>\n          <div class='bookmark-mask' id='").concat(this.elementId, "_bookmarkPopup'></div>\n          <div class='bookmarkContainer dock-").concat(this.options.dock, "' id='bookmarkContainer'>\n            <div class='bookmark-topline'>\n              <span class=\"heading\">").concat(this.options.title || 'Bookmarks', "</span>\n              <button class='createNew'>Create new bookmark</button>\n              <button class=\"closeButton close-panel\">\n                ").concat(this.options.closeIcon, "\n              </button>\n            </div>            \n            <div style='position: relative;' class='websy-bookmark-search'>              \n              <input class='search-input' type='text' id=\"").concat(this.elementId, "_search\" placeholder=\"Search\">\n              ").concat(this.options.searchIcon, "\n            </div>            \n            <div class='public'>\n              <div class=\"public-heading-caret\">\n                <svg class='public-caret caret' xmlns='http://www.w3.org/2000/svg' viewbox='0 0 512 512'>\n                  <title>Caret Down</title>\n                  <path d='M98 190.06l139.78 163.12a24 24 0 0036.44 0L414 190.06c13.34-15.57 2.28-39.62-18.22-39.62h-279.6c-20.5 0-31.56 24.05-18.18 39.62z' />\n                </svg>\n                <span class=\"heading\">Public bookmarks <span id=\"publicCount\">(0)</span></span>\n              </div>\n              <div id=\"public-placeholder\" class=\"active\"><p class='public-text'>You have no public bookmarks</p>\n                <p class='public-text'>Right-click on a bookmark and select 'Make public'.</p>              \n              </div>\n            </div>\n            <div class='my-bookmarks'>\n              <div class=\"heading-caret\">\n                <svg class='myBookmarks-caret caret' xmlns='http://www.w3.org/2000/svg' viewbox='0 0 512 512'>\n                  <title>Caret Down</title>\n                  <path\n                    d='M98 190.06l139.78 163.12a24 24 0 0036.44 0L414 190.06c13.34-15.57 2.28-39.62-18.22-39.62h-279.6c-20.5 0-31.56 24.05-18.18 39.62z' />\n                </svg>\n                <span class=\"heading\">My bookmarks <span id=\"myBookmarksCount\">(0)</span></span>\n              </div>\n              <div id=\"myBookmarks-placeholder\" class=\"active\"></div>\n            </div>\n          </div> \n          <div class='bookmark-mask-dark' id='bookmarkNewPopup'></div>       \n          <div class='createNewPopup' id='createForm'>\n            <div class='createTopline'>\n              <span class=\"heading\">Create bookmark</span>\n              <span class='closeCreate'>\n                <svg xmlns='http://www.w3.org/2000/svg' viewbox='0 0 512 512'>    \n                  <path fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='32'\n                    d='M368 368L144 144M368 144L144 368' />\n                </svg>\n              </span>\n            </div>\n            <div class=\"create-input\">\n              <label for='bookmarkName' class=\"title\">Title</label>\n              <input type='text' class=\"bookmark-name\" id='bookmarkName' name='bookmarkName'>\n              <label for='bookmarkDescription' class=\"description\">Description <span class='optional'>(optional)</span></label>\n              <textarea type='text' id='").concat(this.elementId, "_bookmarkDescription' name='bookmarkDescription'></textarea>\n              <div class=\"create-flex\">\n                <button type=\"button\" disabled class='create-submit' id='createSubmit'>Create</button>\n            </div>\n          </div>\n        </div>\n      </div>\n    ");
       el.innerHTML = html;
       this.options.app.createSessionObject({
         'qInfo': {
@@ -1252,7 +1253,23 @@ var DatePicker = /*#__PURE__*/function () {
     this.altHourList = new Array(24).fill(0).map(function (d, i) {
       return i + ':00';
     });
-    this.formatDate = d3.timeFormat ? d3.timeFormat(this.options.dateFormat) : d3.time.format(this.options.dateFormat);
+
+    if (typeof d3 !== 'undefined') {
+      if (d3.timeFormat) {
+        this.formatDate = d3.timeFormat(this.options.dateFormat);
+      } else if (d3.time && d3.time.format) {
+        this.formatDate = d3.time.format(this.options.dateFormat);
+      } else {
+        this.formatDate = function (d) {
+          return d;
+        };
+      }
+    } else {
+      this.formatDate = function (d) {
+        return d;
+      };
+    }
+
     this.render();
   }
 
@@ -2983,18 +3000,21 @@ var Table2 = /*#__PURE__*/function () {
     }
   }, {
     key: "handleSort",
-    value: function handleSort(event, column, colIndex) {
+    value: function handleSort(event, column, colIndex, sortIndex) {
+      this.table.showLoading({
+        message: 'Loading...'
+      });
       var reverse = column.reverseSort === true;
       var patchDefs = [{
         qOp: 'replace',
         qPath: '/qHyperCubeDef/qInterColumnSortOrder',
-        qValue: JSON.stringify([colIndex])
+        qValue: JSON.stringify([this.columnOrder[sortIndex]])
       }];
       var sortType = colIndex < this.layout.qHyperCube.qDimensionInfo.length ? 'qDimensions' : 'qMeasures';
-      var sortIndex = colIndex < this.layout.qHyperCube.qDimensionInfo.length ? colIndex : colIndex - this.layout.qHyperCube.qDimensionInfo.length;
+      var realIndex = this.columnOrder[sortIndex] < this.layout.qHyperCube.qDimensionInfo.length ? this.columnOrder[sortIndex] : this.columnOrder[sortIndex] - this.layout.qHyperCube.qDimensionInfo.length;
       patchDefs.push({
         qOp: 'replace',
-        qPath: "/qHyperCubeDef/".concat(sortType, "/").concat(sortIndex, "/qDef/qReverseSort"),
+        qPath: "/qHyperCubeDef/".concat(sortType, "/").concat(realIndex, "/qDef/qReverseSort"),
         qValue: JSON.stringify(reverse)
       });
       this.options.model.applyPatches(patchDefs, true);
@@ -3176,14 +3196,15 @@ var Table2 = /*#__PURE__*/function () {
         var activeSort = _this34.layout.qHyperCube.qEffectiveInterColumnSortOrder[0];
         columns = columns.map(function (c, i) {
           c.colIndex = _this34.columnOrder.indexOf(i);
+          c.sortIndex = _this34.columnOrder.indexOf(i);
           c.name = c.qFallbackTitle;
 
           if (c.tooltip) {
             c.name += "\n          <div class=\"websy-info websy-info-dock-right\" data-info=\"".concat(c.tooltip, "\">\n            <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 512 512\"><path d=\"M256,56C145.72,56,56,145.72,56,256s89.72,200,200,200,200-89.72,200-200S366.28,56,256,56Zm0,82a26,26,0,1,1-26,26A26,26,0,0,1,256,138Zm48,226H216a16,16,0,0,1,0-32h28V244H228a16,16,0,0,1,0-32h32a16,16,0,0,1,16,16V332h28a16,16,0,0,1,0,32Z\"/></svg>\n          </div>\n          ");
           }
 
-          c.reverseSort = activeSort === i && c.qReverseSort !== true;
-          c.activeSort = activeSort === i;
+          c.reverseSort = activeSort === c.colIndex && c.qReverseSort !== true;
+          c.activeSort = activeSort === c.colIndex;
 
           if (_this34.layout.qHyperCube.qMode === 'S') {
             if (c.qSortIndicator === 'A') {
