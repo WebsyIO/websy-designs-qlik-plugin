@@ -1418,7 +1418,12 @@ var DatePicker = /*#__PURE__*/function () {
           return v.qElemNumber;
         }), false, this.options.softLock);
       } else if (this.options.mode === 'date') {
-        this.options.model.selectListObjectValues('/qListObjectDef', elemNums, false, this.options.softLock);
+        if (elemNums.length === 0) {
+          // we should always be selecting something if we arrive in the onchange function
+          this.picker.selectRange(0, true);
+        } else {
+          this.options.model.selectListObjectValues('/qListObjectDef', elemNums, false, this.options.softLock);
+        }
       } else {
         this.options.model.searchListObjectFor('/qListObjectDef', query).then(function () {
           _this15.options.model.acceptListObjectSearch('/qListObjectDef', false, _this15.options.softLock);
