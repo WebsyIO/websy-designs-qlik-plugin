@@ -1153,9 +1153,10 @@ var CurrentSelections = /*#__PURE__*/function () {
 
                   })),
                   model: model
-                }; // model.on('changed', () => {
-                //   this.dropdowns[id].instance.render()
-                // })
+                };
+                model.on('changed', function () {
+                  _this12.dropdowns[id].instance.render();
+                });
               });
             }
           });
@@ -3068,6 +3069,8 @@ var Table2 = /*#__PURE__*/function () {
         if (!_this32.dropdowns["dim".concat(i)]) {
           _this32.dropdowns["dim".concat(i)] = new WebsyDesignsQlikPlugins.Dropdown("".concat(_this32.elementId, "_columnSearch_").concat(i), {
             model: _this32.options.model,
+            multiSelect: true,
+            closeAfterSelection: false,
             path: "dim".concat(i),
             onClose: _this32.handleCloseSearch
           });

@@ -1034,9 +1034,9 @@ class CurrentSelections {
                   })),
                   model
                 }
-                // model.on('changed', () => {
-                //   this.dropdowns[id].instance.render()
-                // })
+                model.on('changed', () => {
+                  this.dropdowns[id].instance.render()
+                })
               }) 
             }           
           })                  
@@ -2607,6 +2607,8 @@ class Table2 {
       if (!this.dropdowns[`dim${i}`]) {
         this.dropdowns[`dim${i}`] = new WebsyDesignsQlikPlugins.Dropdown(`${this.elementId}_columnSearch_${i}`, {
           model: this.options.model,
+          multiSelect: true,
+          closeAfterSelection: false,
           path: `dim${i}`,
           onClose: this.handleCloseSearch
         }) 

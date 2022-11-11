@@ -105,9 +105,9 @@ class CurrentSelections {
                   })),
                   model
                 }
-                // model.on('changed', () => {
-                //   this.dropdowns[id].instance.render()
-                // })
+                model.on('changed', () => {
+                  this.dropdowns[id].instance.render()
+                })
               }) 
             }           
           })                  
