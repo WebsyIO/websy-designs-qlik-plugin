@@ -3084,7 +3084,7 @@ class Table3 {
     const DEFAULTS = {
       pageSize: 200,
       cellHeight: 35,
-      virtualScroll: false,
+      virtualScroll: true,
       columnOverrides: []
     }
     if (Dropdown) {
@@ -3220,11 +3220,15 @@ class Table3 {
       this.options.model.selectHyperCubeValues('/qHyperCubeDef', 0, [cell.qElemNumber], false)
     }
   }
-  handleScroll (event) {    
-    if (event.target.scrollTop / (event.target.scrollHeight - event.target.clientHeight) > 0.7) {
-      this.getData(page => {
-        this.appendRows(this.transformData(page))
-      })
+  handleScroll (direction, start, end) {    
+    // if (event.target.scrollTop / (event.target.scrollHeight - event.target.clientHeight) > 0.7) {
+    //   this.getData(page => {
+    //     this.appendRows(this.transformData(page))
+    //   })
+    // }
+    console.log('handle scroll plugin', direction, start, end)
+    if (direction === 'y') {
+      this.appendRows(this.layout.qHyperCube.qDataPages[0].qMatrix.slice(start, end))
     }
   }
   handleSearch (event, column) {
@@ -3291,45 +3295,45 @@ class Table3 {
     //     })
     //   }
     // })
-    this.layout.qHyperCube.qDimensionInfo.forEach((d, i) => {
-      if (!this.dropdowns[`dim${i}`]) {
-        this.dropdowns[`dim${i}`] = new WebsyDesignsQlikPlugins.Dropdown(`${this.elementId}_columnSearch_${i}`, {
-          model: this.options.model,
-          path: `dim${i}`,
-          onClose: this.handleCloseSearch
-        }) 
-      }      
-    })
+    // this.layout.qHyperCube.qDimensionInfo.forEach((d, i) => {
+    //   if (!this.dropdowns[`dim${i}`]) {
+    //     this.dropdowns[`dim${i}`] = new WebsyDesignsQlikPlugins.Dropdown(`${this.elementId}_columnSearch_${i}`, {
+    //       model: this.options.model,
+    //       path: `dim${i}`,
+    //       onClose: this.handleCloseSearch
+    //     }) 
+    //   }      
+    // })
   }
   prepSearch () {
-    this.busy = true
-    this.options.model.getProperties().then(props => {
-      console.log('props', props)
-      const patches = []
-      props.qHyperCubeDef.qDimensions.forEach((d, i) => {
-        patches.push({
-          qOp: 'add',
-          qPath: `/dim${i}`,
-          qValue: JSON.stringify({
-            qListObjectDef: {
-              qDef: {...d.qDef, qSortCriterias: [{qSortByState: 1, qSortByAscii: 1}]},
-              qLibraryId: d.qLibraryId
-            }
-          })
-        })
-      })
-      this.options.model.applyPatches(patches, true).then(() => {
-        this.busy = false
-        this.searchPrepped = true
-        this.render()
-      })
-    }) 
+    // this.busy = true
+    // this.options.model.getProperties().then(props => {
+    //   console.log('props', props)
+    //   const patches = []
+    //   props.qHyperCubeDef.qDimensions.forEach((d, i) => {
+    //     patches.push({
+    //       qOp: 'add',
+    //       qPath: `/dim${i}`,
+    //       qValue: JSON.stringify({
+    //         qListObjectDef: {
+    //           qDef: {...d.qDef, qSortCriterias: [{qSortByState: 1, qSortByAscii: 1}]},
+    //           qLibraryId: d.qLibraryId
+    //         }
+    //       })
+    //     })
+    //   })
+    //   this.options.model.applyPatches(patches, true).then(() => {
+    //     this.busy = false
+    //     this.searchPrepped = true
+    //     this.render()
+    //   })
+    // }) 
   }
   render (pageNum = 0) {    
-    if (this.searchPrepped === false) {
-      this.prepSearch()
-      return 
-    }
+    // if (this.searchPrepped === false) {
+    //   this.prepSearch()
+    //   return 
+    // }
     this.table.showLoading({message: 'Loading...'})    
     this.options.model.getLayout().then(layout => {    
       console.log('table 3 plugin layout', layout)
@@ -3445,8 +3449,8 @@ class Table3 {
       //     value: new Array(this.layout.qHyperCube.qMode === 'S' ? c.qApprMaxGlyphCount : Math.max(c.qApprMaxGlyphCount, measureLabel.qApprMaxGlyphCount)).fill('X').join(''),
       //     width: this.layout.qHyperCube.qMode === 'S' ? c.width || null : c.width || measureLabel.width || null
       //   })))
-      // this.columnParams = this.table.calculateSizes(columnParamValues)     
-      console.log('column params', this.columnParams)
+      this.table.calculateSizes(this.columnParamValues, this.layout.qHyperCube.qSize.qcy, this.layout.qHyperCube.qSize.qcx, 0)     
+      console.log('column params', this.columnParamValues)
       // for (let i = 0; i < columns.length; i++) {        
       //   columns[i].width = `${this.columnParams.cellWidths[i] || this.columnParams.cellWidths[this.columnParams.cellWidths.length - 1]}px`                           
       // }      
@@ -3456,7 +3460,7 @@ class Table3 {
         this.table.options.activeSort = activeSort
         this.table.hideLoading()
         if (this.layout.qHyperCube.qMode === 'S') {
-          this.table.render()
+          this.table.render([], false)
           this.prepDropdowns()
         }        
         if (page.err) {
@@ -3497,7 +3501,7 @@ class Table3 {
     if (this.layout.qHyperCube.qMode === 'S') {      
       return page.map(r => {
         return r.map((c, i) => {
-          if (this.table.options.columns[i].showAsLink === true || this.table.options.columns[i].showAsNavigatorLink === true) {
+          if (this.table.options.columns[this.table.options.columns.length - 1][i].showAsLink === true || this.table.options.columns[this.table.options.columns.length - 1][i].showAsNavigatorLink === true) {
             if (c.qAttrExps && c.qAttrExps.qValues && c.qAttrExps.qValues[0].qText) {
               c.value = c.qAttrExps.qValues[0].qText
               if (c.value.indexOf('https://') === -1) {
@@ -3552,7 +3556,7 @@ class Table3 {
       // }            
       this.table.options.columns = columns
       if (this.columnParamValues) {
-        this.table.calculateSizes(this.columnParamValues)
+        this.table.calculateSizes(this.columnParamValues, this.layout.qHyperCube.qSize.qcy, this.layout.qHyperCube.qSize.qcx, 0)
       }
       let renderedWidth = 0
       // visibleColumns.forEach(c => {
