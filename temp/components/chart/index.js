@@ -273,6 +273,7 @@ class Chart {
     options.data[yAxis].max = 0
     options.data[y2Axis].min = 0
     options.data[y2Axis].max = 0
+    options.data[xAxis].padding = options.padding || 0
     options.data.series = this.layout.qHyperCube.qMeasureInfo.map((m, i) => {
       let series = Object.assign({}, m.options)
       series.key = this.createSeriesKey(m.qFallbackTitle)

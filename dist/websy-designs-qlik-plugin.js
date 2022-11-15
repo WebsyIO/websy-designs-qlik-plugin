@@ -900,6 +900,7 @@ var Chart = /*#__PURE__*/function () {
       options.data[yAxis].max = 0;
       options.data[y2Axis].min = 0;
       options.data[y2Axis].max = 0;
+      options.data[xAxis].padding = options.padding || 0;
       options.data.series = this.layout.qHyperCube.qMeasureInfo.map(function (m, i) {
         var series = _extends({}, m.options);
 
