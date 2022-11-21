@@ -1,0 +1,17 @@
+.websy-designs-pivot-container {
+  height: 100px;
+  display: flex;
+  padding-bottom: 10px;
+  box-sizing: border-box;
+  > div {
+    flex-grow: 1;
+    padding: 0 3px;
+    height: 100px;
+    &:first-of-type {
+      border-right: 1px solid #cccccc;
+    }
+    .websy-drag-drop-container {
+      align-items: end;
+    }
+  }
+}

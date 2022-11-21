@@ -158,6 +158,9 @@ class Dropdown {
     this.dropdown.open()
   }
   render () {
+    if (!this.options.model) {
+      return
+    }
     this.rowsLoaded = 0    
     this.options.model.getLayout().then(layout => {
       this.layout = layout
