@@ -1893,6 +1893,12 @@ var Dropdown = /*#__PURE__*/function () {
             }];
           }
 
+          if (listObject.qDimensionInfo.qLocked) {
+            _this22.dropdown.options.allowClear = false;
+          } else {
+            _this22.dropdown.options.allowClear = typeof _this22.options.allowClear === 'undefined' ? true : _this22.options.allowClear;
+          }
+
           _this22.rowsLoaded = listObject.qDataPages[0].qMatrix.length;
 
           _this22.checkForData().then(function () {
@@ -1941,7 +1947,9 @@ var Dropdown = /*#__PURE__*/function () {
 
         if (indexes.S && indexes.S.length > 0) {
           this.dropdown.selectedItems = indexes.S;
-        } else if (indexes.S && indexes.S.length === 0 && indexes.O && indexes.O.length === 1) {
+        } else if (indexes.L && indexes.L.length > 0) {
+          this.dropdown.selectedItems = indexes.L;
+        } else if ((indexes.L && indexes.L.length === 0 || indexes.S && indexes.S.length === 0) && indexes.O && indexes.O.length === 1) {
           this.dropdown.selectedItems = indexes.O;
         } else {
           this.dropdown.selectedItems = [];

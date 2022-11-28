@@ -1668,11 +1668,17 @@ class Dropdown {
     }
     this.rowsLoaded = 0    
     this.options.model.getLayout().then(layout => {
-      this.layout = layout
+      this.layout = layout      
       this.checkForVariable().then(variableValue => {
         let listObject = this.options.path !== '' ? this.layout[this.options.path].qListObject : this.layout.qListObject
         if (!listObject.qDataPages || listObject.qDataPages.length === 0) {
           listObject.qDataPages = [{qMatrix: []}]
+        }
+        if (listObject.qDimensionInfo.qLocked) {
+          this.dropdown.options.allowClear = false
+        }
+        else {
+          this.dropdown.options.allowClear = typeof this.options.allowClear === 'undefined' ? true : this.options.allowClear
         }
         this.rowsLoaded = listObject.qDataPages[0].qMatrix.length
         this.checkForData().then(() => {        
@@ -1710,12 +1716,15 @@ class Dropdown {
       if (indexes.S && indexes.S.length > 0) {
         this.dropdown.selectedItems = indexes.S
       }
-      else if (indexes.S && indexes.S.length === 0 && indexes.O && indexes.O.length === 1) {
+      else if (indexes.L && indexes.L.length > 0) {
+        this.dropdown.selectedItems = indexes.L
+      }
+      else if (((indexes.L && indexes.L.length === 0) || (indexes.S && indexes.S.length === 0)) && indexes.O && indexes.O.length === 1) {
         this.dropdown.selectedItems = indexes.O 
       }
       else {
         this.dropdown.selectedItems = []
-      }       
+      }        
     }   
     return listObject.qDataPages[0].qMatrix.map(r => (Object.assign(r[0], {label: r[0].qText || '-', classes: [`state-${r[0].qState}`]})))                    
   }
