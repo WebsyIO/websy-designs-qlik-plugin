@@ -46,7 +46,10 @@ var Bookmarks = /*#__PURE__*/function () {
 
     this.elementId = elementId;
     var DEFAULTS = {
-      dock: 'left'
+      dock: 'left',
+      bookmarkIcon: "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 512 512'><path d='M352 48H160a48 48 0 00-48 48v368l144-128 144 128V96a48 48 0 00-48-48z' fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='32' /></svg>",
+      closeIcon: "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 512 512\"><line x1=\"368\" y1=\"368\" x2=\"144\" y2=\"144\" style=\"fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px\"/><line x1=\"368\" y1=\"144\" x2=\"144\" y2=\"368\" style=\"fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px\"/></svg>",
+      searchIcon: "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"30\" height=\"30\" viewBox=\"0 0 512 512\"><path d=\"M221.09 64a157.09 157.09 0 10157.09 157.09A157.1 157.1 0 00221.09 64z\" fill=\"none\" stroke=\"currentColor\" stroke-miterlimit=\"10\" stroke-width=\"32\"/><path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-miterlimit=\"10\" stroke-width=\"32\" d=\"M338.29 338.29L448 448\"/></svg>"
     };
     this.options = _extends({}, DEFAULTS, options);
     var el = document.getElementById(this.elementId);
@@ -56,7 +59,7 @@ var Bookmarks = /*#__PURE__*/function () {
       el.addEventListener('keyup', this.handleKeyUp.bind(this));
       el.addEventListener('change', this.handleChange.bind(this));
       el.addEventListener('contextmenu', this.handleContextMenu.bind(this));
-      var html = "\n        <div class='websy-bookmark'>\n          <div class='bookmarkBtn'>\n            <svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 512 512'>        \n              <path d='M352 48H160a48 48 0 00-48 48v368l144-128 144 128V96a48 48 0 00-48-48z' fill='none' stroke='currentColor'\n                stroke-linecap='round' stroke-linejoin='round' stroke-width='32' />\n            </svg>\n          </div>\n          <div class='bookmark-mask' id='".concat(this.elementId, "_bookmarkPopup'></div>\n          <div class='bookmarkContainer dock-").concat(this.options.dock, "' id='bookmarkContainer'>\n            <div class='bookmark-topline'>\n              <span class=\"heading\">Bookmarks</span><button class='createNew'>Create new bookmark</button>\n            </div>            \n            <div style='position: relative;'>\n              <input class='search-input' type='text' id=\"").concat(this.elementId, "_search\" placeholder=\"Search\">\n              <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"ionicon\" viewBox=\"0 0 512 512\"><title>Search</title><path d=\"M221.09 64a157.09 157.09 0 10157.09 157.09A157.1 157.1 0 00221.09 64z\" fill=\"none\" stroke=\"currentColor\" stroke-miterlimit=\"10\" stroke-width=\"32\"/><path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-miterlimit=\"10\" stroke-width=\"32\" d=\"M338.29 338.29L448 448\"/></svg>            \n            </div>            \n            <div class='public'>\n              <div class=\"public-heading-caret\">\n                <svg class='public-caret caret' xmlns='http://www.w3.org/2000/svg' viewbox='0 0 512 512'>\n                  <title>Caret Down</title>\n                  <path d='M98 190.06l139.78 163.12a24 24 0 0036.44 0L414 190.06c13.34-15.57 2.28-39.62-18.22-39.62h-279.6c-20.5 0-31.56 24.05-18.18 39.62z' />\n                </svg>\n                <span class=\"heading\">Public bookmarks <span id=\"publicCount\">(0)</span></span>\n              </div>\n              <div id=\"public-placeholder\" class=\"active\"><p class='public-text'>You have no public bookmarks</p>\n                <p class='public-text'>Right-click on a bookmark and select 'Make public'.</p>              \n              </div>\n            </div>\n            <div class='my-bookmarks'>\n              <div class=\"heading-caret\">\n                <svg class='myBookmarks-caret caret' xmlns='http://www.w3.org/2000/svg' viewbox='0 0 512 512'>\n                  <title>Caret Down</title>\n                  <path\n                    d='M98 190.06l139.78 163.12a24 24 0 0036.44 0L414 190.06c13.34-15.57 2.28-39.62-18.22-39.62h-279.6c-20.5 0-31.56 24.05-18.18 39.62z' />\n                </svg>\n                <span class=\"heading\">My bookmarks <span id=\"myBookmarksCount\">(0)</span></span>\n              </div>\n              <div id=\"myBookmarks-placeholder\" class=\"active\"></div>\n            </div>\n          </div> \n          <div class='bookmark-mask-dark' id='bookmarkNewPopup'></div>       \n          <div class='createNewPopup' id='createForm'>\n            <div class='createTopline'>\n              <span class=\"heading\">Create bookmark</span>\n              <span class='closeCreate'>\n                <svg xmlns='http://www.w3.org/2000/svg' viewbox='0 0 512 512'>    \n                  <path fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='32'\n                    d='M368 368L144 144M368 144L144 368' />\n                </svg>\n              </span>\n            </div>\n            <div class=\"create-input\">\n              <label for='bookmarkName' class=\"title\">Title</label>\n              <input type='text' class=\"bookmark-name\" id='bookmarkName' name='bookmarkName'>\n              <label for='bookmarkDescription' class=\"description\">Description <span class='optional'>(optional)</span></label>\n              <textarea type='text' id='").concat(this.elementId, "_bookmarkDescription' name='bookmarkDescription'></textarea>\n              <div class=\"create-flex\">\n                <button type=\"button\" disabled class='create-submit' id='createSubmit'>Create</button>\n            </div>\n          </div>\n        </div>\n      </div>\n    ");
+      var html = "\n        <div class='websy-bookmark'>\n          <div class='bookmarkBtn'>\n            ".concat(this.options.bookmarkIcon, "\n          </div>\n          <div class='bookmark-mask' id='").concat(this.elementId, "_bookmarkPopup'></div>\n          <div class='bookmarkContainer dock-").concat(this.options.dock, "' id='bookmarkContainer'>\n            <div class='bookmark-topline'>\n              <span class=\"heading\">").concat(this.options.title || 'Bookmarks', "</span>\n              <button class='createNew'>Create new bookmark</button>\n              <button class=\"closeButton close-panel\">\n                ").concat(this.options.closeIcon, "\n              </button>\n            </div>            \n            <div style='position: relative;' class='websy-bookmark-search'>              \n              <input class='search-input' type='text' id=\"").concat(this.elementId, "_search\" placeholder=\"Search\">\n              ").concat(this.options.searchIcon, "\n            </div>            \n            <div class='public'>\n              <div class=\"public-heading-caret\">\n                <svg class='public-caret caret' xmlns='http://www.w3.org/2000/svg' viewbox='0 0 512 512'>\n                  <title>Caret Down</title>\n                  <path d='M98 190.06l139.78 163.12a24 24 0 0036.44 0L414 190.06c13.34-15.57 2.28-39.62-18.22-39.62h-279.6c-20.5 0-31.56 24.05-18.18 39.62z' />\n                </svg>\n                <span class=\"heading\">Public bookmarks <span id=\"publicCount\">(0)</span></span>\n              </div>\n              <div id=\"public-placeholder\" class=\"active\"><p class='public-text'>You have no public bookmarks</p>\n                <p class='public-text'>Right-click on a bookmark and select 'Make public'.</p>              \n              </div>\n            </div>\n            <div class='my-bookmarks'>\n              <div class=\"heading-caret\">\n                <svg class='myBookmarks-caret caret' xmlns='http://www.w3.org/2000/svg' viewbox='0 0 512 512'>\n                  <title>Caret Down</title>\n                  <path\n                    d='M98 190.06l139.78 163.12a24 24 0 0036.44 0L414 190.06c13.34-15.57 2.28-39.62-18.22-39.62h-279.6c-20.5 0-31.56 24.05-18.18 39.62z' />\n                </svg>\n                <span class=\"heading\">My bookmarks <span id=\"myBookmarksCount\">(0)</span></span>\n              </div>\n              <div id=\"myBookmarks-placeholder\" class=\"active\"></div>\n            </div>\n          </div> \n          <div class='bookmark-mask-dark' id='bookmarkNewPopup'></div>       \n          <div class='createNewPopup' id='createForm'>\n            <div class='createTopline'>\n              <span class=\"heading\">Create bookmark</span>\n              <span class='closeCreate'>\n                <svg xmlns='http://www.w3.org/2000/svg' viewbox='0 0 512 512'>    \n                  <path fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='32'\n                    d='M368 368L144 144M368 144L144 368' />\n                </svg>\n              </span>\n            </div>\n            <div class=\"create-input\">\n              <label for='bookmarkName' class=\"title\">Title</label>\n              <input type='text' class=\"bookmark-name\" id='bookmarkName' name='bookmarkName'>\n              <label for='bookmarkDescription' class=\"description\">Description <span class='optional'>(optional)</span></label>\n              <textarea type='text' id='").concat(this.elementId, "_bookmarkDescription' name='bookmarkDescription'></textarea>\n              <div class=\"create-flex\">\n                <button type=\"button\" disabled class='create-submit' id='createSubmit'>Create</button>\n            </div>\n          </div>\n        </div>\n      </div>\n    ");
       el.innerHTML = html;
       this.options.app.createSessionObject({
         'qInfo': {
@@ -142,21 +145,20 @@ var Bookmarks = /*#__PURE__*/function () {
           }
         });
         var publicHtml = "<div id=\"info-popup-mask\" class=\"info-popup-mask\"></div>";
-
-        _this2.publicBookmarks.forEach(function (bookmark) {
-          if (_this2.options.hidePrefix && bookmark.qMeta.title.indexOf(_this2.options.hidePrefix) === 0) {
-            return;
-          }
-
-          console.log('public', bookmark);
-          publicHtml += _this2.createBookmarkHtml(bookmark);
+        _this2.publicBookmarks = _this2.publicBookmarks.filter(function (bookmark) {
+          return !(_this2.options.hidePrefix && bookmark.qMeta.title.indexOf(_this2.options.hidePrefix) === 0);
         });
 
-        console.log('publicHtml', publicHtml);
+        _this2.publicBookmarks.forEach(function (bookmark) {
+          // console.log('public', bookmark)
+          publicHtml += _this2.createBookmarkHtml(bookmark);
+        }); // console.log('publicHtml', publicHtml)
+
+
         var bookmarkHtml = '';
 
         _this2.myBookmarks.forEach(function (bookmark) {
-          console.log('my bookmark', bookmark);
+          // console.log('my bookmark', bookmark)
           var createDate = new Date();
 
           if (bookmark.qMeta.createdDate) {
@@ -203,7 +205,7 @@ var Bookmarks = /*#__PURE__*/function () {
         this.openForm();
       }
 
-      if (event.target.classList.contains('bookmark-mask')) {
+      if (event.target.classList.contains('bookmark-mask') || event.target.classList.contains('close-panel')) {
         this.closeForm();
         this.closeBookmark();
         var infoList = Array.from(document.getElementsByClassName('info-popup'));
@@ -244,7 +246,7 @@ var Bookmarks = /*#__PURE__*/function () {
           },
           qMetaDef: {
             title: "".concat(bookmarkTitle.value),
-            description: "".concat(bookmarkDescription.value)
+            description: "".concat((bookmarkDescription || {}).value || '')
           }
         }).then(function () {
           document.getElementById('bookmarkName').value = '';
@@ -894,6 +896,7 @@ var Chart = /*#__PURE__*/function () {
       options.data[yAxis].max = 0;
       options.data[y2Axis].min = 0;
       options.data[y2Axis].max = 0;
+      options.data[xAxis].padding = options.padding || 0;
       options.data.series = this.layout.qHyperCube.qMeasureInfo.map(function (m, i) {
         var series = _extends({}, m.options);
 
@@ -1046,7 +1049,10 @@ var CurrentSelections = /*#__PURE__*/function () {
           qType: 'currentSelections'
         },
         qSelectionObjectDef: {}
-      }
+      },
+      backIcon: "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\"><path d=\"M448,440a16,16,0,0,1-12.61-6.15c-22.86-29.27-44.07-51.86-73.32-67C335,352.88,301,345.59,256,344.23V424A16,16,0,0,1,229,435.57l-176-168a16,16,0,0,1,0-23.14l176-168A16,16,0,0,1,256,88v80.36c74.14,3.41,129.38,30.91,164.35,81.87C449.32,292.44,464,350.9,464,424a16,16,0,0,1-16,16Z\"/></svg>",
+      forwardIcon: "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\"><path d=\"M58.79,439.13A16,16,0,0,1,48,424c0-73.1,14.68-131.56,43.65-173.77,35-51,90.21-78.46,164.35-81.87V88a16,16,0,0,1,27.05-11.57l176,168a16,16,0,0,1,0,23.14l-176,168A16,16,0,0,1,256,424V344.23c-45,1.36-79,8.65-106.07,22.64-29.25,15.12-50.46,37.71-73.32,67a16,16,0,0,1-17.82,5.28Z\"/></svg>",
+      clearIcon: "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\"><line x1=\"368\" y1=\"368\" x2=\"144\" y2=\"144\" style=\"fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px\"/><line x1=\"368\" y1=\"144\" x2=\"144\" y2=\"368\" style=\"fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px\"/></svg>"
     };
     this.options = _extends({}, DEFAULTS, options);
     this.hasOpenDropdown = false;
@@ -1056,7 +1062,7 @@ var CurrentSelections = /*#__PURE__*/function () {
 
     if (el) {
       el.addEventListener('click', this.handleClick.bind(this));
-      var html = "\n      <div class=\"websy-selection-bar\">\n        <div class=\"left-group\">\n          <div class=\"back\">\n            <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\"><path d=\"M448,440a16,16,0,0,1-12.61-6.15c-22.86-29.27-44.07-51.86-73.32-67C335,352.88,301,345.59,256,344.23V424A16,16,0,0,1,229,435.57l-176-168a16,16,0,0,1,0-23.14l176-168A16,16,0,0,1,256,88v80.36c74.14,3.41,129.38,30.91,164.35,81.87C449.32,292.44,464,350.9,464,424a16,16,0,0,1-16,16Z\"/></svg>\n          </div>\n          <div class=\"forward\">\n            <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\"><path d=\"M58.79,439.13A16,16,0,0,1,48,424c0-73.1,14.68-131.56,43.65-173.77,35-51,90.21-78.46,164.35-81.87V88a16,16,0,0,1,27.05-11.57l176,168a16,16,0,0,1,0,23.14l-176,168A16,16,0,0,1,256,424V344.23c-45,1.36-79,8.65-106.07,22.64-29.25,15.12-50.46,37.71-73.32,67a16,16,0,0,1-17.82,5.28Z\"/></svg>\n          </div>\n          <div class=\"clear-all\">\n            <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\"><line x1=\"368\" y1=\"368\" x2=\"144\" y2=\"144\" style=\"fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px\"/><line x1=\"368\" y1=\"144\" x2=\"144\" y2=\"368\" style=\"fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px\"/></svg>\n          </div>\n        </div>\n        <div class=\"no-selections\" id=\"".concat(this.elementId, "_noselections\">No Selections</div>\n        <div class=\"selections-group\" id=\"").concat(this.elementId, "_selections\"></div>    \n      </div>\n      ");
+      var html = "\n      <div class=\"websy-selection-bar\">\n        <div class=\"left-group\">\n          <div class=\"back\">\n            ".concat(this.options.backIcon, "\n          </div>\n          <div class=\"forward\">\n            ").concat(this.options.forwardIcon, "\n          </div>\n          <div class=\"clear-all\">\n            ").concat(this.options.clearIcon, "\n          </div>\n        </div>\n        <div class=\"no-selections\" id=\"").concat(this.elementId, "_noselections\">No Selections</div>\n        <div class=\"selections-group\" id=\"").concat(this.elementId, "_selections\"></div>    \n      </div>\n      ");
       el.innerHTML = html;
     }
 
@@ -1124,20 +1130,34 @@ var CurrentSelections = /*#__PURE__*/function () {
                   }
                 }
               };
+              var additionalOptions = {};
+
+              if (typeof _this12.options.clearIcon !== 'undefined') {
+                additionalOptions.clearIcon = _this12.options.clearIcon;
+              }
+
+              if (typeof _this12.options.searchIcon !== 'undefined') {
+                additionalOptions.searchIcon = _this12.options.searchIcon;
+              }
+
+              if (typeof _this12.options.arrowIcon !== 'undefined') {
+                additionalOptions.arrowIcon = _this12.options.arrowIcon;
+              }
 
               _this12.options.app.createSessionObject(def).then(function (model) {
                 _this12.dropdowns[id] = {
-                  instance: new WebsyDesignsQlikPlugins.Dropdown("".concat(_this12.elementId, "_").concat(id), {
+                  instance: new WebsyDesignsQlikPlugins.Dropdown("".concat(_this12.elementId, "_").concat(id), _extends({}, additionalOptions, {
                     model: model,
                     multiSelect: true,
                     closeAfterSelection: false // onOpen: this.onDropdownOpen.bind(this),
                     // onClose: this.onDropdownClose.bind(this)
 
-                  }),
+                  })),
                   model: model
-                }; // model.on('changed', () => {
-                //   this.dropdowns[id].instance.render()
-                // })
+                };
+                model.on('changed', function () {
+                  _this12.dropdowns[id].instance.render();
+                });
               });
             }
           });
@@ -1213,7 +1233,8 @@ var DatePicker = /*#__PURE__*/function () {
     var DEFAULTS = {
       mode: 'date',
       pageSize: 1000,
-      dateFormat: '%_m/%_d/%Y'
+      dateFormat: '%_m/%_d/%Y',
+      softLock: false
     };
     this.elementId = elementId;
     this.monthYearIsDate = true;
@@ -1223,13 +1244,30 @@ var DatePicker = /*#__PURE__*/function () {
       onClear: this.onClear.bind(this)
     }));
     this.listening = true;
+    this.dateList = [];
     this.hourList = new Array(24).fill(0).map(function (d, i) {
       return (i < 10 ? '0' : '') + i + ':00';
     });
     this.altHourList = new Array(24).fill(0).map(function (d, i) {
       return i + ':00';
     });
-    this.formatDate = d3.timeFormat ? d3.timeFormat(this.options.dateFormat) : d3.time.format(this.options.dateFormat);
+
+    if (typeof d3 !== 'undefined') {
+      if (d3.timeFormat) {
+        this.formatDate = d3.timeFormat(this.options.dateFormat);
+      } else if (d3.time && d3.time.format) {
+        this.formatDate = d3.time.format(this.options.dateFormat);
+      } else {
+        this.formatDate = function (d) {
+          return d;
+        };
+      }
+    } else {
+      this.formatDate = function (d) {
+        return d;
+      };
+    }
+
     this.render();
   }
 
@@ -1297,19 +1335,7 @@ var DatePicker = /*#__PURE__*/function () {
     value: function toQlikDate(d) {
       if (typeof d === 'number') {
         d = new Date(d);
-      } // let day = d.getDate()
-      // if (day.toString().length === 1) {
-      //   day = `0${day}`
-      // }
-      // let month = d.getMonth() + 1
-      // if (month.toString().length === 1) {
-      //   month = `0${month}`
-      // }
-      // let year = d.getFullYear()
-      // // return `${day}/${month}/${year}`
-      // // return `${year}-${month}-${day}`
-      // return `${month}/${day}/${year}`
-
+      }
 
       return this.formatDate(d).replace(/ /g, '');
     }
@@ -1327,7 +1353,11 @@ var DatePicker = /*#__PURE__*/function () {
       var end;
       var valueList = data.map(function (d) {
         if (_this15.options.mode === 'date') {
-          return _this15.toQlikDate(d);
+          if (typeof d === 'number') {
+            return d;
+          }
+
+          return d.getTime(); // return this.toQlikDate(d)
         } else if (_this15.options.mode === 'monthyear') {
           if (_this15.monthYearIsDate === true) {
             return _this15.toQlikDate(d);
@@ -1343,15 +1373,38 @@ var DatePicker = /*#__PURE__*/function () {
         }
       });
       var query = '';
+      var elemNums = [];
 
       if (isRange) {
-        query = "".concat(valueList[0]);
+        if (this.options.mode === 'date') {
+          if (valueList.length === 2 && valueList[0] !== valueList[1]) {
+            var diff = valueList[1] - valueList[0];
 
-        if (valueList.length > 1) {
-          query = ">=".concat(valueList[0], "<=").concat(valueList[valueList.length - 1]);
+            for (var i = valueList[0]; i < valueList[1] + 1; i += 1000 * 60 * 60 * 24) {
+              if (this.completeDateList[i]) {
+                elemNums.push(this.completeDateList[i].qElemNumber);
+              }
+            }
+          } else {
+            if (this.completeDateList[valueList[0]]) {
+              elemNums.push(this.completeDateList[valueList[0]].qElemNumber);
+            }
+          }
+        } else {
+          query = "".concat(valueList[0]);
+
+          if (valueList.length > 1) {
+            query = ">=".concat(valueList[0], "<=").concat(valueList[valueList.length - 1]);
+          }
         }
       } else {
-        query = valueList.join(' ');
+        if (this.options.mode === 'date') {
+          elemNums = valueList.map(function (d) {
+            return _this15.completeDateList[d].qElemNumber;
+          });
+        } else {
+          query = valueList.join(' ');
+        }
       } // this.getField(this.options.selectField).then(field => {
       // set listening to false to stop Qlik from updating the state of the datepicker
       // this.listening = false
@@ -1361,10 +1414,17 @@ var DatePicker = /*#__PURE__*/function () {
       if (this.options.mode === 'hour') {
         this.options.model.selectListObjectValues('/qListObjectDef', data.map(function (v) {
           return v.qElemNumber;
-        }), false);
+        }), false, this.options.softLock);
+      } else if (this.options.mode === 'date') {
+        if (elemNums.length === 0) {
+          // we should always be selecting something if we arrive in the onchange function
+          this.picker.selectRange(0, true);
+        } else {
+          this.options.model.selectListObjectValues('/qListObjectDef', elemNums, false, this.options.softLock);
+        }
       } else {
         this.options.model.searchListObjectFor('/qListObjectDef', query).then(function () {
-          _this15.options.model.acceptListObjectSearch('/qListObjectDef', false).then();
+          _this15.options.model.acceptListObjectSearch('/qListObjectDef', false, _this15.options.softLock);
         });
       } // })    
       // })    
@@ -1393,7 +1453,7 @@ var DatePicker = /*#__PURE__*/function () {
 
           if (layout.qListObject.qDataPages[0] && _this16.listening === true) {
             // ensure we have a complete calendar
-            var completeDateList = {};
+            _this16.completeDateList = {};
             var oneDay = 1000 * 60 * 60 * 24;
             var start;
             var end;
@@ -1449,12 +1509,12 @@ var DatePicker = /*#__PURE__*/function () {
               if (_this16.options.mode === 'date') {
                 var temp = new Date(start + i * oneDay);
                 temp.setHours(0, 0, 0);
-                completeDateList[temp.getTime()] = {
+                _this16.completeDateList[temp.getTime()] = {
                   qNum: _this16.toQlikDateNum(temp),
                   qState: 'Z'
                 };
               } else if (_this16.options.mode === 'year') {
-                completeDateList[start + i] = {
+                _this16.completeDateList[start + i] = {
                   qNum: start + i,
                   qState: 'Z'
                 };
@@ -1462,7 +1522,7 @@ var DatePicker = /*#__PURE__*/function () {
                 var _temp = _this16.floorDate(new Date(new Date(start.getTime()).setMonth(start.getMonth() + i))); // temp.setHours(0, 0, 0)
 
 
-                completeDateList[_temp.getTime()] = {
+                _this16.completeDateList[_temp.getTime()] = {
                   qNum: _this16.monthYearIsDate === true ? _this16.toQlikDateNum(_temp) : "".concat(_temp.getFullYear()).concat(_temp.getMonth() < 9 ? '0' : '').concat(_temp.getMonth() + 1),
                   qState: 'Z'
                 };
@@ -1473,8 +1533,8 @@ var DatePicker = /*#__PURE__*/function () {
             var hours = [];
             layout.qListObject.qDataPages[0].qMatrix.forEach(function (r, i, arr) {
               if (_this16.options.mode === 'date') {
-                if (completeDateList[_this16.fromQlikDate(r[0].qNum).getTime()]) {
-                  completeDateList[_this16.fromQlikDate(r[0].qNum).getTime()] = r[0];
+                if (_this16.completeDateList[_this16.fromQlikDate(r[0].qNum).getTime()]) {
+                  _this16.completeDateList[_this16.fromQlikDate(r[0].qNum).getTime()] = r[0];
                 }
 
                 if (i === 0) {
@@ -1483,8 +1543,8 @@ var DatePicker = /*#__PURE__*/function () {
                   max = _this16.fromQlikDate(r[0].qNum);
                 }
               } else if (_this16.options.mode === 'year') {
-                if (completeDateList[r[0].qNum]) {
-                  completeDateList[r[0].qNum] = r[0];
+                if (_this16.completeDateList[r[0].qNum]) {
+                  _this16.completeDateList[r[0].qNum] = r[0];
                 } // if (i === 0) {
                 //   min = r[0].qNum
                 // }
@@ -1494,8 +1554,8 @@ var DatePicker = /*#__PURE__*/function () {
 
               } else if (_this16.options.mode === 'monthyear') {
                 if (_this16.monthYearIsDate === true) {
-                  if (completeDateList[_this16.fromQlikDate(r[0].qNum).getTime()]) {
-                    completeDateList[_this16.fromQlikDate(r[0].qNum).getTime()] = r[0];
+                  if (_this16.completeDateList[_this16.fromQlikDate(r[0].qNum).getTime()]) {
+                    _this16.completeDateList[_this16.fromQlikDate(r[0].qNum).getTime()] = r[0];
                   }
 
                   if (i === 0) {
@@ -1512,8 +1572,8 @@ var DatePicker = /*#__PURE__*/function () {
 
                   d = _this16.floorDate(new Date(new Date(new Date(new Date().setDate(1)).setMonth(_startMonth)).setFullYear(_startYear)));
 
-                  if (completeDateList[d.getTime()]) {
-                    completeDateList[d.getTime()] = r[0];
+                  if (_this16.completeDateList[d.getTime()]) {
+                    _this16.completeDateList[d.getTime()] = r[0];
                   }
 
                   if (i === 0) {
@@ -1529,14 +1589,14 @@ var DatePicker = /*#__PURE__*/function () {
                 }));
               }
             });
-            var completeDateListArr = Object.values(completeDateList);
+            var completeDateListArr = Object.values(_this16.completeDateList);
 
             if (_this16.options.mode === 'hour') {
               completeDateListArr = hours;
             }
 
             completeDateListArr.forEach(function (d) {
-              if (d.qState === 'S') {
+              if (['S', 'L', 'XS', 'XL'].indexOf(d.qState) !== -1) {
                 if (_this16.options.mode === 'date') {
                   selectedRange.push(_this16.fromQlikDate(d.qNum));
                 } else if (_this16.options.mode === 'monthyear') {
@@ -2951,18 +3011,21 @@ var Table2 = /*#__PURE__*/function () {
     }
   }, {
     key: "handleSort",
-    value: function handleSort(event, column, colIndex) {
+    value: function handleSort(event, column, colIndex, sortIndex) {
+      this.table.showLoading({
+        message: 'Loading...'
+      });
       var reverse = column.reverseSort === true;
       var patchDefs = [{
         qOp: 'replace',
         qPath: '/qHyperCubeDef/qInterColumnSortOrder',
-        qValue: JSON.stringify([colIndex])
+        qValue: JSON.stringify([this.columnOrder[sortIndex]])
       }];
       var sortType = colIndex < this.layout.qHyperCube.qDimensionInfo.length ? 'qDimensions' : 'qMeasures';
-      var sortIndex = colIndex < this.layout.qHyperCube.qDimensionInfo.length ? colIndex : colIndex - this.layout.qHyperCube.qDimensionInfo.length;
+      var realIndex = this.columnOrder[sortIndex] < this.layout.qHyperCube.qDimensionInfo.length ? this.columnOrder[sortIndex] : this.columnOrder[sortIndex] - this.layout.qHyperCube.qDimensionInfo.length;
       patchDefs.push({
         qOp: 'replace',
-        qPath: "/qHyperCubeDef/".concat(sortType, "/").concat(sortIndex, "/qDef/qReverseSort"),
+        qPath: "/qHyperCubeDef/".concat(sortType, "/").concat(realIndex, "/qDef/qReverseSort"),
         qValue: JSON.stringify(reverse)
       });
       this.options.model.applyPatches(patchDefs, true);
@@ -3011,6 +3074,8 @@ var Table2 = /*#__PURE__*/function () {
         if (!_this32.dropdowns["dim".concat(i)]) {
           _this32.dropdowns["dim".concat(i)] = new WebsyDesignsQlikPlugins.Dropdown("".concat(_this32.elementId, "_columnSearch_").concat(i), {
             model: _this32.options.model,
+            multiSelect: true,
+            closeAfterSelection: false,
             path: "dim".concat(i),
             onClose: _this32.handleCloseSearch
           });
@@ -3144,14 +3209,15 @@ var Table2 = /*#__PURE__*/function () {
         var activeSort = _this34.layout.qHyperCube.qEffectiveInterColumnSortOrder[0];
         columns = columns.map(function (c, i) {
           c.colIndex = _this34.columnOrder.indexOf(i);
+          c.sortIndex = _this34.columnOrder.indexOf(i);
           c.name = c.qFallbackTitle;
 
           if (c.tooltip) {
             c.name += "\n          <div class=\"websy-info websy-info-dock-right\" data-info=\"".concat(c.tooltip, "\">\n            <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 512 512\"><path d=\"M256,56C145.72,56,56,145.72,56,256s89.72,200,200,200,200-89.72,200-200S366.28,56,256,56Zm0,82a26,26,0,1,1-26,26A26,26,0,0,1,256,138Zm48,226H216a16,16,0,0,1,0-32h28V244H228a16,16,0,0,1,0-32h32a16,16,0,0,1,16,16V332h28a16,16,0,0,1,0,32Z\"/></svg>\n          </div>\n          ");
           }
 
-          c.reverseSort = activeSort === i && c.qReverseSort !== true;
-          c.activeSort = activeSort === i;
+          c.reverseSort = activeSort === c.colIndex && c.qReverseSort !== true;
+          c.activeSort = activeSort === c.colIndex;
 
           if (_this34.layout.qHyperCube.qMode === 'S') {
             if (c.qSortIndicator === 'A') {
@@ -3677,6 +3743,8 @@ var Table2 = /*#__PURE__*/function () {
 
 var Table3 = /*#__PURE__*/function () {
   function Table3(elementId, options) {
+    var _this37 = this;
+
     _classCallCheck(this, Table3);
 
     var DEFAULTS = {
@@ -3685,16 +3753,14 @@ var Table3 = /*#__PURE__*/function () {
       virtualScroll: true,
       columnOverrides: [],
       maxColWidth: '50%',
-      allowPivoting: false
-    };
-
-    if (Dropdown) {
-      if (!WebsyDesignsQlikPlugins) {
-        ({}), _readOnlyError("WebsyDesignsQlikPlugins");
-      }
-
-      WebsyDesignsQlikPlugins.Dropdown = Dropdown;
-    }
+      allowPivoting: false,
+      dropdownOptions: {}
+    }; // if (Dropdown) {
+    //   if (!WebsyDesignsQlikPlugins) {
+    //     WebsyDesignsQlikPlugins = {}
+    //   }
+    //   WebsyDesignsQlikPlugins.Dropdown = Dropdown
+    // }
 
     this.elementId = elementId;
     this.options = _extends({}, DEFAULTS, options);
@@ -3734,6 +3800,20 @@ var Table3 = /*#__PURE__*/function () {
         onSetPage: this.setPageNum.bind(this),
         onScrollX: this.handleVirtualScrollX.bind(this)
       }, this.options));
+      this.rowList = new _websyDesignsEs["default"].DragDrop("".concat(this.elementId, "_pivotRows"), {
+        group: this.elementId,
+        items: [],
+        onItemAdded: function onItemAdded() {
+          _this37.updatePivotStructure();
+        }
+      });
+      this.columnList = new _websyDesignsEs["default"].DragDrop("".concat(this.elementId, "_pivotColumns"), {
+        group: this.elementId,
+        items: [],
+        onItemAdded: function onItemAdded() {
+          _this37.updatePivotStructure();
+        }
+      });
       el.addEventListener('click', this.handleClick.bind(this));
     }
 
@@ -3749,7 +3829,7 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "buildPivotColumns",
     value: function buildPivotColumns() {
-      var _this37 = this;
+      var _this38 = this;
 
       var pData = this.transformPivotTable(this.layout.qHyperCube.qPivotDataPages[0]);
       this.pinnedColumns = this.layout.qHyperCube.qNoOfLeftDims;
@@ -3757,10 +3837,14 @@ var Table3 = /*#__PURE__*/function () {
       this.startCol = 0;
       this.endCol = this.columns[this.columns.length - 1].length;
       this.table.options.columns = this.columns;
-      var maxMValue = this.layout.qHyperCube.qMeasureInfo.reduce(function (a, b) {
+      var maxMValue = this.layout.qHyperCube.qMeasureInfo.filter(function (m) {
+        return !m.qError;
+      }).reduce(function (a, b) {
         return a.qApprMaxGlyphCount > b.qApprMaxGlyphCount ? a : b;
       }).qApprMaxGlyphCount;
-      var maxMLabel = this.layout.qHyperCube.qMeasureInfo.reduce(function (a, b) {
+      var maxMLabel = this.layout.qHyperCube.qMeasureInfo.filter(function (m) {
+        return !m.qError;
+      }).reduce(function (a, b) {
         return a.qFallbackTitle > b.qFallbackTitle ? a : b;
       }).qFallbackTitle;
       var maxMLength = maxMLabel.length > maxMValue ? maxMLabel : new Array(maxMValue).fill('X').join('');
@@ -3774,12 +3858,14 @@ var Table3 = /*#__PURE__*/function () {
 
       for (var i = 0; i < effectiveOrder.length; i++) {
         if (effectiveOrder[i] < this.layout.qHyperCube.qDimensionInfo.length) {
-          var dim = this.properties.qHyperCubeDef.qDimensions[effectiveOrder[i]];
+          if (effectiveOrder[i] >= 0) {
+            var dim = this.properties.qHyperCubeDef.qDimensions[effectiveOrder[i]];
 
-          if (i < this.layout.qHyperCube.qNoOfLeftDims) {
-            rows.push(dim);
-          } else {
-            columns.push(dim);
+            if (i < this.layout.qHyperCube.qNoOfLeftDims) {
+              rows.push(dim);
+            } else {
+              columns.push(dim);
+            }
           }
         }
 
@@ -3835,38 +3921,61 @@ var Table3 = /*#__PURE__*/function () {
 
         rEl.style.width = rowsWidth + 'px';
         rEl.style.maxWidth = rowsWidth + 'px';
-        this.rowList = new _websyDesignsEs["default"].DragDrop("".concat(this.elementId, "_pivotRows"), {
-          items: rows.map(function (dim, dimIndex) {
-            var dimId = dim.qLibraryId || dim.qDef.qFieldLabels[0] || dim.qDef.qFieldDefs[0];
-            return {
-              component: 'Dropdown',
-              isQlikPlugin: true,
-              dim: dim,
-              dimId: dimId,
-              options: {}
-            };
-          })
+        this.rowList.options.items = rows.map(function (dim, dimIndex) {
+          var dimId = dim.qLibraryId || dim.qDef.qFieldLabels[0] || dim.qDef.qFieldDefs[0];
+          return {
+            component: 'Dropdown',
+            isQlikPlugin: true,
+            dim: dim,
+            dimId: dimId,
+            options: _extends({}, _this38.options.dropdownOptions)
+          };
         });
+        this.rowList.render();
         this.rowList.options.items.forEach(function (d, i) {
-          if (!_this37.dropdowns[d.dimId]) {
-            _this37.options.app.createSessionObject({
+          if (!_this38.dropdowns[d.dimId]) {
+            _this38.options.app.createSessionObject({
               qInfo: {
                 qType: 'table-dropdown'
               },
               qListObjectDef: d.dim
             }).then(function (model) {
-              _this37.dropdowns[d.dimId] = model;
+              _this38.dropdowns[d.dimId] = model;
               d.instance.options.model = model;
               d.instance.render();
             });
+          } else {
+            d.instance.options.model = _this38.dropdowns[d.dimId];
+            d.instance.render();
           }
         });
-        this.columnList = new _websyDesignsEs["default"].DragDrop("".concat(this.elementId, "_pivotColumns"), {
-          items: columns.map(function (d) {
-            return {
-              label: 'hello'
-            };
-          })
+        this.columnList.options.items = columns.map(function (dim, dimIndex) {
+          var dimId = dim.qLibraryId || dim.qDef.qFieldLabels[0] || dim.qDef.qFieldDefs[0];
+          return {
+            component: 'Dropdown',
+            isQlikPlugin: true,
+            dim: dim,
+            dimId: dimId,
+            options: _extends({}, _this38.options.dropdownOptions)
+          };
+        });
+        this.columnList.render();
+        this.columnList.options.items.forEach(function (d, i) {
+          if (!_this38.dropdowns[d.dimId]) {
+            _this38.options.app.createSessionObject({
+              qInfo: {
+                qType: 'table-dropdown'
+              },
+              qListObjectDef: d.dim
+            }).then(function (model) {
+              _this38.dropdowns[d.dimId] = model;
+              d.instance.options.model = model;
+              d.instance.render();
+            });
+          } else {
+            d.instance.options.model = _this38.dropdowns[d.dimId];
+            d.instance.render();
+          }
         });
       } else {
         var tableEl = document.getElementById("".concat(this.elementId, "_tableContainer"));
@@ -3879,13 +3988,13 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "buildStraightColumnsAndTotals",
     value: function buildStraightColumnsAndTotals() {
-      var _this38 = this;
+      var _this39 = this;
 
       // used for straight tables
       this.columns = this.layout.qHyperCube.qDimensionInfo.concat(this.layout.qHyperCube.qMeasureInfo);
       var activeSort = this.layout.qHyperCube.qEffectiveInterColumnSortOrder[0];
       this.columns = this.columns.map(function (c, i) {
-        c.colIndex = _this38.columnOrder.indexOf(i);
+        c.colIndex = _this39.columnOrder.indexOf(i);
         c.name = c.qFallbackTitle;
 
         if (c.tooltip) {
@@ -3895,7 +4004,7 @@ var Table3 = /*#__PURE__*/function () {
         c.reverseSort = activeSort === i && c.qReverseSort !== true;
         c.activeSort = activeSort === i;
 
-        if (_this38.layout.qHyperCube.qMode === 'S') {
+        if (_this39.layout.qHyperCube.qMode === 'S') {
           if (c.qSortIndicator === 'A') {
             c.sort = 'asc';
           } else if (c.qSortIndicator === 'D') {
@@ -3908,7 +4017,7 @@ var Table3 = /*#__PURE__*/function () {
 
         if (c.searchable === true) {
           if (!c.onSearch) {
-            c.onSearch = _this38.handleSearch.bind(_this38);
+            c.onSearch = _this39.handleSearch.bind(_this39);
           }
         }
 
@@ -3946,18 +4055,22 @@ var Table3 = /*#__PURE__*/function () {
         return !c.qError;
       });
       this.columnParamValues = activeDimensions.filter(function (c, i) {
-        return _this38.layout.qHyperCube.qMode === 'S' || i < _this38.layout.qHyperCube.qNoOfLeftDims;
+        return _this39.layout.qHyperCube.qMode === 'S' || i < _this39.layout.qHyperCube.qNoOfLeftDims;
       }).map(function (c, i) {
         return {
-          value: new Array(Math.max(c.qApprMaxGlyphCount, _this38.layout.qHyperCube.qDimensionInfo[i].qFallbackTitle.length)).fill('X').join(''),
+          value: new Array(Math.max(c.qApprMaxGlyphCount, _this39.layout.qHyperCube.qDimensionInfo[i].qFallbackTitle.length)).fill('X').join(''),
           width: c.width || null
         };
       });
       var measureLabel = activeDimensions.pop();
-      var maxMValue = this.layout.qHyperCube.qMeasureInfo.reduce(function (a, b) {
+      var maxMValue = this.layout.qHyperCube.qMeasureInfo.filter(function (m) {
+        return !m.qError;
+      }).reduce(function (a, b) {
         return a.qApprMaxGlyphCount > b.qApprMaxGlyphCount ? a : b;
       }, 0);
-      var maxMLabel = this.layout.qHyperCube.qMeasureInfo.reduce(function (a, b) {
+      var maxMLabel = this.layout.qHyperCube.qMeasureInfo.filter(function (m) {
+        return !m.qError;
+      }).reduce(function (a, b) {
         return a > b.qFallbackTitle.length ? a : b.qFallbackTitle.length;
       }, 0);
       this.columnParamValues = this.columnParamValues.concat(new Array(this.layout.qHyperCube.qSize.qcx).fill(new Array(Math.max(maxMValue.qApprMaxGlyphCount, maxMLabel)).fill('X').join('')).map(function (d) {
@@ -3996,18 +4109,18 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "checkDataExists",
     value: function checkDataExists(start, end) {
-      var _this39 = this;
+      var _this40 = this;
 
       return new Promise(function (resolve, reject) {
-        if (_this39.layout.qHyperCube.qMode === 'P' && _this39.layout.qHyperCube.qIndentMode !== true) {
-          _this39.getData(start, function () {
+        if (_this40.layout.qHyperCube.qMode === 'P' && _this40.layout.qHyperCube.qIndentMode !== true) {
+          _this40.getData(start, function () {
             resolve();
           });
         } else {
           var top = -1;
 
           for (var i = start; i < end; i++) {
-            if (_this39.rowIndexList.indexOf(i) === -1) {
+            if (_this40.rowIndexList.indexOf(i) === -1) {
               top = i;
               break;
             }
@@ -4016,11 +4129,11 @@ var Table3 = /*#__PURE__*/function () {
           console.log('slicing pre', top);
 
           if (top < end && top !== -1) {
-            _this39.getData(top, function () {
+            _this40.getData(top, function () {
               resolve();
-            });
+            }, true);
           } else if (top !== -1) {
-            _this39.getData(top, function () {}, true);
+            _this40.getData(top, function () {}, true);
 
             resolve();
           } else {
@@ -4032,7 +4145,7 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "getData",
     value: function getData() {
-      var _this40 = this;
+      var _this41 = this;
 
       var top = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
       var callbackFn = arguments.length > 1 ? arguments[1] : undefined;
@@ -4044,7 +4157,7 @@ var Table3 = /*#__PURE__*/function () {
         if (this.options.getAllData === true) {
           getAllData('qHyperCube', this.options.model, this.layout, function (layout) {
             // this.rowCount = layout.qHyperCube.qDataPages[0].qMatrix.length
-            _this40.busy = false;
+            _this41.busy = false;
 
             if (callbackFn) {
               callbackFn(layout.qHyperCube.qDataPages[0].qMatrix);
@@ -4067,10 +4180,10 @@ var Table3 = /*#__PURE__*/function () {
 
             this.options.model[method]('/qHyperCubeDef', pageDefs).then(function (pages) {
               if (pages) {
-                var _this40$fullData;
+                var _this41$fullData;
 
-                if (_this40.layout.qHyperCube.qMode === 'P') {
-                  var pData = _this40.transformPivotTable(pages[0]);
+                if (_this41.layout.qHyperCube.qMode === 'P') {
+                  var pData = _this41.transformPivotTable(pages[0]);
 
                   pages[0].qMatrix = pData.data;
                   console.log('pdata', pData); // this.fullData.push(pages[0])
@@ -4079,23 +4192,23 @@ var Table3 = /*#__PURE__*/function () {
                 // pages[0].qMatrix = pages[0].qMatrix.filter(r => r[0].qText !== '-')
 
 
-                (_this40$fullData = _this40.fullData).splice.apply(_this40$fullData, [pages[0].qArea.qTop, pages[0].qArea.qHeight].concat(_toConsumableArray(pages[0].qMatrix)));
+                (_this41$fullData = _this41.fullData).splice.apply(_this41$fullData, [pages[0].qArea.qTop, pages[0].qArea.qHeight].concat(_toConsumableArray(pages[0].qMatrix)));
 
                 for (var i = 0; i < pages[0].qArea.qHeight; i++) {
-                  if (_this40.rowIndexList.indexOf(pages[0].qArea.qTop + i) === -1) {
-                    _this40.rowIndexList.push(pages[0].qArea.qTop + i);
+                  if (_this41.rowIndexList.indexOf(pages[0].qArea.qTop + i) === -1) {
+                    _this41.rowIndexList.push(pages[0].qArea.qTop + i);
                   }
                 }
 
-                _this40.rowIndexList.sort(function (a, b) {
+                _this41.rowIndexList.sort(function (a, b) {
                   return a - b;
                 }); // }
 
 
-                _this40.busy = false;
+                _this41.busy = false;
 
                 if (callbackFn) {
-                  if (_this40.layout.qHyperCube.qMode === 'P') {
+                  if (_this41.layout.qHyperCube.qMode === 'P') {
                     callbackFn(pages[0]);
                   } else {
                     callbackFn(pages[0].qMatrix);
@@ -4105,12 +4218,12 @@ var Table3 = /*#__PURE__*/function () {
             }, function (err) {
               var e = err;
 
-              if (_this40.errorCount < 50) {
-                _this40.errorCount++;
-                console.log('error getting data, attempt', _this40.errorCount);
-                clearTimeout(_this40.retryFn);
-                _this40.retryFn = setTimeout(function () {
-                  _this40.getData(top, callbackFn);
+              if (_this41.errorCount < 50) {
+                _this41.errorCount++;
+                console.log('error getting data, attempt', _this41.errorCount);
+                clearTimeout(_this41.retryFn);
+                _this41.retryFn = setTimeout(function () {
+                  _this41.getData(top, callbackFn);
                 }, 300);
               } // callbackFn({err})
 
@@ -4159,37 +4272,37 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "handleScroll",
     value: function handleScroll(direction, startRow, endRow, startCol, endCol) {
-      var _this41 = this;
+      var _this42 = this;
 
       this.startCol = startCol;
       this.endCol = endCol;
       console.log('handle scroll plugin', direction, startRow, endRow, startCol, endCol);
       this.checkDataExists(startRow, endRow).then(function () {
-        if (_this41.columns && _this41.columns.length > 0) {
-          if (_this41.layout.qHyperCube.qMode === 'S') {
-            var columnsInView = _this41.columns.filter(function (c, i) {
-              return i < _this41.pinnedColumns || i >= startCol && i <= endCol;
+        if (_this42.columns && _this42.columns.length > 0) {
+          if (_this42.layout.qHyperCube.qMode === 'S') {
+            var columnsInView = _this42.columns.filter(function (c, i) {
+              return i < _this42.pinnedColumns || i >= startCol && i <= endCol;
             });
 
-            _this41.table.columns = [columnsInView];
+            _this42.table.columns = [columnsInView];
           } else {
-            var _columnsInView = _this41.columns;
-            _this41.table.columns = _columnsInView;
+            var _columnsInView = _this42.columns;
+            _this42.table.columns = _columnsInView;
           }
         }
 
-        if (_this41.totals && _this41.totals.length > 0) {
-          var totalsInView = _this41.totals.filter(function (c, i) {
-            return i < _this41.pinnedColumns || i >= startCol && i <= endCol;
+        if (_this42.totals && _this42.totals.length > 0) {
+          var totalsInView = _this42.totals.filter(function (c, i) {
+            return i < _this42.pinnedColumns || i >= startCol && i <= endCol;
           });
 
-          _this41.table.totals = totalsInView;
+          _this42.table.totals = totalsInView;
         } // console.log('slicing data', this.fullData.slice(startRow, endRow + 1))
 
 
-        _this41.appendRows(_this41.transformData(_this41.fullData.slice(startRow, endRow + 1).map(function (row) {
+        _this42.appendRows(_this42.transformData(_this42.fullData.slice(startRow, endRow + 1).map(function (row) {
           return row.filter(function (c, i) {
-            return i < _this41.pinnedColumns || i >= startCol && i <= endCol;
+            return i < _this42.pinnedColumns || i >= startCol && i <= endCol;
           });
         })));
       });
@@ -4309,7 +4422,7 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "render",
     value: function render() {
-      var _this42 = this;
+      var _this43 = this;
 
       var pageNum = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
       // if (this.searchPrepped === false) {
@@ -4320,104 +4433,104 @@ var Table3 = /*#__PURE__*/function () {
         message: 'Loading...'
       });
       this.options.model.getLayout().then(function (layout) {
-        _this42.options.model.getEffectiveProperties().then(function (props) {
-          _this42.properties = props;
+        _this43.options.model.getEffectiveProperties().then(function (props) {
+          _this43.properties = props;
           console.log('table 3 plugin layout', layout);
-          _this42.endCol = layout.qHyperCube.qSize.qcx + layout.qHyperCube.qNoOfLeftDims;
-          _this42.layout = layout;
+          _this43.endCol = layout.qHyperCube.qSize.qcx + layout.qHyperCube.qNoOfLeftDims;
+          _this43.layout = layout;
 
-          _this42.buildDataStructure(); // this.rowCount = pageNum * this.options.pageSize
+          _this43.buildDataStructure(); // this.rowCount = pageNum * this.options.pageSize
           // if (this.layout.qHyperCube.qPivotDataPages[0]) {
           //   this.layout.qHyperCube.qPivotDataPages = []
           // }
 
 
-          _this42.errorCount = 0;
-          _this42.pageNum = pageNum;
-          _this42.pageCount = Math.ceil(layout.qHyperCube.qSize.qcy / _this42.options.pageSize);
-          _this42.table.options.pageNum = _this42.pageNum;
+          _this43.errorCount = 0;
+          _this43.pageNum = pageNum;
+          _this43.pageCount = Math.ceil(layout.qHyperCube.qSize.qcy / _this43.options.pageSize);
+          _this43.table.options.pageNum = _this43.pageNum;
 
-          if (_this42.layout.qHyperCube.qNoOfLeftDims) {
-            _this42.table.options.leftColumns = _this42.options.freezeColumns || _this42.layout.qHyperCube.qNoOfLeftDims;
+          if (_this43.layout.qHyperCube.qNoOfLeftDims) {
+            _this43.table.options.leftColumns = _this43.options.freezeColumns || _this43.layout.qHyperCube.qNoOfLeftDims;
           }
 
-          _this42.table.options.pageCount = _this42.pageCount;
+          _this43.table.options.pageCount = _this43.pageCount;
 
           if (layout.qHyperCube.qError && layout.qHyperCube.qCalcCondMsg) {
-            _this42.table.hideLoading();
+            _this43.table.hideLoading();
 
-            _this42.table.showError({
-              message: _this42.options.customError || layout.qHyperCube.qCalcCondMsg
+            _this43.table.showError({
+              message: _this43.options.customError || layout.qHyperCube.qCalcCondMsg
             });
 
             return;
           }
 
-          _this42.table.hideError();
+          _this43.table.hideError();
 
-          _this42.dataWidth = _this42.layout.qHyperCube.qSize.qcx;
-          _this42.columnOrder = _this42.layout.qHyperCube.qColumnOrder;
+          _this43.dataWidth = _this43.layout.qHyperCube.qSize.qcx;
+          _this43.columnOrder = _this43.layout.qHyperCube.qColumnOrder;
 
-          if (typeof _this42.columnOrder === 'undefined') {
-            _this42.columnOrder = new Array(_this42.layout.qHyperCube.qSize.qcx).fill({}).map(function (r, i) {
+          if (typeof _this43.columnOrder === 'undefined') {
+            _this43.columnOrder = new Array(_this43.layout.qHyperCube.qSize.qcx).fill({}).map(function (r, i) {
               return i;
             });
           }
 
-          _this42.layout.qHyperCube.qDimensionInfo = _this42.layout.qHyperCube.qDimensionInfo.map(function (c, i) {
+          _this43.layout.qHyperCube.qDimensionInfo = _this43.layout.qHyperCube.qDimensionInfo.map(function (c, i) {
             c.searchable = true;
 
-            if (_this42.options.columnOverrides[i]) {
+            if (_this43.options.columnOverrides[i]) {
               c = _objectSpread(_objectSpread({}, c), {}, {
-                onSearch: _this42.handleSearch.bind(_this42),
-                onCloseSearch: _this42.handleCloseSearch.bind(_this42)
-              }, _this42.options.columnOverrides[i]);
+                onSearch: _this43.handleSearch.bind(_this43),
+                onCloseSearch: _this43.handleCloseSearch.bind(_this43)
+              }, _this43.options.columnOverrides[i]);
             }
 
             c.searchField = "dim".concat(i);
             return c;
           });
-          _this42.layout.qHyperCube.qMeasureInfo = _this42.layout.qHyperCube.qMeasureInfo.map(function (c, i) {
-            if (_this42.options.columnOverrides[_this42.layout.qHyperCube.qDimensionInfo.length + i]) {
-              c = _objectSpread(_objectSpread({}, c), _this42.options.columnOverrides[_this42.layout.qHyperCube.qDimensionInfo.length + i]);
+          _this43.layout.qHyperCube.qMeasureInfo = _this43.layout.qHyperCube.qMeasureInfo.map(function (c, i) {
+            if (_this43.options.columnOverrides[_this43.layout.qHyperCube.qDimensionInfo.length + i]) {
+              c = _objectSpread(_objectSpread({}, c), _this43.options.columnOverrides[_this43.layout.qHyperCube.qDimensionInfo.length + i]);
             }
 
             return c;
           });
 
-          if (_this42.layout.qHyperCube.qMode === 'S') {
-            _this42.buildStraightColumnsAndTotals();
+          if (_this43.layout.qHyperCube.qMode === 'S') {
+            _this43.buildStraightColumnsAndTotals();
           } else {
-            _this42.buildPivotColumns();
+            _this43.buildPivotColumns();
           }
 
-          _this42.getData(0, function (page) {
-            _this42.table.hideLoading(); // if (this.layout.qHyperCube.qMode === 'S') {
+          _this43.getData(0, function (page) {
+            _this43.table.hideLoading(); // if (this.layout.qHyperCube.qMode === 'S') {
 
 
-            _this42.table.render([], false);
+            _this43.table.render([], false);
 
-            _this42.prepDropdowns(); // }        
+            _this43.prepDropdowns(); // }        
 
 
             if (page.err) {
-              var tableEl = document.getElementById("".concat(_this42.elementId, "_foot"));
+              var tableEl = document.getElementById("".concat(_this43.elementId, "_foot"));
               tableEl.innerHTML = "\n              <div class='request-abort-error'>Could not fetch data. Click <strong class='table-try-again'>here</strong> to try again</div>\n            ";
             } else {
               // this.fullData = page
-              _this42.resize();
+              _this43.resize();
             }
           });
         }, function (err) {
           // try again      
           var e = err;
 
-          if (_this42.errorCount < 50) {
-            _this42.errorCount++;
-            console.log('error getting layout, attempt', _this42.errorCount);
-            clearTimeout(_this42.retryFn);
-            _this42.retryFn = setTimeout(function () {
-              _this42.render();
+          if (_this43.errorCount < 50) {
+            _this43.errorCount++;
+            console.log('error getting layout, attempt', _this43.errorCount);
+            clearTimeout(_this43.retryFn);
+            _this43.retryFn = setTimeout(function () {
+              _this43.render();
             }, 300);
           }
         });
@@ -4442,12 +4555,12 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "transformData",
     value: function transformData(page) {
-      var _this43 = this;
+      var _this44 = this;
 
       // if (this.layout.qHyperCube.qMode === 'S') {      
       return page.map(function (r) {
         return r.map(function (c, i) {
-          if (_this43.table.options.columns[_this43.table.options.columns.length - 1][i] && (_this43.table.options.columns[_this43.table.options.columns.length - 1][i].showAsLink === true || _this43.table.options.columns[_this43.table.options.columns.length - 1][i].showAsNavigatorLink === true)) {
+          if (_this44.table.options.columns[_this44.table.options.columns.length - 1][i] && (_this44.table.options.columns[_this44.table.options.columns.length - 1][i].showAsLink === true || _this44.table.options.columns[_this44.table.options.columns.length - 1][i].showAsNavigatorLink === true)) {
             if (c.qAttrExps && c.qAttrExps.qValues && c.qAttrExps.qValues[0].qText) {
               c.value = c.qAttrExps.qValues[0].qText;
 
@@ -4467,16 +4580,16 @@ var Table3 = /*#__PURE__*/function () {
             var t = 'qDimensionInfo';
             var tIndex = i;
 
-            if (i > _this43.layout.qHyperCube.qDimensionInfo.length - 1) {
+            if (i > _this44.layout.qHyperCube.qDimensionInfo.length - 1) {
               t = 'qMeasureInfo';
-              tIndex -= _this43.layout.qHyperCube.qDimensionInfo.length;
+              tIndex -= _this44.layout.qHyperCube.qDimensionInfo.length;
             }
 
             c.qAttrExps.qValues.forEach(function (a, aI) {
               if (a.qText && a.qText !== '') {
-                if (_this43.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                if (_this44.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI] && _this44.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                   c.color = a.qText;
-                } else if (_this43.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                } else if (_this44.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI] && _this44.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                   c.backgroundColor = a.qText;
                 }
               }
@@ -4852,6 +4965,24 @@ var Table3 = /*#__PURE__*/function () {
         data: output
       };
     }
+  }, {
+    key: "updatePivotStructure",
+    value: function updatePivotStructure() {
+      var dims = this.rowList.options.items.concat(this.columnList.options.items).map(function (d) {
+        return d.dim;
+      });
+      var leftDims = this.rowList.options.items.length;
+      var patchDefs = [{
+        qOp: 'replace',
+        qPath: '/qHyperCubeDef/qNoOfLeftDims',
+        qValue: JSON.stringify(leftDims)
+      }, {
+        qOp: 'replace',
+        qPath: '/qHyperCubeDef/qDimensions',
+        qValue: JSON.stringify(dims)
+      }];
+      this.options.model.applyPatches(patchDefs, true);
+    }
   }]);
 
   return Table3;
@@ -4988,14 +5119,14 @@ var ObjectManager = /*#__PURE__*/function () {
   }, {
     key: "init",
     value: function init() {
-      var _this44 = this;
+      var _this45 = this;
 
       return new Promise(function (resolve, reject) {
-        _this44.prep('global');
+        _this45.prep('global');
 
-        _this44.connectToApp().then(function () {
-          _this44.executeAction(0, _this44.options.initialActions, function () {
-            _this44.selectFromUrl(function () {
+        _this45.connectToApp().then(function () {
+          _this45.executeAction(0, _this45.options.initialActions, function () {
+            _this45.selectFromUrl(function () {
               resolve();
             });
           });
@@ -5076,7 +5207,7 @@ var ObjectManager = /*#__PURE__*/function () {
   }, {
     key: "prep",
     value: function prep(view) {
-      var _this45 = this;
+      var _this46 = this;
 
       // for (let view in this.options.views) {
       // sort out the elements in each view
@@ -5098,29 +5229,29 @@ var ObjectManager = /*#__PURE__*/function () {
 
 
       var _loop = function _loop(a) {
-        var el = document.getElementById(_this45.options.actions[a].elementId);
+        var el = document.getElementById(_this46.options.actions[a].elementId);
 
         if (el) {
-          el.addEventListener(_this45.options.actions[a].event, function () {
+          el.addEventListener(_this46.options.actions[a].event, function () {
             var _loop2 = function _loop2(i) {
-              var item = _this45.options.actions[a].items[i];
+              var item = _this46.options.actions[a].items[i];
 
               if (typeof item.params === 'undefined') {
                 item.params = [];
               }
 
               if (item.field) {
-                _this45.app.getField(item.field).then(function (field) {
+                _this46.app.getField(item.field).then(function (field) {
                   field[item.method].apply(field, _toConsumableArray(item.params));
                 });
               } else {
-                var _this45$app;
+                var _this46$app;
 
-                (_this45$app = _this45.app)[item.method].apply(_this45$app, _toConsumableArray(item.params));
+                (_this46$app = _this46.app)[item.method].apply(_this46$app, _toConsumableArray(item.params));
               }
             };
 
-            for (var i = 0; i < _this45.options.actions[a].items.length; i++) {
+            for (var i = 0; i < _this46.options.actions[a].items.length; i++) {
               _loop2(i);
             }
           });
@@ -5136,14 +5267,14 @@ var ObjectManager = /*#__PURE__*/function () {
   }, {
     key: "connectToApp",
     value: function connectToApp() {
-      var _this46 = this;
+      var _this47 = this;
 
       return new Promise(function (resolve, reject) {
         // check for enigma.js      
-        var originalId = _this46.options.enigmaConfig.app;
+        var originalId = _this47.options.enigmaConfig.app;
 
-        if (_this46.options.enigmaConfig.app) {
-          _this46.options.enigmaConfig.app = _this46.normalizeId(_this46.options.enigmaConfig.app);
+        if (_this47.options.enigmaConfig.app) {
+          _this47.options.enigmaConfig.app = _this47.normalizeId(_this47.options.enigmaConfig.app);
         }
 
         if (typeof enigma === 'undefined') {
@@ -5153,46 +5284,46 @@ var ObjectManager = /*#__PURE__*/function () {
           return;
         }
 
-        if (typeof _this46.options.enigmaSchema === 'undefined') {
+        if (typeof _this47.options.enigmaSchema === 'undefined') {
           reject({
             error: 'enigmaSchema property not found.'
           });
           return;
         }
 
-        var url = _this46.options.enigmaConfig.url;
+        var url = _this47.options.enigmaConfig.url;
 
-        if (_this46.options.enigmaConfig.ticket) {
+        if (_this47.options.enigmaConfig.ticket) {
           if (url.indexOf('?') === -1) {
             url += '?';
           } else {
             url += '&';
           }
 
-          url += "qlikTicket=".concat(_this46.options.enigmaConfig.ticket);
+          url += "qlikTicket=".concat(_this47.options.enigmaConfig.ticket);
         }
 
         var config = {
-          schema: _this46.options.enigmaSchema,
+          schema: _this47.options.enigmaSchema,
           url: url
         };
         var session = enigma.create(config);
-        _this46.session = session;
+        _this47.session = session;
         session.open().then(function (global) {
-          _this46.global = global;
+          _this47.global = global;
           global.getActiveDoc().then(function (app) {
             if (app) {
-              _this46.app = app;
+              _this47.app = app;
 
-              if (_this46.options.views.global) {
-                _this46.executeActions('global').then(function () {
+              if (_this47.options.views.global) {
+                _this47.executeActions('global').then(function () {
                   resolve();
                 });
               } else {
                 resolve();
               }
             } else {
-              return _this46.openApp(originalId).then(function () {
+              return _this47.openApp(originalId).then(function () {
                 resolve();
               });
             }
@@ -5200,10 +5331,10 @@ var ObjectManager = /*#__PURE__*/function () {
             var e = err;
 
             if (originalId) {
-              return _this46.openApp(originalId).then(function () {
+              return _this47.openApp(originalId).then(function () {
                 resolve();
               }, function (err) {
-                _this46.sessionOnNotification({
+                _this47.sessionOnNotification({
                   err: err
                 });
               });
@@ -5212,40 +5343,40 @@ var ObjectManager = /*#__PURE__*/function () {
             }
           });
 
-          if (_this46.options.keepAlive === true) {
-            _this46.keepAlive();
+          if (_this47.options.keepAlive === true) {
+            _this47.keepAlive();
           }
         }, function (err) {
           reject(err);
         });
         session.on('traffic:received', function (data) {
           if (typeof data.suspend !== 'undefined') {
-            _this46.sessionSuspended();
+            _this47.sessionSuspended();
           }
         });
         session.on('notification:*', function (eventName, data) {
           if (eventName === 'OnAuthenticationInformation') {
             if (data.mustAuthenticate === true) {
-              if (_this46.options.enigmaConfig.authUrl) {
-                window.location = _this46.options.enigmaConfig.authUrl + window.location.search.replace('?', '%3F').replace('=', '%3D');
-              } else if (_this46.options.enigmaConfig.onMustAuthenticate) {
-                _this46.options.enigmaConfig.onMustAuthenticate();
+              if (_this47.options.enigmaConfig.authUrl) {
+                window.location = _this47.options.enigmaConfig.authUrl + window.location.search.replace('?', '%3F').replace('=', '%3D');
+              } else if (_this47.options.enigmaConfig.onMustAuthenticate) {
+                _this47.options.enigmaConfig.onMustAuthenticate();
               } else if (data.loginUri) {
                 window.location = data.loginUri;
               }
             } else if (data.mustAuthenticate === false) {
-              _this46.user = {
+              _this47.user = {
                 userDirectory: data.userDirectory,
                 userId: data.userId
               };
             }
           } else {
-            _this46.sessionOnNotification(data, eventName);
+            _this47.sessionOnNotification(data, eventName);
           }
         });
-        session.on('suspended', _this46.sessionSuspended.bind(_this46));
-        session.on('resumed', _this46.sessionResumed.bind(_this46));
-        session.on('closed', _this46.sessionClosed.bind(_this46));
+        session.on('suspended', _this47.sessionSuspended.bind(_this47));
+        session.on('resumed', _this47.sessionResumed.bind(_this47));
+        session.on('closed', _this47.sessionClosed.bind(_this47));
       });
     }
   }, {
@@ -5266,24 +5397,24 @@ var ObjectManager = /*#__PURE__*/function () {
   }, {
     key: "keepAlive",
     value: function keepAlive() {
-      var _this47 = this;
+      var _this48 = this;
 
       this.global.engineVersion();
       setTimeout(function () {
-        _this47.keepAlive();
+        _this48.keepAlive();
       }, 59000);
     }
   }, {
     key: "openApp",
     value: function openApp(appId) {
-      var _this48 = this;
+      var _this49 = this;
 
       return new Promise(function (resolve, reject) {
-        _this48.global.openDoc(appId).then(function (app) {
-          _this48.app = app;
+        _this49.global.openDoc(appId).then(function (app) {
+          _this49.app = app;
 
-          if (_this48.options.views.global) {
-            _this48.executeActions('global').then(function () {
+          if (_this49.options.views.global) {
+            _this49.executeActions('global').then(function () {
               resolve();
             });
           } else {
@@ -5297,7 +5428,7 @@ var ObjectManager = /*#__PURE__*/function () {
   }, {
     key: "loadView",
     value: function loadView(view, force) {
-      var _this49 = this;
+      var _this50 = this;
 
       if (typeof force === 'undefined') {
         force = false;
@@ -5317,23 +5448,23 @@ var ObjectManager = /*#__PURE__*/function () {
 
       if (this.options.views[view].controller && this.options.views[view].initialized !== true) {
         this.options.views[view].controller.init(function () {
-          _this49.options.views[view].initialized = true;
+          _this50.options.views[view].initialized = true;
 
-          if (_this49.options.views[view].prepped !== true) {
-            _this49.prep(view);
+          if (_this50.options.views[view].prepped !== true) {
+            _this50.prep(view);
           }
 
-          _this49.executeActions(view).then(function () {
-            if ((_this49.globalObjectsLoaded === false || _this49.options.alwaysLoadGlobal === true) && view !== 'global') {
-              _this49.loadObjects('global', force);
+          _this50.executeActions(view).then(function () {
+            if ((_this50.globalObjectsLoaded === false || _this50.options.alwaysLoadGlobal === true) && view !== 'global') {
+              _this50.loadObjects('global', force);
 
-              _this49.globalObjectsLoaded = true;
+              _this50.globalObjectsLoaded = true;
             }
 
-            _this49.loadObjects(view, force);
+            _this50.loadObjects(view, force);
 
             if (view === 'global') {
-              _this49.globalObjectsLoaded = true;
+              _this50.globalObjectsLoaded = true;
             }
           });
         });
@@ -5346,16 +5477,16 @@ var ObjectManager = /*#__PURE__*/function () {
         this.executeActions(view).then(function () {
           console.log('Actions complete', view);
 
-          if ((_this49.globalObjectsLoaded === false || _this49.options.alwaysLoadGlobal === true) && view !== 'global') {
-            _this49.loadObjects('global', force);
+          if ((_this50.globalObjectsLoaded === false || _this50.options.alwaysLoadGlobal === true) && view !== 'global') {
+            _this50.loadObjects('global', force);
 
-            _this49.globalObjectsLoaded = true;
+            _this50.globalObjectsLoaded = true;
           }
 
-          _this49.loadObjects(view, force);
+          _this50.loadObjects(view, force);
 
           if (view === 'global') {
-            _this49.globalObjectsLoaded = true;
+            _this50.globalObjectsLoaded = true;
           }
         });
       }
@@ -5363,7 +5494,7 @@ var ObjectManager = /*#__PURE__*/function () {
   }, {
     key: "executeAction",
     value: function executeAction(index, actionList, callbackFn) {
-      var _this50 = this;
+      var _this51 = this;
 
       var item = actionList[index];
 
@@ -5381,7 +5512,7 @@ var ObjectManager = /*#__PURE__*/function () {
                 if (index === actionList.length) {
                   callbackFn();
                 } else {
-                  _this50.executeAction(index, actionList, callbackFn);
+                  _this51.executeAction(index, actionList, callbackFn);
                 }
               });
             } else {
@@ -5390,7 +5521,7 @@ var ObjectManager = /*#__PURE__*/function () {
               if (index === actionList.length) {
                 callbackFn();
               } else {
-                _this50.executeAction(index, actionList, callbackFn);
+                _this51.executeAction(index, actionList, callbackFn);
               }
             }
           });
@@ -5404,7 +5535,7 @@ var ObjectManager = /*#__PURE__*/function () {
           if (index === actionList.length) {
             callbackFn();
           } else {
-            _this50.executeAction(index, actionList, callbackFn);
+            _this51.executeAction(index, actionList, callbackFn);
           }
         });
       }
@@ -5412,20 +5543,20 @@ var ObjectManager = /*#__PURE__*/function () {
   }, {
     key: "executeActions",
     value: function executeActions(view) {
-      var _this51 = this;
+      var _this52 = this;
 
       return new Promise(function (resolve, reject) {
-        if (!_this51.options.views[view] || !_this51.options.views[view].actions || _this51.options.views[view].actions.length === 0) {
+        if (!_this52.options.views[view] || !_this52.options.views[view].actions || _this52.options.views[view].actions.length === 0) {
           resolve();
         }
 
-        _this51.executeAction(0, _this51.options.views[view].actions, resolve);
+        _this52.executeAction(0, _this52.options.views[view].actions, resolve);
       });
     }
   }, {
     key: "loadObjects",
     value: function loadObjects(view, force) {
-      var _this52 = this;
+      var _this53 = this;
 
       console.log('Loading objects', view);
 
@@ -5451,16 +5582,16 @@ var ObjectManager = /*#__PURE__*/function () {
             }
           } else if (objList[i].definition) {
             if (typeof objList[i].definition === 'string' && objList[i].definition.toLowerCase().indexOf('.json') !== -1) {
-              _this52.request('GET', objList[i].definition).then(function (def) {
+              _this53.request('GET', objList[i].definition).then(function (def) {
                 objList[i].definition = def;
 
-                _this52.createObjectFromDefinition(objList[i]);
+                _this53.createObjectFromDefinition(objList[i]);
               });
             } else {
-              _this52.createObjectFromDefinition(objList[i]);
+              _this53.createObjectFromDefinition(objList[i]);
             }
           } else {
-            _this52.createObjectFromDefinition(objList[i]);
+            _this53.createObjectFromDefinition(objList[i]);
           }
         };
 
@@ -5521,7 +5652,7 @@ var ObjectManager = /*#__PURE__*/function () {
   }, {
     key: "createObjectFromDefinition",
     value: function createObjectFromDefinition(objectConfig) {
-      var _this53 = this;
+      var _this54 = this;
 
       if (objectConfig.retries) {
         objectConfig.retries = 0;
@@ -5541,16 +5672,16 @@ var ObjectManager = /*#__PURE__*/function () {
           objectConfig.objectId = model.id;
           objectConfig.attached = true;
 
-          if (_this53.supportedChartTypes.indexOf(objectConfig.definition.qInfo.qType) !== -1) {
+          if (_this54.supportedChartTypes.indexOf(objectConfig.definition.qInfo.qType) !== -1) {
             var options = _extends({}, objectConfig.options, {
               model: model,
               def: objectConfig.definition,
-              app: _this53.app
+              app: _this54.app
             });
 
-            objectConfig.vis = new _this53.chartLibrary[objectConfig.definition.qInfo.qType]("".concat(objectConfig.elementId, "_vis"), options);
+            objectConfig.vis = new _this54.chartLibrary[objectConfig.definition.qInfo.qType]("".concat(objectConfig.elementId, "_vis"), options);
             model.on('changed', function () {
-              if (objectConfig.attached === true && _this53.paused === false) {
+              if (objectConfig.attached === true && _this54.paused === false) {
                 objectConfig.vis.render();
               }
             });
@@ -5560,7 +5691,7 @@ var ObjectManager = /*#__PURE__*/function () {
             objectConfig.model = model;
             objectConfig.render(objectConfig, model);
             model.on('changed', function () {
-              if (objectConfig.attached === true && _this53.paused === false) {
+              if (objectConfig.attached === true && _this54.paused === false) {
                 objectConfig.render(objectConfig, model);
               }
             });
@@ -5568,11 +5699,11 @@ var ObjectManager = /*#__PURE__*/function () {
         }, function (err) {
           console.log('Error creating object', err);
 
-          if (objectConfig.retries < _this53.options.retryCount) {
+          if (objectConfig.retries < _this54.options.retryCount) {
             console.log('retrying');
             objectConfig.retries++;
 
-            _this53.createObjectFromDefinition(objectConfig);
+            _this54.createObjectFromDefinition(objectConfig);
           } else {
             console.log('Max retries reached.');
           }
@@ -5721,7 +5852,7 @@ var ObjectManager = /*#__PURE__*/function () {
   }, {
     key: "select",
     value: function select(index, selections, callbackFn) {
-      var _this54 = this;
+      var _this55 = this;
 
       if (index === selections.length) {
         callbackFn();
@@ -5756,13 +5887,13 @@ var ObjectManager = /*#__PURE__*/function () {
           f.selectValues(values).then(function () {
             index++;
 
-            _this54.select(index, selections, callbackFn);
+            _this55.select(index, selections, callbackFn);
           });
         }, function (err) {
           console.log('field for selection not found', err);
           index++;
 
-          _this54.select(index, selections, callbackFn);
+          _this55.select(index, selections, callbackFn);
         });
       }
     }

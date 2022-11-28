@@ -165,18 +165,19 @@ class Table2 {
     let el = document.getElementById(id)
     el.classList.remove('active')
   }
-  handleSort (event, column, colIndex) {
+  handleSort (event, column, colIndex, sortIndex) {
+    this.table.showLoading({message: 'Loading...'})    
     const reverse = column.reverseSort === true
     const patchDefs = [{
       qOp: 'replace',
       qPath: '/qHyperCubeDef/qInterColumnSortOrder',
-      qValue: JSON.stringify([colIndex])
+      qValue: JSON.stringify([this.columnOrder[sortIndex]])
     }]
     let sortType = colIndex < this.layout.qHyperCube.qDimensionInfo.length ? 'qDimensions' : 'qMeasures'
-    let sortIndex = colIndex < this.layout.qHyperCube.qDimensionInfo.length ? colIndex : colIndex - this.layout.qHyperCube.qDimensionInfo.length    
+    let realIndex = this.columnOrder[sortIndex] < this.layout.qHyperCube.qDimensionInfo.length ? this.columnOrder[sortIndex] : this.columnOrder[sortIndex] - this.layout.qHyperCube.qDimensionInfo.length    
     patchDefs.push({
       qOp: 'replace',
-      qPath: `/qHyperCubeDef/${sortType}/${sortIndex}/qDef/qReverseSort`,
+      qPath: `/qHyperCubeDef/${sortType}/${realIndex}/qDef/qReverseSort`,
       qValue: JSON.stringify(reverse)
     })
     this.options.model.applyPatches(patchDefs, true)
@@ -217,6 +218,8 @@ class Table2 {
       if (!this.dropdowns[`dim${i}`]) {
         this.dropdowns[`dim${i}`] = new WebsyDesignsQlikPlugins.Dropdown(`${this.elementId}_columnSearch_${i}`, {
           model: this.options.model,
+          multiSelect: true,
+          closeAfterSelection: false,
           path: `dim${i}`,
           onClose: this.handleCloseSearch
         }) 
@@ -307,6 +310,7 @@ class Table2 {
       let activeSort = this.layout.qHyperCube.qEffectiveInterColumnSortOrder[0]      
       columns = columns.map((c, i) => {
         c.colIndex = this.columnOrder.indexOf(i)
+        c.sortIndex = this.columnOrder.indexOf(i)
         c.name = c.qFallbackTitle
         if (c.tooltip) {
           c.name += `
@@ -315,8 +319,8 @@ class Table2 {
           </div>
           `
         }
-        c.reverseSort = activeSort === i && c.qReverseSort !== true
-        c.activeSort = activeSort === i
+        c.reverseSort = activeSort === c.colIndex && c.qReverseSort !== true
+        c.activeSort = activeSort === c.colIndex
         if (this.layout.qHyperCube.qMode === 'S') {
           if (c.qSortIndicator === 'A') {
             c.sort = 'asc'

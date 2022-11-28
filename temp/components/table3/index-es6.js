@@ -10,14 +10,15 @@ class Table3 {
       virtualScroll: true,
       columnOverrides: [],
       maxColWidth: '50%',
-      allowPivoting: false    
+      allowPivoting: false,
+      dropdownOptions: {} 
     }
-    if (Dropdown) {
-      if (!WebsyDesignsQlikPlugins) {
-        WebsyDesignsQlikPlugins = {}
-      }
-      WebsyDesignsQlikPlugins.Dropdown = Dropdown
-    }
+    // if (Dropdown) {
+    //   if (!WebsyDesignsQlikPlugins) {
+    //     WebsyDesignsQlikPlugins = {}
+    //   }
+    //   WebsyDesignsQlikPlugins.Dropdown = Dropdown
+    // }
     this.elementId = elementId    
     this.options = Object.assign({}, DEFAULTS, options)
     this.fullData = []
@@ -60,6 +61,20 @@ class Table3 {
         onSetPage: this.setPageNum.bind(this),
         onScrollX: this.handleVirtualScrollX.bind(this)
       }, this.options))
+      this.rowList = new WebsyDesigns.DragDrop(`${this.elementId}_pivotRows`, {
+        group: this.elementId,
+        items: [],
+        onItemAdded: () => {         
+          this.updatePivotStructure()
+        }
+      })
+      this.columnList = new WebsyDesigns.DragDrop(`${this.elementId}_pivotColumns`, {
+        group: this.elementId,
+        items: [],
+        onItemAdded: () => {         
+          this.updatePivotStructure()
+        }
+      })
       el.addEventListener('click', this.handleClick.bind(this))
     }
     this.render()
@@ -75,8 +90,8 @@ class Table3 {
     this.startCol = 0
     this.endCol = this.columns[this.columns.length - 1].length
     this.table.options.columns = this.columns
-    const maxMValue = this.layout.qHyperCube.qMeasureInfo.reduce((a, b) => a.qApprMaxGlyphCount > b.qApprMaxGlyphCount ? a : b).qApprMaxGlyphCount
-    const maxMLabel = this.layout.qHyperCube.qMeasureInfo.reduce((a, b) => a.qFallbackTitle > b.qFallbackTitle ? a : b).qFallbackTitle
+    const maxMValue = this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError).reduce((a, b) => a.qApprMaxGlyphCount > b.qApprMaxGlyphCount ? a : b).qApprMaxGlyphCount
+    const maxMLabel = this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError).reduce((a, b) => a.qFallbackTitle > b.qFallbackTitle ? a : b).qFallbackTitle
     const maxMLength = maxMLabel.length > maxMValue ? maxMLabel : new Array(maxMValue).fill('X').join('')
     let effectiveOrder = this.layout.qHyperCube.qEffectiveInterColumnSortOrder
     let dimensionLengths = this.layout.qHyperCube.qDimensionInfo.map(d => d.qApprMaxGlyphCount > d.qFallbackTitle.length ? new Array(d.qApprMaxGlyphCount).fill('X').join('') : d.qFallbackTitle)
@@ -85,12 +100,14 @@ class Table3 {
     let columns = []
     for (let i = 0; i < effectiveOrder.length; i++) {   
       if (effectiveOrder[i] < this.layout.qHyperCube.qDimensionInfo.length) {
-        let dim = this.properties.qHyperCubeDef.qDimensions[effectiveOrder[i]]                
-        if (i < this.layout.qHyperCube.qNoOfLeftDims) {          
-          rows.push(dim)          
-        }   
-        else {
-          columns.push(dim)
+        if (effectiveOrder[i] >= 0) {
+          let dim = this.properties.qHyperCubeDef.qDimensions[effectiveOrder[i]]                
+          if (i < this.layout.qHyperCube.qNoOfLeftDims) {          
+            rows.push(dim)          
+          }   
+          else {
+            columns.push(dim)
+          }
         } 
       }      
       if (this.layout.qHyperCube.qIndentMode === true) {
@@ -136,18 +153,17 @@ class Table3 {
       }
       rEl.style.width = rowsWidth + 'px'
       rEl.style.maxWidth = rowsWidth + 'px'       
-      this.rowList = new WebsyDesigns.DragDrop(`${this.elementId}_pivotRows`, {
-        items: rows.map((dim, dimIndex) => {
-          let dimId = dim.qLibraryId || dim.qDef.qFieldLabels[0] || dim.qDef.qFieldDefs[0]            
-          return {
-            component: 'Dropdown',
-            isQlikPlugin: true,
-            dim, 
-            dimId,
-            options: {}
-          }
-        })
+      this.rowList.options.items = rows.map((dim, dimIndex) => {
+        let dimId = dim.qLibraryId || dim.qDef.qFieldLabels[0] || dim.qDef.qFieldDefs[0]            
+        return {
+          component: 'Dropdown',
+          isQlikPlugin: true,
+          dim, 
+          dimId,
+          options: Object.assign({}, this.options.dropdownOptions)
+        }        
       })
+      this.rowList.render()
       this.rowList.options.items.forEach((d, i) => {
         if (!this.dropdowns[d.dimId]) {
           this.options.app.createSessionObject({
@@ -158,10 +174,38 @@ class Table3 {
             d.instance.options.model = model
             d.instance.render()
           })
+        }
+        else {
+          d.instance.options.model = this.dropdowns[d.dimId]
+          d.instance.render()
         } 
+      })      
+      this.columnList.options.items = columns.map((dim, dimIndex) => {
+        let dimId = dim.qLibraryId || dim.qDef.qFieldLabels[0] || dim.qDef.qFieldDefs[0]            
+        return {
+          component: 'Dropdown',
+          isQlikPlugin: true,
+          dim, 
+          dimId,
+          options: Object.assign({}, this.options.dropdownOptions)
+        }      
       })
-      this.columnList = new WebsyDesigns.DragDrop(`${this.elementId}_pivotColumns`, {
-        items: columns.map(d => ({label: 'hello'}))
+      this.columnList.render()
+      this.columnList.options.items.forEach((d, i) => {
+        if (!this.dropdowns[d.dimId]) {
+          this.options.app.createSessionObject({
+            qInfo: { qType: 'table-dropdown' },
+            qListObjectDef: d.dim
+          }).then(model => {
+            this.dropdowns[d.dimId] = model
+            d.instance.options.model = model
+            d.instance.render()
+          })
+        }
+        else {
+          d.instance.options.model = this.dropdowns[d.dimId]
+          d.instance.render()
+        } 
       })
     }
     else {
@@ -228,8 +272,8 @@ class Table3 {
         width: c.width || null
       }))
     let measureLabel = activeDimensions.pop()
-    const maxMValue = this.layout.qHyperCube.qMeasureInfo.reduce((a, b) => a.qApprMaxGlyphCount > b.qApprMaxGlyphCount ? a : b, 0)
-    const maxMLabel = this.layout.qHyperCube.qMeasureInfo.reduce((a, b) => a > b.qFallbackTitle.length ? a : b.qFallbackTitle.length, 0)
+    const maxMValue = this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError).reduce((a, b) => a.qApprMaxGlyphCount > b.qApprMaxGlyphCount ? a : b, 0)
+    const maxMLabel = this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError).reduce((a, b) => a > b.qFallbackTitle.length ? a : b.qFallbackTitle.length, 0)
     this.columnParamValues = this.columnParamValues.concat(new Array(this.layout.qHyperCube.qSize.qcx).fill(new Array(Math.max(maxMValue.qApprMaxGlyphCount, maxMLabel)).fill('X').join('')).map(d => ({value: d, width: null})))    
     if (this.layout.scrolling && this.layout.scrolling.keepFirstColumnInView === true) {
       this.pinnedColumns = 1
@@ -270,7 +314,7 @@ class Table3 {
         if (top < end && top !== -1) {
           this.getData(top, () => {
             resolve()
-          })        
+          }, true)        
         }
         else if (top !== -1) {
           this.getData(top, () => {}, true)
@@ -645,10 +689,10 @@ class Table3 {
           }
           c.qAttrExps.qValues.forEach((a, aI) => {
             if (a.qText && a.qText !== '') {
-              if (this.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+              if (this.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI] && this.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                 c.color = a.qText
               }
-              else if (this.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+              else if (this.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI] && this.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                 c.backgroundColor = a.qText
               }
             }
@@ -969,6 +1013,23 @@ class Table3 {
       topNodesTransposed[level].push(...toPush)   
     }
     return { columns: topNodesTransposed, data: output }
+  }
+  updatePivotStructure () {
+    let dims = this.rowList.options.items.concat(this.columnList.options.items).map(d => d.dim)
+    let leftDims = this.rowList.options.items.length
+    let patchDefs = [
+      {
+        qOp: 'replace',
+        qPath: '/qHyperCubeDef/qNoOfLeftDims',
+        qValue: JSON.stringify(leftDims)
+      },
+      {
+        qOp: 'replace',
+        qPath: '/qHyperCubeDef/qDimensions',
+        qValue: JSON.stringify(dims)
+      }
+    ]
+    this.options.model.applyPatches(patchDefs, true)
   }
 }
 
