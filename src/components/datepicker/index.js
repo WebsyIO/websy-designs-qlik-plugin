@@ -66,11 +66,11 @@ class DatePicker {
     if (typeof d === 'number') {
       d = new Date(d)
     }
+    // d.setTime(d.getTime() + d.getTimezoneOffset() * 60000)
     return new Date(d.setHours(0, 0, 0, 0))
   }
   fromQlikDate (d) {    
-    let output = new Date(Math.round((d - 25569) * 86400000))    
-    output.setTime(output.getTime() + output.getTimezoneOffset() * 60000)
+    let output = new Date(Math.round((d - 25569) * 86400000))        
     return this.floorDate(output)
   }
   getField (f) {
@@ -200,8 +200,10 @@ class DatePicker {
           let start
           let end          
           if (this.options.mode === 'date') {
-            start = this.fromQlikDate(layout.qListObject.qDataPages[0].qMatrix[0][0].qNum).getTime()
-            end = this.fromQlikDate(layout.qListObject.qDataPages[0].qMatrix[layout.qListObject.qDataPages[0].qMatrix.length - 1][0].qNum).getTime()
+            // start = this.fromQlikDate(layout.qListObject.qDataPages[0].qMatrix[0][0].qNum).getTime()
+            // end = this.fromQlikDate(layout.qListObject.qDataPages[0].qMatrix[layout.qListObject.qDataPages[0].qMatrix.length - 1][0].qNum).getTime()
+            start = layout.qListObject.qDataPages[0].qMatrix[0][0].qNum
+            end = layout.qListObject.qDataPages[0].qMatrix[layout.qListObject.qDataPages[0].qMatrix.length - 1][0].qNum
           }
           else if (this.options.mode === 'year') {
             start = layout.qListObject.qDataPages[0].qMatrix[0][0].qNum
@@ -239,19 +241,19 @@ class DatePicker {
             // 
           }
           let diff = (end - start)
-          if (this.options.mode === 'date') {
-            diff = diff / oneDay
-          }
-          else if (this.options.mode === 'monthyear') {
+          // if (this.options.mode === 'date') {
+          //   diff = Math.floor(diff / oneDay)
+          // }
+          if (this.options.mode === 'monthyear') {
             let yearDiff = (end.getFullYear() - start.getFullYear()) * 12
             diff = Math.floor((end.getMonth() - start.getMonth())) + yearDiff
           }        
           for (let i = 0; i < diff + 1; i++) {
             if (this.options.mode === 'date') {
-              let temp = new Date(start + (i * oneDay))
-              temp.setHours(0, 0, 0)      
+              let temp = this.fromQlikDate(start + i)
+              // temp.setHours(0, 0, 0)      
               this.completeDateList[temp.getTime()] = {
-                qNum: this.toQlikDateNum(temp),
+                qNum: (start + i),
                 qState: 'Z'
               } 
             }

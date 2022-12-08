@@ -241,7 +241,7 @@ var Bookmarks = /*#__PURE__*/function () {
         event.target.classList.toggle('closed');
       }
 
-      if (event.target.classList.contains('createSubmit')) {
+      if (event.target.classList.contains('create-submit')) {
         var _bookmarkBackground = document.getElementById("".concat(this.elementId, "_bookmarkPopup"));
 
         _bookmarkBackground.style.backgroundColor = 'transparent';
@@ -1306,7 +1306,8 @@ var DatePicker = /*#__PURE__*/function () {
     value: function floorDate(d) {
       if (typeof d === 'number') {
         d = new Date(d);
-      }
+      } // d.setTime(d.getTime() + d.getTimezoneOffset() * 60000)
+
 
       return new Date(d.setHours(0, 0, 0, 0));
     }
@@ -1314,7 +1315,6 @@ var DatePicker = /*#__PURE__*/function () {
     key: "fromQlikDate",
     value: function fromQlikDate(d) {
       var output = new Date(Math.round((d - 25569) * 86400000));
-      output.setTime(output.getTime() + output.getTimezoneOffset() * 60000);
       return this.floorDate(output);
     }
   }, {
@@ -1464,8 +1464,10 @@ var DatePicker = /*#__PURE__*/function () {
             var end;
 
             if (_this16.options.mode === 'date') {
-              start = _this16.fromQlikDate(layout.qListObject.qDataPages[0].qMatrix[0][0].qNum).getTime();
-              end = _this16.fromQlikDate(layout.qListObject.qDataPages[0].qMatrix[layout.qListObject.qDataPages[0].qMatrix.length - 1][0].qNum).getTime();
+              // start = this.fromQlikDate(layout.qListObject.qDataPages[0].qMatrix[0][0].qNum).getTime()
+              // end = this.fromQlikDate(layout.qListObject.qDataPages[0].qMatrix[layout.qListObject.qDataPages[0].qMatrix.length - 1][0].qNum).getTime()
+              start = layout.qListObject.qDataPages[0].qMatrix[0][0].qNum;
+              end = layout.qListObject.qDataPages[0].qMatrix[layout.qListObject.qDataPages[0].qMatrix.length - 1][0].qNum;
             } else if (_this16.options.mode === 'year') {
               start = layout.qListObject.qDataPages[0].qMatrix[0][0].qNum;
               end = layout.qListObject.qDataPages[0].qMatrix[layout.qListObject.qDataPages[0].qMatrix.length - 1][0].qNum;
@@ -1501,21 +1503,22 @@ var DatePicker = /*#__PURE__*/function () {
             } else if (_this16.options.mode === 'hour') {// 
             }
 
-            var diff = end - start;
+            var diff = end - start; // if (this.options.mode === 'date') {
+            //   diff = Math.floor(diff / oneDay)
+            // }
 
-            if (_this16.options.mode === 'date') {
-              diff = diff / oneDay;
-            } else if (_this16.options.mode === 'monthyear') {
+            if (_this16.options.mode === 'monthyear') {
               var yearDiff = (end.getFullYear() - start.getFullYear()) * 12;
               diff = Math.floor(end.getMonth() - start.getMonth()) + yearDiff;
             }
 
             for (var i = 0; i < diff + 1; i++) {
               if (_this16.options.mode === 'date') {
-                var temp = new Date(start + i * oneDay);
-                temp.setHours(0, 0, 0);
+                var temp = _this16.fromQlikDate(start + i); // temp.setHours(0, 0, 0)      
+
+
                 _this16.completeDateList[temp.getTime()] = {
-                  qNum: _this16.toQlikDateNum(temp),
+                  qNum: start + i,
                   qState: 'Z'
                 };
               } else if (_this16.options.mode === 'year') {
@@ -1818,44 +1821,50 @@ var Dropdown = /*#__PURE__*/function () {
   }, {
     key: "onClose",
     value: function onClose(elementId) {
-      this.options.model.endSelections(true);
+      var _this20 = this;
+
+      this.options.model.endSelections(true).then(function () {
+        if (_this20.options.onClose) {
+          _this20.options.onClose(elementId);
+        }
+      });
     }
   }, {
     key: "handleScroll",
     value: function handleScroll(event) {
-      var _this20 = this;
+      var _this21 = this;
 
       if (event.target.scrollTop / (event.target.scrollHeight - event.target.clientHeight) > 0.7) {
         this.checkForData().then(function () {
-          _this20.dropdown.data = _this20.transformData();
+          _this21.dropdown.data = _this21.transformData();
         });
       }
     }
   }, {
     key: "itemSelected",
     value: function itemSelected(item, selectedIndexes, items) {
-      var _this21 = this;
+      var _this22 = this;
 
       if (this.options.useVariable === true && this.options.variable && this.options.app) {
         this.options.app.getVariableByName(this.options.variable).then(function (v) {
           if (item.qNum === 'NaN') {
             v.setStringValue(item.qText).then(function () {
-              if (_this21.options.onItemSelected) {
-                _this21.options.onItemSelected(item, selectedIndexes, items);
+              if (_this22.options.onItemSelected) {
+                _this22.options.onItemSelected(item, selectedIndexes, items);
               }
             });
           } else {
             v.setNumValue(item.qNum).then(function () {
-              if (_this21.options.onItemSelected) {
-                _this21.options.onItemSelected(item, selectedIndexes, items);
+              if (_this22.options.onItemSelected) {
+                _this22.options.onItemSelected(item, selectedIndexes, items);
               }
             });
           }
         });
       } else {
         this.options.model.selectListObjectValues("/".concat(this.options.path, "/qListObjectDef").replace(/\/\//g, '/'), [item.qElemNumber], this.dropdown.options.multiSelect === true).then(function () {
-          if (_this21.options.onItemSelected) {
-            _this21.options.onItemSelected(item, selectedIndexes, items);
+          if (_this22.options.onItemSelected) {
+            _this22.options.onItemSelected(item, selectedIndexes, items);
           }
         });
       }
@@ -1874,7 +1883,7 @@ var Dropdown = /*#__PURE__*/function () {
   }, {
     key: "render",
     value: function render() {
-      var _this22 = this;
+      var _this23 = this;
 
       if (!this.options.model) {
         return;
@@ -1882,10 +1891,10 @@ var Dropdown = /*#__PURE__*/function () {
 
       this.rowsLoaded = 0;
       this.options.model.getLayout().then(function (layout) {
-        _this22.layout = layout;
+        _this23.layout = layout;
 
-        _this22.checkForVariable().then(function (variableValue) {
-          var listObject = _this22.options.path !== '' ? _this22.layout[_this22.options.path].qListObject : _this22.layout.qListObject;
+        _this23.checkForVariable().then(function (variableValue) {
+          var listObject = _this23.options.path !== '' ? _this23.layout[_this23.options.path].qListObject : _this23.layout.qListObject;
 
           if (!listObject.qDataPages || listObject.qDataPages.length === 0) {
             listObject.qDataPages = [{
@@ -1894,17 +1903,17 @@ var Dropdown = /*#__PURE__*/function () {
           }
 
           if (listObject.qDimensionInfo.qLocked) {
-            _this22.dropdown.options.allowClear = false;
+            _this23.dropdown.options.allowClear = false;
           } else {
-            _this22.dropdown.options.allowClear = typeof _this22.options.allowClear === 'undefined' ? true : _this22.options.allowClear;
+            _this23.dropdown.options.allowClear = typeof _this23.options.allowClear === 'undefined' ? true : _this23.options.allowClear;
           }
 
-          _this22.rowsLoaded = listObject.qDataPages[0].qMatrix.length;
+          _this23.rowsLoaded = listObject.qDataPages[0].qMatrix.length;
 
-          _this22.checkForData().then(function () {
+          _this23.checkForData().then(function () {
             if (listObject.qDataPages[0]) {
-              _this22.dropdown.options.label = listObject.qDimensionInfo.qFallbackTitle;
-              _this22.dropdown.data = _this22.transformData(variableValue);
+              _this23.dropdown.options.label = listObject.qDimensionInfo.qFallbackTitle;
+              _this23.dropdown.data = _this23.transformData(variableValue);
             }
           });
         });
@@ -1956,8 +1965,9 @@ var Dropdown = /*#__PURE__*/function () {
         }
       }
 
-      return listObject.qDataPages[0].qMatrix.map(function (r) {
+      return listObject.qDataPages[0].qMatrix.map(function (r, i) {
         return _extends(r[0], {
+          index: i,
           label: r[0].qText || '-',
           classes: ["state-".concat(r[0].qState)]
         });
@@ -1995,33 +2005,33 @@ var KPI = /*#__PURE__*/function () {
   }, {
     key: "render",
     value: function render() {
-      var _this23 = this;
+      var _this24 = this;
 
       this.options.model.getLayout().then(function (layout) {
         var decimals = 2;
         var v = layout.kpi.qHyperCube.qDataPages[0].qMatrix[0][0].qText;
-        _this23.kpiOptions.value = {
+        _this24.kpiOptions.value = {
           value: v
         };
-        _this23.kpiOptions.label = {
+        _this24.kpiOptions.label = {
           value: layout.kpi.qHyperCube.qMeasureInfo[0].qFallbackTitle
         };
 
         if (layout.icon) {
-          _this23.kpiOptions.icon = "".concat(window.location.origin, "/resources/svg/").concat(layout.icon, ".svg");
+          _this24.kpiOptions.icon = "".concat(window.location.origin, "/resources/svg/").concat(layout.icon, ".svg");
         }
 
         if (layout.tooltip && layout.tooltip.value) {
-          _this23.kpiOptions.tooltip = {
+          _this24.kpiOptions.tooltip = {
             value: layout.tooltip.value
           };
 
           if (layout.tooltip.classes) {
-            _this23.kpiOptions.tooltip.classes = layout.tooltip.classes;
+            _this24.kpiOptions.tooltip.classes = layout.tooltip.classes;
           }
         }
 
-        _this23.kpiOptions.subValue = {
+        _this24.kpiOptions.subValue = {
           value: ''
         };
 
@@ -2033,12 +2043,12 @@ var KPI = /*#__PURE__*/function () {
           }
 
           var v1 = layout.kpi.qHyperCube.qDataPages[0].qMatrix[0][1].qText;
-          _this23.kpiOptions.subValue = {
+          _this24.kpiOptions.subValue = {
             value: "".concat(layout.kpi.qHyperCube.qMeasureInfo[1].qFallbackTitle, " ").concat(v1)
           };
         }
 
-        _this23.kpi.render(_this23.kpiOptions);
+        _this24.kpi.render(_this24.kpiOptions);
       });
     }
   }, {
@@ -2055,7 +2065,7 @@ var KPI = /*#__PURE__*/function () {
 
 var GeoMap = /*#__PURE__*/function () {
   function GeoMap(elementId, options) {
-    var _this24 = this;
+    var _this25 = this;
 
     _classCallCheck(this, GeoMap);
 
@@ -2069,11 +2079,11 @@ var GeoMap = /*#__PURE__*/function () {
 
     if (this.options.geoJSON && typeof this.options.geoJSON === 'string') {
       WebsyDesigns.service.get(this.options.geoJSON).then(function (geoJSON) {
-        _this24.geoJSON = geoJSON;
-        delete _this24.options.geoJSON;
-        _this24.map = new WebsyDesigns.WebsyMap(elementId, _this24.options);
+        _this25.geoJSON = geoJSON;
+        delete _this25.options.geoJSON;
+        _this25.map = new WebsyDesigns.WebsyMap(elementId, _this25.options);
 
-        _this24.render();
+        _this25.render();
       });
     } else {
       this.map = new WebsyDesigns.WebsyMap(elementId, this.options);
@@ -2095,7 +2105,7 @@ var GeoMap = /*#__PURE__*/function () {
   }, {
     key: "render",
     value: function render() {
-      var _this25 = this;
+      var _this26 = this;
 
       var el = document.getElementById(this.elementId);
 
@@ -2105,21 +2115,21 @@ var GeoMap = /*#__PURE__*/function () {
 
       this.options.model.getLayout().then(function (layout) {
         if (layout.options) {
-          _this25.options = _extends({}, _this25.options, layout.options); // this.map.options = Object.assign({}, this.options, this.map.options, layout.options)
+          _this26.options = _extends({}, _this26.options, layout.options); // this.map.options = Object.assign({}, this.options, this.map.options, layout.options)
         }
 
         if (layout.qHyperCube.qDataPages[0]) {
-          if (_this25.geoJSON) {
+          if (_this26.geoJSON) {
             var geoJSON = {
               type: 'FeatureCollection',
               features: []
             };
             layout.qHyperCube.qDataPages[0].qMatrix.forEach(function (r) {
-              var p = _this25.findGeoJsonByProperty(r[0].qText);
+              var p = _this26.findGeoJsonByProperty(r[0].qText);
 
               if (p) {
-                if (_this25.options.geoAutoFill === true) {
-                  p.fillColor = _this25.options.geoFillColor;
+                if (_this26.options.geoAutoFill === true) {
+                  p.fillColor = _this26.options.geoFillColor;
                   p.fillOpacity = 0.4 + r[1].qNum / layout.qHyperCube.qMeasureInfo[0].qMax * 0.6;
                 }
 
@@ -2127,7 +2137,7 @@ var GeoMap = /*#__PURE__*/function () {
                   p.fillColor = r[1].qAttrExps.qValues[0].qText;
                 }
 
-                if (_this25.options.geoShowTooltip === true) {
+                if (_this26.options.geoShowTooltip === true) {
                   p.tooltip = "".concat(r[1].qText, "<br>").concat(p.properties.label);
                   p.tooltipClass = 'websy-map-tooltip';
                 }
@@ -2135,7 +2145,7 @@ var GeoMap = /*#__PURE__*/function () {
                 geoJSON.features.push(p);
               }
             });
-            _this25.map.options.geoJSON = geoJSON;
+            _this26.map.options.geoJSON = geoJSON;
           }
 
           var data = {};
@@ -2166,13 +2176,13 @@ var GeoMap = /*#__PURE__*/function () {
               }
             });
           });
-          _this25.map.options.data = data;
+          _this26.map.options.data = data;
 
           if (el.parentElement) {
             el.parentElement.classList.remove('loading');
           }
 
-          _this25.map.render();
+          _this26.map.render();
         }
       });
     }
@@ -2223,15 +2233,15 @@ var Table = /*#__PURE__*/function () {
   }, {
     key: "getData",
     value: function getData(callbackFn) {
-      var _this26 = this;
+      var _this27 = this;
 
       if (this.busy === false) {
         this.busy = true;
 
         if (this.options.getAllData === true) {
           getAllData('qHyperCube', this.options.model, this.layout, function (layout) {
-            _this26.rowCount = layout.qHyperCube.qDataPages[0].qMatrix.length;
-            _this26.busy = false;
+            _this27.rowCount = layout.qHyperCube.qDataPages[0].qMatrix.length;
+            _this27.busy = false;
 
             if (callbackFn) {
               callbackFn(layout.qHyperCube.qDataPages[0].qMatrix);
@@ -2254,24 +2264,24 @@ var Table = /*#__PURE__*/function () {
 
             this.options.model[method]('/qHyperCubeDef', pageDefs).then(function (pages) {
               if (pages && pages[0]) {
-                if (_this26.layout.qHyperCube.qMode === 'P') {
-                  _this26.layout.qHyperCube.qPivotDataPages.push(pages[0]);
+                if (_this27.layout.qHyperCube.qMode === 'P') {
+                  _this27.layout.qHyperCube.qPivotDataPages.push(pages[0]);
 
-                  _this26.rowCount += pages[0].qData.length;
+                  _this27.rowCount += pages[0].qData.length;
                 } else {
                   pages[0].qMatrix = pages[0].qMatrix.filter(function (r) {
                     return r[0].qText !== '-';
                   });
 
-                  _this26.layout.qHyperCube.qDataPages.push(pages[0]);
+                  _this27.layout.qHyperCube.qDataPages.push(pages[0]);
 
-                  _this26.rowCount += pages[0].qMatrix.length;
+                  _this27.rowCount += pages[0].qMatrix.length;
                 }
 
-                _this26.busy = false;
+                _this27.busy = false;
 
                 if (callbackFn) {
-                  if (_this26.layout.qHyperCube.qMode === 'P') {
+                  if (_this27.layout.qHyperCube.qMode === 'P') {
                     callbackFn(pages[0]);
                   } else {
                     callbackFn(pages[0].qMatrix);
@@ -2281,12 +2291,12 @@ var Table = /*#__PURE__*/function () {
             }, function (err) {
               var e = err;
 
-              if (_this26.errorCount < 50) {
-                _this26.errorCount++;
-                console.log('error getting data, attempt', _this26.errorCount);
-                clearTimeout(_this26.retryFn);
-                _this26.retryFn = setTimeout(function () {
-                  _this26.getData(callbackFn);
+              if (_this27.errorCount < 50) {
+                _this27.errorCount++;
+                console.log('error getting data, attempt', _this27.errorCount);
+                clearTimeout(_this27.retryFn);
+                _this27.retryFn = setTimeout(function () {
+                  _this27.getData(callbackFn);
                 }, 300);
               } // callbackFn({err})
 
@@ -2335,11 +2345,11 @@ var Table = /*#__PURE__*/function () {
   }, {
     key: "handleScroll",
     value: function handleScroll(event) {
-      var _this27 = this;
+      var _this28 = this;
 
       if (event.target.scrollTop / (event.target.scrollHeight - event.target.clientHeight) > 0.7) {
         this.getData(function (page) {
-          _this27.appendRows(_this27.transformData(page));
+          _this28.appendRows(_this28.transformData(page));
         });
       }
     }
@@ -2364,7 +2374,7 @@ var Table = /*#__PURE__*/function () {
   }, {
     key: "render",
     value: function render() {
-      var _this28 = this;
+      var _this29 = this;
 
       var pageNum = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
       this.table.showLoading({
@@ -2372,38 +2382,38 @@ var Table = /*#__PURE__*/function () {
       });
       this.options.model.getLayout().then(function (layout) {
         console.log(layout);
-        _this28.layout = layout;
-        _this28.rowCount = pageNum * _this28.options.pageSize;
-        _this28.errorCount = 0;
-        _this28.pageNum = pageNum;
-        _this28.pageCount = Math.ceil(layout.qHyperCube.qSize.qcy / _this28.options.pageSize);
-        _this28.table.options.pageNum = _this28.pageNum;
-        _this28.table.options.pageCount = _this28.pageCount;
+        _this29.layout = layout;
+        _this29.rowCount = pageNum * _this29.options.pageSize;
+        _this29.errorCount = 0;
+        _this29.pageNum = pageNum;
+        _this29.pageCount = Math.ceil(layout.qHyperCube.qSize.qcy / _this29.options.pageSize);
+        _this29.table.options.pageNum = _this29.pageNum;
+        _this29.table.options.pageCount = _this29.pageCount;
 
         if (layout.qHyperCube.qError && layout.qHyperCube.qCalcCondMsg) {
-          _this28.table.hideLoading();
+          _this29.table.hideLoading();
 
-          _this28.table.showError({
-            message: _this28.options.customError || layout.qHyperCube.qCalcCondMsg
+          _this29.table.showError({
+            message: _this29.options.customError || layout.qHyperCube.qCalcCondMsg
           });
 
           return;
         }
 
-        _this28.dataWidth = _this28.layout.qHyperCube.qSize.qcx;
-        _this28.columnOrder = _this28.layout.qHyperCube.qColumnOrder;
+        _this29.dataWidth = _this29.layout.qHyperCube.qSize.qcx;
+        _this29.columnOrder = _this29.layout.qHyperCube.qColumnOrder;
 
-        if (typeof _this28.columnOrder === 'undefined') {
-          _this28.columnOrder = new Array(_this28.layout.qHyperCube.qSize.qcx).fill({}).map(function (r, i) {
+        if (typeof _this29.columnOrder === 'undefined') {
+          _this29.columnOrder = new Array(_this29.layout.qHyperCube.qSize.qcx).fill({}).map(function (r, i) {
             return i;
           });
         }
 
-        var columns = _this28.layout.qHyperCube.qDimensionInfo.concat(_this28.layout.qHyperCube.qMeasureInfo);
+        var columns = _this29.layout.qHyperCube.qDimensionInfo.concat(_this29.layout.qHyperCube.qMeasureInfo);
 
-        var activeSort = _this28.layout.qHyperCube.qEffectiveInterColumnSortOrder[0];
+        var activeSort = _this29.layout.qHyperCube.qEffectiveInterColumnSortOrder[0];
         columns = columns.map(function (c, i) {
-          c.colIndex = _this28.columnOrder.indexOf(i);
+          c.colIndex = _this29.columnOrder.indexOf(i);
           c.name = c.qFallbackTitle;
 
           if (c.tooltip) {
@@ -2425,31 +2435,31 @@ var Table = /*#__PURE__*/function () {
           return a.colIndex - b.colIndex;
         });
 
-        _this28.getData(function (page) {
-          _this28.table.options.columns = columns;
-          _this28.table.options.activeSort = activeSort;
+        _this29.getData(function (page) {
+          _this29.table.options.columns = columns;
+          _this29.table.options.activeSort = activeSort;
 
-          _this28.table.hideLoading();
+          _this29.table.hideLoading();
 
-          _this28.table.render();
+          _this29.table.render();
 
           if (page.err) {
-            var tableEl = document.getElementById("".concat(_this28.elementId, "_foot"));
+            var tableEl = document.getElementById("".concat(_this29.elementId, "_foot"));
             tableEl.innerHTML = "\n            <div class='request-abort-error'>Could not fetch data. Click <strong class='table-try-again'>here</strong> to try again</div>\n          ";
           } else {
-            _this28.appendRows(_this28.transformData(page));
+            _this29.appendRows(_this29.transformData(page));
           }
         });
       }, function (err) {
         // try again      
         var e = err;
 
-        if (_this28.errorCount < 50) {
-          _this28.errorCount++;
-          console.log('error getting layout, attempt', _this28.errorCount);
-          clearTimeout(_this28.retryFn);
-          _this28.retryFn = setTimeout(function () {
-            _this28.render();
+        if (_this29.errorCount < 50) {
+          _this29.errorCount++;
+          console.log('error getting layout, attempt', _this29.errorCount);
+          clearTimeout(_this29.retryFn);
+          _this29.retryFn = setTimeout(function () {
+            _this29.render();
           }, 300);
         }
       });
@@ -2468,14 +2478,14 @@ var Table = /*#__PURE__*/function () {
   }, {
     key: "transformData",
     value: function transformData(page) {
-      var _this29 = this;
+      var _this30 = this;
 
       console.log('page', page);
 
       if (this.layout.qHyperCube.qMode === 'S') {
         return page.map(function (r) {
           return r.map(function (c, i) {
-            if (_this29.table.options.columns[i].showAsLink === true || _this29.table.options.columns[i].showAsNavigatorLink === true) {
+            if (_this30.table.options.columns[i].showAsLink === true || _this30.table.options.columns[i].showAsNavigatorLink === true) {
               if (c.qAttrExps && c.qAttrExps.qValues && c.qAttrExps.qValues[0].qText) {
                 c.value = c.qAttrExps.qValues[0].qText;
 
@@ -2495,16 +2505,16 @@ var Table = /*#__PURE__*/function () {
               var t = 'qDimensionInfo';
               var tIndex = i;
 
-              if (i > _this29.layout.qHyperCube.qDimensionInfo.length - 1) {
+              if (i > _this30.layout.qHyperCube.qDimensionInfo.length - 1) {
                 t = 'qMeasureInfo';
-                tIndex -= _this29.layout.qHyperCube.qDimensionInfo.length;
+                tIndex -= _this30.layout.qHyperCube.qDimensionInfo.length;
               }
 
               c.qAttrExps.qValues.forEach(function (a, aI) {
                 if (a.qText && a.qText !== '') {
-                  if (_this29.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                  if (_this30.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                     c.color = a.qText;
-                  } else if (_this29.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                  } else if (_this30.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                     c.backgroundColor = a.qText;
                   }
                 }
@@ -2880,15 +2890,15 @@ var Table2 = /*#__PURE__*/function () {
   }, {
     key: "getData",
     value: function getData(callbackFn) {
-      var _this30 = this;
+      var _this31 = this;
 
       if (this.busy === false) {
         this.busy = true;
 
         if (this.options.getAllData === true) {
           getAllData('qHyperCube', this.options.model, this.layout, function (layout) {
-            _this30.rowCount = layout.qHyperCube.qDataPages[0].qMatrix.length;
-            _this30.busy = false;
+            _this31.rowCount = layout.qHyperCube.qDataPages[0].qMatrix.length;
+            _this31.busy = false;
 
             if (callbackFn) {
               callbackFn(layout.qHyperCube.qDataPages[0].qMatrix);
@@ -2911,24 +2921,24 @@ var Table2 = /*#__PURE__*/function () {
 
             this.options.model[method]('/qHyperCubeDef', pageDefs).then(function (pages) {
               if (pages && pages[0]) {
-                if (_this30.layout.qHyperCube.qMode === 'P') {
-                  _this30.layout.qHyperCube.qPivotDataPages.push(pages[0]);
+                if (_this31.layout.qHyperCube.qMode === 'P') {
+                  _this31.layout.qHyperCube.qPivotDataPages.push(pages[0]);
 
-                  _this30.rowCount += pages[0].qData.length;
+                  _this31.rowCount += pages[0].qData.length;
                 } else {
                   pages[0].qMatrix = pages[0].qMatrix.filter(function (r) {
                     return r[0].qText !== '-';
                   });
 
-                  _this30.layout.qHyperCube.qDataPages.push(pages[0]);
+                  _this31.layout.qHyperCube.qDataPages.push(pages[0]);
 
-                  _this30.rowCount += pages[0].qMatrix.length;
+                  _this31.rowCount += pages[0].qMatrix.length;
                 }
 
-                _this30.busy = false;
+                _this31.busy = false;
 
                 if (callbackFn) {
-                  if (_this30.layout.qHyperCube.qMode === 'P') {
+                  if (_this31.layout.qHyperCube.qMode === 'P') {
                     callbackFn(pages[0]);
                   } else {
                     callbackFn(pages[0].qMatrix);
@@ -2938,12 +2948,12 @@ var Table2 = /*#__PURE__*/function () {
             }, function (err) {
               var e = err;
 
-              if (_this30.errorCount < 50) {
-                _this30.errorCount++;
-                console.log('error getting data, attempt', _this30.errorCount);
-                clearTimeout(_this30.retryFn);
-                _this30.retryFn = setTimeout(function () {
-                  _this30.getData(callbackFn);
+              if (_this31.errorCount < 50) {
+                _this31.errorCount++;
+                console.log('error getting data, attempt', _this31.errorCount);
+                clearTimeout(_this31.retryFn);
+                _this31.retryFn = setTimeout(function () {
+                  _this31.getData(callbackFn);
                 }, 300);
               } // callbackFn({err})
 
@@ -2992,11 +3002,11 @@ var Table2 = /*#__PURE__*/function () {
   }, {
     key: "handleScroll",
     value: function handleScroll(event) {
-      var _this31 = this;
+      var _this32 = this;
 
       if (event.target.scrollTop / (event.target.scrollHeight - event.target.clientHeight) > 0.7) {
         this.getData(function (page) {
-          _this31.appendRows(_this31.transformData(page));
+          _this32.appendRows(_this32.transformData(page));
         });
       }
     }
@@ -3073,7 +3083,7 @@ var Table2 = /*#__PURE__*/function () {
   }, {
     key: "prepDropdowns",
     value: function prepDropdowns() {
-      var _this32 = this;
+      var _this33 = this;
 
       // this.table.options.columns.forEach((c, i) => {
       //   if (c.searchable === true && c.searchField && this.layout[c.searchField] && this.layout[c.searchField].qListObject) {
@@ -3084,13 +3094,13 @@ var Table2 = /*#__PURE__*/function () {
       //   }
       // })
       this.layout.qHyperCube.qDimensionInfo.forEach(function (d, i) {
-        if (!_this32.dropdowns["dim".concat(i)]) {
-          _this32.dropdowns["dim".concat(i)] = new WebsyDesignsQlikPlugins.Dropdown("".concat(_this32.elementId, "_columnSearch_").concat(i), {
-            model: _this32.options.model,
+        if (!_this33.dropdowns["dim".concat(i)]) {
+          _this33.dropdowns["dim".concat(i)] = new WebsyDesignsQlikPlugins.Dropdown("".concat(_this33.elementId, "_columnSearch_").concat(i), {
+            model: _this33.options.model,
             multiSelect: true,
             closeAfterSelection: false,
             path: "dim".concat(i),
-            onClose: _this32.handleCloseSearch
+            onClose: _this33.handleCloseSearch
           });
         }
       });
@@ -3098,7 +3108,7 @@ var Table2 = /*#__PURE__*/function () {
   }, {
     key: "prepSearch",
     value: function prepSearch() {
-      var _this33 = this;
+      var _this34 = this;
 
       this.busy = true;
       this.options.model.getProperties().then(function (props) {
@@ -3122,18 +3132,18 @@ var Table2 = /*#__PURE__*/function () {
           });
         });
 
-        _this33.options.model.applyPatches(patches, true).then(function () {
-          _this33.busy = false;
-          _this33.searchPrepped = true;
+        _this34.options.model.applyPatches(patches, true).then(function () {
+          _this34.busy = false;
+          _this34.searchPrepped = true;
 
-          _this33.render();
+          _this34.render();
         });
       });
     }
   }, {
     key: "render",
     value: function render() {
-      var _this34 = this;
+      var _this35 = this;
 
       var pageNum = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
 
@@ -3146,83 +3156,83 @@ var Table2 = /*#__PURE__*/function () {
         message: 'Loading...'
       });
       this.options.model.getLayout().then(function (layout) {
-        _this34.layout = layout;
-        _this34.rowCount = pageNum * _this34.options.pageSize;
+        _this35.layout = layout;
+        _this35.rowCount = pageNum * _this35.options.pageSize;
 
-        if (_this34.layout.qHyperCube.qPivotDataPages[0]) {
-          _this34.layout.qHyperCube.qPivotDataPages = [];
+        if (_this35.layout.qHyperCube.qPivotDataPages[0]) {
+          _this35.layout.qHyperCube.qPivotDataPages = [];
         }
 
-        _this34.errorCount = 0;
-        _this34.pageNum = pageNum;
-        _this34.pageCount = Math.ceil(layout.qHyperCube.qSize.qcy / _this34.options.pageSize);
-        _this34.table.options.pageNum = _this34.pageNum;
+        _this35.errorCount = 0;
+        _this35.pageNum = pageNum;
+        _this35.pageCount = Math.ceil(layout.qHyperCube.qSize.qcy / _this35.options.pageSize);
+        _this35.table.options.pageNum = _this35.pageNum;
 
-        if (_this34.layout.qHyperCube.qNoOfLeftDims) {
-          _this34.table.options.leftColumns = _this34.options.freezeColumns || _this34.layout.qHyperCube.qNoOfLeftDims;
+        if (_this35.layout.qHyperCube.qNoOfLeftDims) {
+          _this35.table.options.leftColumns = _this35.options.freezeColumns || _this35.layout.qHyperCube.qNoOfLeftDims;
         }
 
-        _this34.table.options.pageCount = _this34.pageCount;
+        _this35.table.options.pageCount = _this35.pageCount;
 
         if (layout.qHyperCube.qError && layout.qHyperCube.qCalcCondMsg) {
-          _this34.table.hideLoading();
+          _this35.table.hideLoading();
 
-          _this34.table.showError({
-            message: _this34.options.customError || layout.qHyperCube.qCalcCondMsg
+          _this35.table.showError({
+            message: _this35.options.customError || layout.qHyperCube.qCalcCondMsg
           });
 
           return;
         }
 
-        _this34.table.hideError();
+        _this35.table.hideError();
 
-        _this34.dataWidth = _this34.layout.qHyperCube.qSize.qcx;
-        _this34.columnOrder = _this34.layout.qHyperCube.qColumnOrder;
+        _this35.dataWidth = _this35.layout.qHyperCube.qSize.qcx;
+        _this35.columnOrder = _this35.layout.qHyperCube.qColumnOrder;
 
-        if (typeof _this34.columnOrder === 'undefined') {
-          _this34.columnOrder = new Array(_this34.layout.qHyperCube.qSize.qcx).fill({}).map(function (r, i) {
+        if (typeof _this35.columnOrder === 'undefined') {
+          _this35.columnOrder = new Array(_this35.layout.qHyperCube.qSize.qcx).fill({}).map(function (r, i) {
             return i;
           });
         }
 
-        _this34.layout.qHyperCube.qDimensionInfo = _this34.layout.qHyperCube.qDimensionInfo.map(function (c, i) {
+        _this35.layout.qHyperCube.qDimensionInfo = _this35.layout.qHyperCube.qDimensionInfo.map(function (c, i) {
           c.searchable = true;
 
-          if (_this34.options.columnOverrides[i]) {
+          if (_this35.options.columnOverrides[i]) {
             c = _objectSpread(_objectSpread({}, c), {}, {
-              onSearch: _this34.handleSearch.bind(_this34),
-              onCloseSearch: _this34.handleCloseSearch.bind(_this34)
-            }, _this34.options.columnOverrides[i]);
+              onSearch: _this35.handleSearch.bind(_this35),
+              onCloseSearch: _this35.handleCloseSearch.bind(_this35)
+            }, _this35.options.columnOverrides[i]);
           }
 
           c.searchField = "dim".concat(i);
           return c;
         });
-        _this34.layout.qHyperCube.qMeasureInfo = _this34.layout.qHyperCube.qMeasureInfo.map(function (c, i) {
-          if (_this34.options.columnOverrides[_this34.layout.qHyperCube.qDimensionInfo.length + i]) {
-            c = _objectSpread(_objectSpread({}, c), _this34.options.columnOverrides[_this34.layout.qHyperCube.qDimensionInfo.length + i]);
+        _this35.layout.qHyperCube.qMeasureInfo = _this35.layout.qHyperCube.qMeasureInfo.map(function (c, i) {
+          if (_this35.options.columnOverrides[_this35.layout.qHyperCube.qDimensionInfo.length + i]) {
+            c = _objectSpread(_objectSpread({}, c), _this35.options.columnOverrides[_this35.layout.qHyperCube.qDimensionInfo.length + i]);
           }
 
           return c;
         });
 
-        var columns = _this34.layout.qHyperCube.qDimensionInfo.concat(_this34.layout.qHyperCube.qMeasureInfo);
+        var columns = _this35.layout.qHyperCube.qDimensionInfo.concat(_this35.layout.qHyperCube.qMeasureInfo);
 
-        _this34.orderedColumns = columns.map(function (c, i, a) {
-          return a[_this34.columnOrder[i]];
+        _this35.orderedColumns = columns.map(function (c, i, a) {
+          return a[_this35.columnOrder[i]];
         }).filter(function (c) {
           return !c.qError;
         });
-        _this34.dimensions = _this34.layout.qHyperCube.qDimensionInfo.filter(function (d) {
+        _this35.dimensions = _this35.layout.qHyperCube.qDimensionInfo.filter(function (d) {
           return !d.qError;
         });
-        _this34.measures = _this34.layout.qHyperCube.qMeasureInfo.filter(function (d) {
+        _this35.measures = _this35.layout.qHyperCube.qMeasureInfo.filter(function (d) {
           return !d.qError;
         });
-        var activeSort = _this34.layout.qHyperCube.qEffectiveInterColumnSortOrder[0];
+        var activeSort = _this35.layout.qHyperCube.qEffectiveInterColumnSortOrder[0];
         columns = columns.map(function (c, i) {
-          c.colIndex = _this34.columnOrder.indexOf(i);
-          c.sortIndex = _this34.columnOrder.indexOf(i);
+          c.colIndex = _this35.columnOrder.indexOf(i);
+          c.sortIndex = _this35.columnOrder.indexOf(i);
           c.name = c.qFallbackTitle;
 
           if (c.tooltip) {
@@ -3232,7 +3242,7 @@ var Table2 = /*#__PURE__*/function () {
           c.reverseSort = activeSort === c.colIndex && c.qReverseSort !== true;
           c.activeSort = activeSort === c.colIndex;
 
-          if (_this34.layout.qHyperCube.qMode === 'S') {
+          if (_this35.layout.qHyperCube.qMode === 'S') {
             if (c.qSortIndicator === 'A') {
               c.sort = 'asc';
             } else if (c.qSortIndicator === 'D') {
@@ -3245,7 +3255,7 @@ var Table2 = /*#__PURE__*/function () {
 
           if (c.searchable === true) {
             if (!c.onSearch) {
-              c.onSearch = _this34.handleSearch.bind(_this34);
+              c.onSearch = _this35.handleSearch.bind(_this35);
             }
           }
 
@@ -3255,79 +3265,79 @@ var Table2 = /*#__PURE__*/function () {
           return a.colIndex - b.colIndex;
         });
 
-        if (_this34.layout.qHyperCube.qMode === 'P') {
+        if (_this35.layout.qHyperCube.qMode === 'P') {
           columns = columns.filter(function (c, i) {
-            return i < _this34.layout.qHyperCube.qNoOfLeftDims;
+            return i < _this35.layout.qHyperCube.qNoOfLeftDims;
           });
         }
 
         columns = columns.filter(function (c) {
           return !c.qError;
         });
-        _this34.table.options.columns = columns;
+        _this35.table.options.columns = columns;
 
-        var activeDimensions = _this34.layout.qHyperCube.qDimensionInfo.filter(function (c) {
+        var activeDimensions = _this35.layout.qHyperCube.qDimensionInfo.filter(function (c) {
           return !c.qError;
         });
 
         var columnParamValues = activeDimensions.filter(function (c, i) {
-          return _this34.layout.qHyperCube.qMode === 'S' || i < _this34.layout.qHyperCube.qNoOfLeftDims;
+          return _this35.layout.qHyperCube.qMode === 'S' || i < _this35.layout.qHyperCube.qNoOfLeftDims;
         }).map(function (c, i) {
           return {
-            value: new Array(Math.max(c.qApprMaxGlyphCount, _this34.layout.qHyperCube.qDimensionInfo[i].qFallbackTitle.length)).fill('X').join(''),
+            value: new Array(Math.max(c.qApprMaxGlyphCount, _this35.layout.qHyperCube.qDimensionInfo[i].qFallbackTitle.length)).fill('X').join(''),
             width: c.width || null
           };
         });
         var measureLabel = activeDimensions.pop(); // const maxMValue = this.layout.qHyperCube.qMeasureInfo.reduce((a, b) => a.qApprMaxGlyphCount > b.qApprMaxGlyphCount ? a : b)
         // columnParamValues.push({ value: new Array(maxMValue.qApprMaxGlyphCount).fill('x').join(''), width)
 
-        columnParamValues = columnParamValues.concat(_this34.layout.qHyperCube.qMeasureInfo.filter(function (c) {
+        columnParamValues = columnParamValues.concat(_this35.layout.qHyperCube.qMeasureInfo.filter(function (c) {
           return !c.qError;
         }).map(function (c) {
           return {
-            value: new Array(_this34.layout.qHyperCube.qMode === 'S' ? c.qApprMaxGlyphCount : Math.max(c.qApprMaxGlyphCount, measureLabel.qApprMaxGlyphCount)).fill('X').join(''),
-            width: _this34.layout.qHyperCube.qMode === 'S' ? c.width || null : c.width || measureLabel.width || null
+            value: new Array(_this35.layout.qHyperCube.qMode === 'S' ? c.qApprMaxGlyphCount : Math.max(c.qApprMaxGlyphCount, measureLabel.qApprMaxGlyphCount)).fill('X').join(''),
+            width: _this35.layout.qHyperCube.qMode === 'S' ? c.width || null : c.width || measureLabel.width || null
           };
         }));
-        _this34.columnParams = _this34.table.getColumnParameters(columnParamValues);
+        _this35.columnParams = _this35.table.getColumnParameters(columnParamValues);
 
         for (var i = 0; i < columns.length; i++) {
-          columns[i].width = "".concat(_this34.columnParams.cellWidths[i] || _this34.columnParams.cellWidths[_this34.columnParams.cellWidths.length - 1], "px");
+          columns[i].width = "".concat(_this35.columnParams.cellWidths[i] || _this35.columnParams.cellWidths[_this35.columnParams.cellWidths.length - 1], "px");
         } // this.columnsToRender = Math.ceil(this.columnParams.availableWidth / this.columnParams.cellWidth)
 
 
-        _this34.rowsToRender = Math.ceil(_this34.columnParams.availableHeight / _this34.columnParams.cellHeight);
+        _this35.rowsToRender = Math.ceil(_this35.columnParams.availableHeight / _this35.columnParams.cellHeight);
 
-        _this34.getData(function (page) {
-          _this34.table.options.activeSort = activeSort;
+        _this35.getData(function (page) {
+          _this35.table.options.activeSort = activeSort;
 
-          _this34.table.hideLoading();
+          _this35.table.hideLoading();
 
-          if (_this34.layout.qHyperCube.qMode === 'S') {
-            _this34.table.render();
+          if (_this35.layout.qHyperCube.qMode === 'S') {
+            _this35.table.render();
 
-            _this34.prepDropdowns();
+            _this35.prepDropdowns();
           }
 
           if (page.err) {
-            var tableEl = document.getElementById("".concat(_this34.elementId, "_foot"));
+            var tableEl = document.getElementById("".concat(_this35.elementId, "_foot"));
             tableEl.innerHTML = "\n            <div class='request-abort-error'>Could not fetch data. Click <strong class='table-try-again'>here</strong> to try again</div>\n          ";
           } else {
-            _this34.fullData = page;
+            _this35.fullData = page;
 
-            _this34.resize();
+            _this35.resize();
           }
         });
       }, function (err) {
         // try again      
         var e = err;
 
-        if (_this34.errorCount < 50) {
-          _this34.errorCount++;
-          console.log('error getting layout, attempt', _this34.errorCount);
-          clearTimeout(_this34.retryFn);
-          _this34.retryFn = setTimeout(function () {
-            _this34.render();
+        if (_this35.errorCount < 50) {
+          _this35.errorCount++;
+          console.log('error getting layout, attempt', _this35.errorCount);
+          clearTimeout(_this35.retryFn);
+          _this35.retryFn = setTimeout(function () {
+            _this35.render();
           }, 300);
         }
       });
@@ -3351,12 +3361,12 @@ var Table2 = /*#__PURE__*/function () {
   }, {
     key: "transformData",
     value: function transformData(page) {
-      var _this35 = this;
+      var _this36 = this;
 
       if (this.layout.qHyperCube.qMode === 'S') {
         return page.map(function (r) {
           return r.map(function (c, i) {
-            if (_this35.table.options.columns[i].showAsLink === true || _this35.table.options.columns[i].showAsNavigatorLink === true) {
+            if (_this36.table.options.columns[i].showAsLink === true || _this36.table.options.columns[i].showAsNavigatorLink === true) {
               if (c.qAttrExps && c.qAttrExps.qValues && c.qAttrExps.qValues[0].qText) {
                 c.value = c.qAttrExps.qValues[0].qText;
 
@@ -3381,9 +3391,9 @@ var Table2 = /*#__PURE__*/function () {
 
               c.qAttrExps.qValues.forEach(function (a, aI) {
                 if (a.qText && a.qText !== '') {
-                  if (_this35.orderedColumns[tIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                  if (_this36.orderedColumns[tIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                     c.color = a.qText;
-                  } else if (_this35.orderedColumns[tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                  } else if (_this36.orderedColumns[tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                     c.backgroundColor = a.qText;
                   }
                 }
@@ -3455,7 +3465,7 @@ var Table2 = /*#__PURE__*/function () {
   }, {
     key: "transformPivotTable",
     value: function transformPivotTable(page) {
-      var _this36 = this;
+      var _this37 = this;
 
       var output = [];
       var leftNodes = [];
@@ -3477,7 +3487,7 @@ var Table2 = /*#__PURE__*/function () {
       }
 
       leftNodes[0] && leftNodes[0].forEach(function (c, i) {
-        c.width = _this36.columnParams.cellWidths[i];
+        c.width = _this37.columnParams.cellWidths[i];
       });
       var scrollableColumns = this.layout.qHyperCube.qSize.qcx; // - (this.options.freezeColumns || this.layout.qHyperCube.qNoOfLeftDims)
 
@@ -3499,7 +3509,7 @@ var Table2 = /*#__PURE__*/function () {
         left: 0
       });
       topNodesTransposed[topNodesTransposed.length - 1].forEach(function (c, i) {
-        c.width = "".concat(_this36.columnParams.cellWidths[(_this36.options.freezeColumns || _this36.layout.qHyperCube.qNoOfLeftDims) + i] || _this36.columnParams.cellWidths[_this36.columnParams.cellWidths.length - 1], "px");
+        c.width = "".concat(_this37.columnParams.cellWidths[(_this37.options.freezeColumns || _this37.layout.qHyperCube.qNoOfLeftDims) + i] || _this37.columnParams.cellWidths[_this37.columnParams.cellWidths.length - 1], "px");
       });
 
       for (var r = 0; r < page.qData.length; r++) {
@@ -3562,7 +3572,7 @@ var Table2 = /*#__PURE__*/function () {
             }).map(function (d, dI) {
               return _extends({}, d, {
                 name: d.qFallbackTitle,
-                width: "".concat(_this36.columnParams.cellWidths[dI] || _this36.columnParams.cellWidths[_this36.columnParams.cellWidths.length - 1], "px")
+                width: "".concat(_this37.columnParams.cellWidths[dI] || _this37.columnParams.cellWidths[_this37.columnParams.cellWidths.length - 1], "px")
               });
             }).concat(topNodesTransposed[_i12]);
           } else {
@@ -3756,7 +3766,7 @@ var Table2 = /*#__PURE__*/function () {
 
 var Table3 = /*#__PURE__*/function () {
   function Table3(elementId, options) {
-    var _this37 = this;
+    var _this38 = this;
 
     _classCallCheck(this, Table3);
 
@@ -3813,20 +3823,24 @@ var Table3 = /*#__PURE__*/function () {
         onSetPage: this.setPageNum.bind(this),
         onScrollX: this.handleVirtualScrollX.bind(this)
       }, this.options));
-      this.rowList = new WebsyDesigns.DragDrop("".concat(this.elementId, "_pivotRows"), {
-        group: this.elementId,
-        items: [],
-        onItemAdded: function onItemAdded() {
-          _this37.updatePivotStructure();
-        }
-      });
-      this.columnList = new WebsyDesigns.DragDrop("".concat(this.elementId, "_pivotColumns"), {
-        group: this.elementId,
-        items: [],
-        onItemAdded: function onItemAdded() {
-          _this37.updatePivotStructure();
-        }
-      });
+
+      if (this.options.allowPivoting === true) {
+        this.rowList = new WebsyDesigns.DragDrop("".concat(this.elementId, "_pivotRows"), {
+          group: this.elementId,
+          items: [],
+          onItemAdded: function onItemAdded() {
+            _this38.updatePivotStructure();
+          }
+        });
+        this.columnList = new WebsyDesigns.DragDrop("".concat(this.elementId, "_pivotColumns"), {
+          group: this.elementId,
+          items: [],
+          onItemAdded: function onItemAdded() {
+            _this38.updatePivotStructure();
+          }
+        });
+      }
+
       el.addEventListener('click', this.handleClick.bind(this));
     }
 
@@ -3842,7 +3856,7 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "buildPivotColumns",
     value: function buildPivotColumns() {
-      var _this38 = this;
+      var _this39 = this;
 
       var pData = this.transformPivotTable(this.layout.qHyperCube.qPivotDataPages[0]);
       this.pinnedColumns = this.layout.qHyperCube.qNoOfLeftDims;
@@ -3941,24 +3955,24 @@ var Table3 = /*#__PURE__*/function () {
             isQlikPlugin: true,
             dim: dim,
             dimId: dimId,
-            options: _extends({}, _this38.options.dropdownOptions)
+            options: _extends({}, _this39.options.dropdownOptions)
           };
         });
         this.rowList.render();
         this.rowList.options.items.forEach(function (d, i) {
-          if (!_this38.dropdowns[d.dimId]) {
-            _this38.options.app.createSessionObject({
+          if (!_this39.dropdowns[d.dimId]) {
+            _this39.options.app.createSessionObject({
               qInfo: {
                 qType: 'table-dropdown'
               },
               qListObjectDef: d.dim
             }).then(function (model) {
-              _this38.dropdowns[d.dimId] = model;
+              _this39.dropdowns[d.dimId] = model;
               d.instance.options.model = model;
               d.instance.render();
             });
           } else {
-            d.instance.options.model = _this38.dropdowns[d.dimId];
+            d.instance.options.model = _this39.dropdowns[d.dimId];
             d.instance.render();
           }
         });
@@ -3969,24 +3983,24 @@ var Table3 = /*#__PURE__*/function () {
             isQlikPlugin: true,
             dim: dim,
             dimId: dimId,
-            options: _extends({}, _this38.options.dropdownOptions)
+            options: _extends({}, _this39.options.dropdownOptions)
           };
         });
         this.columnList.render();
         this.columnList.options.items.forEach(function (d, i) {
-          if (!_this38.dropdowns[d.dimId]) {
-            _this38.options.app.createSessionObject({
+          if (!_this39.dropdowns[d.dimId]) {
+            _this39.options.app.createSessionObject({
               qInfo: {
                 qType: 'table-dropdown'
               },
               qListObjectDef: d.dim
             }).then(function (model) {
-              _this38.dropdowns[d.dimId] = model;
+              _this39.dropdowns[d.dimId] = model;
               d.instance.options.model = model;
               d.instance.render();
             });
           } else {
-            d.instance.options.model = _this38.dropdowns[d.dimId];
+            d.instance.options.model = _this39.dropdowns[d.dimId];
             d.instance.render();
           }
         });
@@ -4001,13 +4015,17 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "buildStraightColumnsAndTotals",
     value: function buildStraightColumnsAndTotals() {
-      var _this39 = this;
+      var _this40 = this;
 
       // used for straight tables
-      this.columns = this.layout.qHyperCube.qDimensionInfo.concat(this.layout.qHyperCube.qMeasureInfo);
+      this.columns = this.layout.qHyperCube.qDimensionInfo.concat(this.layout.qHyperCube.qMeasureInfo); // append the column definitions
+
+      this.properties.qHyperCubeDef.qDimensions.concat(this.properties.qHyperCubeDef.qMeasures).forEach(function (cDef, i) {
+        _this40.columns[i].def = cDef;
+      });
       var activeSort = this.layout.qHyperCube.qEffectiveInterColumnSortOrder[0];
       this.columns = this.columns.map(function (c, i) {
-        c.colIndex = _this39.columnOrder.indexOf(i);
+        c.colIndex = _this40.columnOrder.indexOf(i);
         c.name = c.qFallbackTitle;
 
         if (c.tooltip) {
@@ -4017,7 +4035,7 @@ var Table3 = /*#__PURE__*/function () {
         c.reverseSort = activeSort === i && c.qReverseSort !== true;
         c.activeSort = activeSort === i;
 
-        if (_this39.layout.qHyperCube.qMode === 'S') {
+        if (_this40.layout.qHyperCube.qMode === 'S') {
           if (c.qSortIndicator === 'A') {
             c.sort = 'asc';
           } else if (c.qSortIndicator === 'D') {
@@ -4028,9 +4046,15 @@ var Table3 = /*#__PURE__*/function () {
         // }
 
 
-        if (c.searchable === true) {
+        if (c.searchable !== false && i < _this40.layout.qHyperCube.qDimensionInfo.length) {
+          c.searchable = true;
+
           if (!c.onSearch) {
-            c.onSearch = _this39.handleSearch.bind(_this39);
+            c.isExternalSearch = true;
+            var dimId = c.def.qLibraryId || c.def.qDef.qFieldDefs[0];
+            c.dimId = c.cId || dimId;
+            c.onSearch = _this40.handleSearch.bind(_this40);
+            c.onCloseSearch = _this40.handleCloseSearch.bind(_this40);
           }
         }
 
@@ -4068,10 +4092,10 @@ var Table3 = /*#__PURE__*/function () {
         return !c.qError;
       });
       this.columnParamValues = activeDimensions.filter(function (c, i) {
-        return _this39.layout.qHyperCube.qMode === 'S' || i < _this39.layout.qHyperCube.qNoOfLeftDims;
+        return _this40.layout.qHyperCube.qMode === 'S' || i < _this40.layout.qHyperCube.qNoOfLeftDims;
       }).map(function (c, i) {
         return {
-          value: new Array(Math.max(c.qApprMaxGlyphCount, _this39.layout.qHyperCube.qDimensionInfo[i].qFallbackTitle.length)).fill('X').join(''),
+          value: new Array(Math.max(c.qApprMaxGlyphCount, _this40.layout.qHyperCube.qDimensionInfo[i].qFallbackTitle.length)).fill('X').join(''),
           width: c.width || null
         };
       });
@@ -4098,6 +4122,33 @@ var Table3 = /*#__PURE__*/function () {
       }
 
       this.table.calculateSizes(this.columnParamValues, this.layout.qHyperCube.qSize.qcy, this.layout.qHyperCube.qSize.qcx, this.pinnedColumns);
+      this.columns.forEach(function (c, i) {
+        if (c.searchable) {
+          if (c.isExternalSearch === true) {
+            if (!_this40.dropdowns[c.dimId]) {
+              _this40.options.app.createSessionObject({
+                qInfo: {
+                  qType: 'table-dropdown'
+                },
+                qListObjectDef: c.def
+              }).then(function (model) {
+                _this40.dropdowns[c.dimId] = new WebsyDesigns.QlikPlugin.Dropdown("".concat(_this40.elementId, "_tableContainer_columnSearch_").concat(c.dimId || i), {
+                  model: model,
+                  multiSelect: true,
+                  closeAfterSelection: false,
+                  onClose: _this40.handleCloseSearch
+                });
+                model.on('changed', function () {
+                  _this40.dropdowns[c.dimId].render();
+                }); // d.instance.options.model = model
+                // d.instance.render()
+              });
+            } else {// d.instance.options.model = this.dropdowns[d.dimId]
+              // d.instance.render()
+            }
+          }
+        }
+      });
       this.table.options.activeSort = activeSort;
       console.log('column params', this.columnParamValues);
     }
@@ -4122,18 +4173,18 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "checkDataExists",
     value: function checkDataExists(start, end) {
-      var _this40 = this;
+      var _this41 = this;
 
       return new Promise(function (resolve, reject) {
-        if (_this40.layout.qHyperCube.qMode === 'P' && _this40.layout.qHyperCube.qIndentMode !== true) {
-          _this40.getData(start, function () {
+        if (_this41.layout.qHyperCube.qMode === 'P' && _this41.layout.qHyperCube.qIndentMode !== true) {
+          _this41.getData(start, function () {
             resolve();
           });
         } else {
           var top = -1;
 
           for (var i = start; i < end; i++) {
-            if (_this40.rowIndexList.indexOf(i) === -1) {
+            if (_this41.rowIndexList.indexOf(i) === -1) {
               top = i;
               break;
             }
@@ -4142,11 +4193,11 @@ var Table3 = /*#__PURE__*/function () {
           console.log('slicing pre', top);
 
           if (top < end && top !== -1) {
-            _this40.getData(top, function () {
+            _this41.getData(top, function () {
               resolve();
             }, true);
           } else if (top !== -1) {
-            _this40.getData(top, function () {}, true);
+            _this41.getData(top, function () {}, true);
 
             resolve();
           } else {
@@ -4158,7 +4209,7 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "getData",
     value: function getData() {
-      var _this41 = this;
+      var _this42 = this;
 
       var top = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
       var callbackFn = arguments.length > 1 ? arguments[1] : undefined;
@@ -4170,7 +4221,7 @@ var Table3 = /*#__PURE__*/function () {
         if (this.options.getAllData === true) {
           getAllData('qHyperCube', this.options.model, this.layout, function (layout) {
             // this.rowCount = layout.qHyperCube.qDataPages[0].qMatrix.length
-            _this41.busy = false;
+            _this42.busy = false;
 
             if (callbackFn) {
               callbackFn(layout.qHyperCube.qDataPages[0].qMatrix);
@@ -4193,10 +4244,10 @@ var Table3 = /*#__PURE__*/function () {
 
             this.options.model[method]('/qHyperCubeDef', pageDefs).then(function (pages) {
               if (pages) {
-                var _this41$fullData;
+                var _this42$fullData;
 
-                if (_this41.layout.qHyperCube.qMode === 'P') {
-                  var pData = _this41.transformPivotTable(pages[0]);
+                if (_this42.layout.qHyperCube.qMode === 'P') {
+                  var pData = _this42.transformPivotTable(pages[0]);
 
                   pages[0].qMatrix = pData.data;
                   console.log('pdata', pData); // this.fullData.push(pages[0])
@@ -4205,23 +4256,23 @@ var Table3 = /*#__PURE__*/function () {
                 // pages[0].qMatrix = pages[0].qMatrix.filter(r => r[0].qText !== '-')
 
 
-                (_this41$fullData = _this41.fullData).splice.apply(_this41$fullData, [pages[0].qArea.qTop, pages[0].qArea.qHeight].concat(_toConsumableArray(pages[0].qMatrix)));
+                (_this42$fullData = _this42.fullData).splice.apply(_this42$fullData, [pages[0].qArea.qTop, pages[0].qArea.qHeight].concat(_toConsumableArray(pages[0].qMatrix)));
 
                 for (var i = 0; i < pages[0].qArea.qHeight; i++) {
-                  if (_this41.rowIndexList.indexOf(pages[0].qArea.qTop + i) === -1) {
-                    _this41.rowIndexList.push(pages[0].qArea.qTop + i);
+                  if (_this42.rowIndexList.indexOf(pages[0].qArea.qTop + i) === -1) {
+                    _this42.rowIndexList.push(pages[0].qArea.qTop + i);
                   }
                 }
 
-                _this41.rowIndexList.sort(function (a, b) {
+                _this42.rowIndexList.sort(function (a, b) {
                   return a - b;
                 }); // }
 
 
-                _this41.busy = false;
+                _this42.busy = false;
 
                 if (callbackFn) {
-                  if (_this41.layout.qHyperCube.qMode === 'P') {
+                  if (_this42.layout.qHyperCube.qMode === 'P') {
                     callbackFn(pages[0]);
                   } else {
                     callbackFn(pages[0].qMatrix);
@@ -4231,18 +4282,19 @@ var Table3 = /*#__PURE__*/function () {
             }, function (err) {
               var e = err;
 
-              if (_this41.errorCount < 50) {
-                _this41.errorCount++;
-                console.log('error getting data, attempt', _this41.errorCount);
-                clearTimeout(_this41.retryFn);
-                _this41.retryFn = setTimeout(function () {
-                  _this41.getData(top, callbackFn);
+              if (_this42.errorCount < 50) {
+                _this42.errorCount++;
+                console.log('error getting data, attempt', _this42.errorCount);
+                clearTimeout(_this42.retryFn);
+                _this42.retryFn = setTimeout(function () {
+                  _this42.getData(top, callbackFn);
                 }, 300);
               } // callbackFn({err})
 
             });
           } else {
             this.busy = false;
+            callbackFn();
           }
         }
       }
@@ -4285,37 +4337,37 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "handleScroll",
     value: function handleScroll(direction, startRow, endRow, startCol, endCol) {
-      var _this42 = this;
+      var _this43 = this;
 
       this.startCol = startCol;
       this.endCol = endCol;
       console.log('handle scroll plugin', direction, startRow, endRow, startCol, endCol);
       this.checkDataExists(startRow, endRow).then(function () {
-        if (_this42.columns && _this42.columns.length > 0) {
-          if (_this42.layout.qHyperCube.qMode === 'S') {
-            var columnsInView = _this42.columns.filter(function (c, i) {
-              return i < _this42.pinnedColumns || i >= startCol && i <= endCol;
+        if (_this43.columns && _this43.columns.length > 0) {
+          if (_this43.layout.qHyperCube.qMode === 'S') {
+            var columnsInView = _this43.columns.filter(function (c, i) {
+              return i < _this43.pinnedColumns || i >= startCol && i <= endCol;
             });
 
-            _this42.table.columns = [columnsInView];
+            _this43.table.columns = [columnsInView];
           } else {
-            var _columnsInView = _this42.columns;
-            _this42.table.columns = _columnsInView;
+            var _columnsInView = _this43.columns;
+            _this43.table.columns = _columnsInView;
           }
         }
 
-        if (_this42.totals && _this42.totals.length > 0) {
-          var totalsInView = _this42.totals.filter(function (c, i) {
-            return i < _this42.pinnedColumns || i >= startCol && i <= endCol;
+        if (_this43.totals && _this43.totals.length > 0) {
+          var totalsInView = _this43.totals.filter(function (c, i) {
+            return i < _this43.pinnedColumns || i >= startCol && i <= endCol;
           });
 
-          _this42.table.totals = totalsInView;
+          _this43.table.totals = totalsInView;
         } // console.log('slicing data', this.fullData.slice(startRow, endRow + 1))
 
 
-        _this42.appendRows(_this42.transformData(_this42.fullData.slice(startRow, endRow + 1).map(function (row) {
+        _this43.appendRows(_this43.transformData(_this43.fullData.slice(startRow, endRow + 1).map(function (row) {
           return row.filter(function (c, i) {
-            return i < _this42.pinnedColumns || i >= startCol && i <= endCol;
+            return i < _this43.pinnedColumns || i >= startCol && i <= endCol;
           });
         })));
       });
@@ -4325,14 +4377,14 @@ var Table3 = /*#__PURE__*/function () {
     value: function handleSearch(event, column) {
       console.log(event, column);
 
-      if (this.dropdowns[column.searchField]) {
-        var el = document.getElementById("".concat(this.elementId, "_columnSearch_").concat(event.target.getAttribute('data-col-index')));
+      if (this.dropdowns[column.dimId]) {
+        var el = document.getElementById("".concat(this.elementId, "_tableContainer_columnSearch_").concat(column.dimId));
 
         if (el) {
           el.classList.toggle('active');
           el.style.top = "".concat(event.pageY, "px");
           el.style.right = "calc(100vw - ".concat(event.pageX + event.target.offsetWidth, "px)");
-          this.dropdowns[column.searchField].open();
+          this.dropdowns[column.dimId].open();
         }
       }
     }
@@ -4435,7 +4487,7 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "render",
     value: function render() {
-      var _this43 = this;
+      var _this44 = this;
 
       var pageNum = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
       // if (this.searchPrepped === false) {
@@ -4446,104 +4498,109 @@ var Table3 = /*#__PURE__*/function () {
         message: 'Loading...'
       });
       this.options.model.getLayout().then(function (layout) {
-        _this43.options.model.getEffectiveProperties().then(function (props) {
-          _this43.properties = props;
-          console.log('table 3 plugin layout', layout);
-          _this43.endCol = layout.qHyperCube.qSize.qcx + layout.qHyperCube.qNoOfLeftDims;
-          _this43.layout = layout;
+        _this44.options.model.getEffectiveProperties().then(function (props) {
+          _this44.properties = props;
 
-          _this43.buildDataStructure(); // this.rowCount = pageNum * this.options.pageSize
+          if (_this44.options.onUpdate) {
+            _this44.options.onUpdate(props, layout);
+          }
+
+          console.log('table 3 plugin layout', layout);
+          _this44.endCol = layout.qHyperCube.qSize.qcx + layout.qHyperCube.qNoOfLeftDims;
+          _this44.layout = layout;
+
+          _this44.buildDataStructure(); // this.rowCount = pageNum * this.options.pageSize
           // if (this.layout.qHyperCube.qPivotDataPages[0]) {
           //   this.layout.qHyperCube.qPivotDataPages = []
           // }
 
 
-          _this43.errorCount = 0;
-          _this43.pageNum = pageNum;
-          _this43.pageCount = Math.ceil(layout.qHyperCube.qSize.qcy / _this43.options.pageSize);
-          _this43.table.options.pageNum = _this43.pageNum;
+          _this44.errorCount = 0;
+          _this44.pageNum = pageNum;
+          _this44.pageCount = Math.ceil(layout.qHyperCube.qSize.qcy / _this44.options.pageSize);
+          _this44.table.options.pageNum = _this44.pageNum;
 
-          if (_this43.layout.qHyperCube.qNoOfLeftDims) {
-            _this43.table.options.leftColumns = _this43.options.freezeColumns || _this43.layout.qHyperCube.qNoOfLeftDims;
+          if (_this44.layout.qHyperCube.qNoOfLeftDims) {
+            _this44.table.options.leftColumns = _this44.options.freezeColumns || _this44.layout.qHyperCube.qNoOfLeftDims;
           }
 
-          _this43.table.options.pageCount = _this43.pageCount;
+          _this44.table.options.pageCount = _this44.pageCount;
 
           if (layout.qHyperCube.qError && layout.qHyperCube.qCalcCondMsg) {
-            _this43.table.hideLoading();
+            _this44.table.hideLoading();
 
-            _this43.table.showError({
-              message: _this43.options.customError || layout.qHyperCube.qCalcCondMsg
+            _this44.table.showError({
+              message: _this44.options.customError || layout.qHyperCube.qCalcCondMsg
             });
 
             return;
           }
 
-          _this43.table.hideError();
+          _this44.table.hideError();
 
-          _this43.dataWidth = _this43.layout.qHyperCube.qSize.qcx;
-          _this43.columnOrder = _this43.layout.qHyperCube.qColumnOrder;
+          _this44.dataWidth = _this44.layout.qHyperCube.qSize.qcx;
+          _this44.columnOrder = _this44.layout.qHyperCube.qColumnOrder;
 
-          if (typeof _this43.columnOrder === 'undefined') {
-            _this43.columnOrder = new Array(_this43.layout.qHyperCube.qSize.qcx).fill({}).map(function (r, i) {
+          if (typeof _this44.columnOrder === 'undefined') {
+            _this44.columnOrder = new Array(_this44.layout.qHyperCube.qSize.qcx).fill({}).map(function (r, i) {
               return i;
             });
           }
 
-          _this43.layout.qHyperCube.qDimensionInfo = _this43.layout.qHyperCube.qDimensionInfo.map(function (c, i) {
+          _this44.layout.qHyperCube.qDimensionInfo = _this44.layout.qHyperCube.qDimensionInfo.map(function (c, i) {
             c.searchable = true;
 
-            if (_this43.options.columnOverrides[i]) {
+            if (_this44.options.columnOverrides[i]) {
               c = _objectSpread(_objectSpread({}, c), {}, {
-                onSearch: _this43.handleSearch.bind(_this43),
-                onCloseSearch: _this43.handleCloseSearch.bind(_this43)
-              }, _this43.options.columnOverrides[i]);
+                onSearch: _this44.handleSearch.bind(_this44),
+                onCloseSearch: _this44.handleCloseSearch.bind(_this44)
+              }, _this44.options.columnOverrides[i]);
             }
 
             c.searchField = "dim".concat(i);
             return c;
           });
-          _this43.layout.qHyperCube.qMeasureInfo = _this43.layout.qHyperCube.qMeasureInfo.map(function (c, i) {
-            if (_this43.options.columnOverrides[_this43.layout.qHyperCube.qDimensionInfo.length + i]) {
-              c = _objectSpread(_objectSpread({}, c), _this43.options.columnOverrides[_this43.layout.qHyperCube.qDimensionInfo.length + i]);
+          _this44.layout.qHyperCube.qMeasureInfo = _this44.layout.qHyperCube.qMeasureInfo.map(function (c, i) {
+            if (_this44.options.columnOverrides[_this44.layout.qHyperCube.qDimensionInfo.length + i]) {
+              c = _objectSpread(_objectSpread({}, c), _this44.options.columnOverrides[_this44.layout.qHyperCube.qDimensionInfo.length + i]);
             }
 
             return c;
           });
 
-          if (_this43.layout.qHyperCube.qMode === 'S') {
-            _this43.buildStraightColumnsAndTotals();
+          if (_this44.layout.qHyperCube.qMode === 'S') {
+            _this44.buildStraightColumnsAndTotals();
           } else {
-            _this43.buildPivotColumns();
+            _this44.buildPivotColumns();
           }
 
-          _this43.getData(0, function (page) {
-            _this43.table.hideLoading(); // if (this.layout.qHyperCube.qMode === 'S') {
+          _this44.getData(0, function (page) {
+            _this44.table.hideLoading(); // if (this.layout.qHyperCube.qMode === 'S') {
 
 
-            _this43.table.render([], false);
+            _this44.table.render([], false);
 
-            _this43.prepDropdowns(); // }        
+            _this44.prepDropdowns(); // }        
 
 
             if (page.err) {
-              var tableEl = document.getElementById("".concat(_this43.elementId, "_foot"));
+              var tableEl = document.getElementById("".concat(_this44.elementId, "_foot"));
               tableEl.innerHTML = "\n              <div class='request-abort-error'>Could not fetch data. Click <strong class='table-try-again'>here</strong> to try again</div>\n            ";
             } else {
               // this.fullData = page
-              _this43.resize();
+              _this44.resize();
             }
           });
         }, function (err) {
           // try again      
           var e = err;
 
-          if (_this43.errorCount < 50) {
-            _this43.errorCount++;
-            console.log('error getting layout, attempt', _this43.errorCount);
-            clearTimeout(_this43.retryFn);
-            _this43.retryFn = setTimeout(function () {
-              _this43.render();
+          if (_this44.errorCount < 50) {
+            _this44.errorCount++;
+            console.log('error getting layout, attempt', _this44.errorCount);
+            clearTimeout(_this44.retryFn);
+            _this44.retryFn = setTimeout(function () {
+              _this44.render();
             }, 300);
           }
         });
@@ -4568,12 +4625,12 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "transformData",
     value: function transformData(page) {
-      var _this44 = this;
+      var _this45 = this;
 
       // if (this.layout.qHyperCube.qMode === 'S') {      
       return page.map(function (r) {
         return r.map(function (c, i) {
-          if (_this44.table.options.columns[_this44.table.options.columns.length - 1][i] && (_this44.table.options.columns[_this44.table.options.columns.length - 1][i].showAsLink === true || _this44.table.options.columns[_this44.table.options.columns.length - 1][i].showAsNavigatorLink === true)) {
+          if (_this45.table.options.columns[_this45.table.options.columns.length - 1][i] && (_this45.table.options.columns[_this45.table.options.columns.length - 1][i].showAsLink === true || _this45.table.options.columns[_this45.table.options.columns.length - 1][i].showAsNavigatorLink === true)) {
             if (c.qAttrExps && c.qAttrExps.qValues && c.qAttrExps.qValues[0].qText) {
               c.value = c.qAttrExps.qValues[0].qText;
 
@@ -4590,19 +4647,17 @@ var Table3 = /*#__PURE__*/function () {
           }
 
           if (c.qAttrExps && c.qAttrExps.qValues) {
-            var t = 'qDimensionInfo';
-            var tIndex = i;
-
-            if (i > _this44.layout.qHyperCube.qDimensionInfo.length - 1) {
-              t = 'qMeasureInfo';
-              tIndex -= _this44.layout.qHyperCube.qDimensionInfo.length;
-            }
+            // let t = 'qDimensionInfo'
+            var tIndex = i + (_this45.startCol || 0); // if (i > this.layout.qHyperCube.qDimensionInfo.length - 1) {
+            //   t = 'qMeasureInfo'
+            //   tIndex -= this.layout.qHyperCube.qDimensionInfo.length
+            // }
 
             c.qAttrExps.qValues.forEach(function (a, aI) {
               if (a.qText && a.qText !== '') {
-                if (_this44.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI] && _this44.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                if (_this45.columns[tIndex].qAttrExprInfo[aI] && _this45.columns[tIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                   c.color = a.qText;
-                } else if (_this44.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI] && _this44.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                } else if (_this45.columns[tIndex].qAttrExprInfo[aI] && _this45.columns[tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                   c.backgroundColor = a.qText;
                 }
               }
@@ -4798,8 +4853,7 @@ var Table3 = /*#__PURE__*/function () {
           if (o.qElemNo === -1) {
             o.qText = 'Totals';
           } else if (o.qElemNo === -4) {
-            o.qText = '';
-            o.qType = 'T';
+            o.qText = ''; // o.qType = 'T'
           }
         }
 
@@ -4814,7 +4868,7 @@ var Table3 = /*#__PURE__*/function () {
             o.style = "padding-left: ".concat(level * 20, "px;");
           }
 
-          if (o.qType !== 'T') {
+          if (o.qType !== 'E') {
             leftNodes.push([o]);
           }
 
@@ -4994,6 +5048,11 @@ var Table3 = /*#__PURE__*/function () {
         qPath: '/qHyperCubeDef/qDimensions',
         qValue: JSON.stringify(dims)
       }];
+
+      if (this.options.onPivot) {
+        this.options.onPivot();
+      }
+
       this.options.model.applyPatches(patchDefs, true);
     }
   }]);
@@ -5145,14 +5204,14 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "init",
       value: function init() {
-        var _this45 = this;
+        var _this46 = this;
 
         return new Promise(function (resolve, reject) {
-          _this45.prep('global');
+          _this46.prep('global');
 
-          _this45.connectToApp().then(function () {
-            _this45.executeAction(0, _this45.options.initialActions, function () {
-              _this45.selectFromUrl(function () {
+          _this46.connectToApp().then(function () {
+            _this46.executeAction(0, _this46.options.initialActions, function () {
+              _this46.selectFromUrl(function () {
                 resolve();
               });
             });
@@ -5233,7 +5292,7 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "prep",
       value: function prep(view) {
-        var _this46 = this;
+        var _this47 = this;
 
         // for (let view in this.options.views) {
         // sort out the elements in each view
@@ -5255,29 +5314,29 @@ if (typeof WebsyDesigns !== 'undefined') {
 
 
         var _loop = function _loop(a) {
-          var el = document.getElementById(_this46.options.actions[a].elementId);
+          var el = document.getElementById(_this47.options.actions[a].elementId);
 
           if (el) {
-            el.addEventListener(_this46.options.actions[a].event, function () {
+            el.addEventListener(_this47.options.actions[a].event, function () {
               var _loop2 = function _loop2(i) {
-                var item = _this46.options.actions[a].items[i];
+                var item = _this47.options.actions[a].items[i];
 
                 if (typeof item.params === 'undefined') {
                   item.params = [];
                 }
 
                 if (item.field) {
-                  _this46.app.getField(item.field).then(function (field) {
+                  _this47.app.getField(item.field).then(function (field) {
                     field[item.method].apply(field, _toConsumableArray(item.params));
                   });
                 } else {
-                  var _this46$app;
+                  var _this47$app;
 
-                  (_this46$app = _this46.app)[item.method].apply(_this46$app, _toConsumableArray(item.params));
+                  (_this47$app = _this47.app)[item.method].apply(_this47$app, _toConsumableArray(item.params));
                 }
               };
 
-              for (var i = 0; i < _this46.options.actions[a].items.length; i++) {
+              for (var i = 0; i < _this47.options.actions[a].items.length; i++) {
                 _loop2(i);
               }
             });
@@ -5293,14 +5352,14 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "connectToApp",
       value: function connectToApp() {
-        var _this47 = this;
+        var _this48 = this;
 
         return new Promise(function (resolve, reject) {
           // check for enigma.js      
-          var originalId = _this47.options.enigmaConfig.app;
+          var originalId = _this48.options.enigmaConfig.app;
 
-          if (_this47.options.enigmaConfig.app) {
-            _this47.options.enigmaConfig.app = _this47.normalizeId(_this47.options.enigmaConfig.app);
+          if (_this48.options.enigmaConfig.app) {
+            _this48.options.enigmaConfig.app = _this48.normalizeId(_this48.options.enigmaConfig.app);
           }
 
           if (typeof enigma === 'undefined') {
@@ -5310,46 +5369,46 @@ if (typeof WebsyDesigns !== 'undefined') {
             return;
           }
 
-          if (typeof _this47.options.enigmaSchema === 'undefined') {
+          if (typeof _this48.options.enigmaSchema === 'undefined') {
             reject({
               error: 'enigmaSchema property not found.'
             });
             return;
           }
 
-          var url = _this47.options.enigmaConfig.url;
+          var url = _this48.options.enigmaConfig.url;
 
-          if (_this47.options.enigmaConfig.ticket) {
+          if (_this48.options.enigmaConfig.ticket) {
             if (url.indexOf('?') === -1) {
               url += '?';
             } else {
               url += '&';
             }
 
-            url += "qlikTicket=".concat(_this47.options.enigmaConfig.ticket);
+            url += "qlikTicket=".concat(_this48.options.enigmaConfig.ticket);
           }
 
           var config = {
-            schema: _this47.options.enigmaSchema,
+            schema: _this48.options.enigmaSchema,
             url: url
           };
           var session = enigma.create(config);
-          _this47.session = session;
+          _this48.session = session;
           session.open().then(function (global) {
-            _this47.global = global;
+            _this48.global = global;
             global.getActiveDoc().then(function (app) {
               if (app) {
-                _this47.app = app;
+                _this48.app = app;
 
-                if (_this47.options.views.global) {
-                  _this47.executeActions('global').then(function () {
+                if (_this48.options.views.global) {
+                  _this48.executeActions('global').then(function () {
                     resolve();
                   });
                 } else {
                   resolve();
                 }
               } else {
-                return _this47.openApp(originalId).then(function () {
+                return _this48.openApp(originalId).then(function () {
                   resolve();
                 });
               }
@@ -5357,10 +5416,10 @@ if (typeof WebsyDesigns !== 'undefined') {
               var e = err;
 
               if (originalId) {
-                return _this47.openApp(originalId).then(function () {
+                return _this48.openApp(originalId).then(function () {
                   resolve();
                 }, function (err) {
-                  _this47.sessionOnNotification({
+                  _this48.sessionOnNotification({
                     err: err
                   });
                 });
@@ -5369,40 +5428,40 @@ if (typeof WebsyDesigns !== 'undefined') {
               }
             });
 
-            if (_this47.options.keepAlive === true) {
-              _this47.keepAlive();
+            if (_this48.options.keepAlive === true) {
+              _this48.keepAlive();
             }
           }, function (err) {
             reject(err);
           });
           session.on('traffic:received', function (data) {
             if (typeof data.suspend !== 'undefined') {
-              _this47.sessionSuspended();
+              _this48.sessionSuspended();
             }
           });
           session.on('notification:*', function (eventName, data) {
             if (eventName === 'OnAuthenticationInformation') {
               if (data.mustAuthenticate === true) {
-                if (_this47.options.enigmaConfig.authUrl) {
-                  window.location = _this47.options.enigmaConfig.authUrl + window.location.search.replace('?', '%3F').replace('=', '%3D');
-                } else if (_this47.options.enigmaConfig.onMustAuthenticate) {
-                  _this47.options.enigmaConfig.onMustAuthenticate();
+                if (_this48.options.enigmaConfig.authUrl) {
+                  window.location = _this48.options.enigmaConfig.authUrl + window.location.search.replace('?', '%3F').replace('=', '%3D');
+                } else if (_this48.options.enigmaConfig.onMustAuthenticate) {
+                  _this48.options.enigmaConfig.onMustAuthenticate();
                 } else if (data.loginUri) {
                   window.location = data.loginUri;
                 }
               } else if (data.mustAuthenticate === false) {
-                _this47.user = {
+                _this48.user = {
                   userDirectory: data.userDirectory,
                   userId: data.userId
                 };
               }
             } else {
-              _this47.sessionOnNotification(data, eventName);
+              _this48.sessionOnNotification(data, eventName);
             }
           });
-          session.on('suspended', _this47.sessionSuspended.bind(_this47));
-          session.on('resumed', _this47.sessionResumed.bind(_this47));
-          session.on('closed', _this47.sessionClosed.bind(_this47));
+          session.on('suspended', _this48.sessionSuspended.bind(_this48));
+          session.on('resumed', _this48.sessionResumed.bind(_this48));
+          session.on('closed', _this48.sessionClosed.bind(_this48));
         });
       }
     }, {
@@ -5423,24 +5482,24 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "keepAlive",
       value: function keepAlive() {
-        var _this48 = this;
+        var _this49 = this;
 
         this.global.engineVersion();
         setTimeout(function () {
-          _this48.keepAlive();
+          _this49.keepAlive();
         }, 59000);
       }
     }, {
       key: "openApp",
       value: function openApp(appId) {
-        var _this49 = this;
+        var _this50 = this;
 
         return new Promise(function (resolve, reject) {
-          _this49.global.openDoc(appId).then(function (app) {
-            _this49.app = app;
+          _this50.global.openDoc(appId).then(function (app) {
+            _this50.app = app;
 
-            if (_this49.options.views.global) {
-              _this49.executeActions('global').then(function () {
+            if (_this50.options.views.global) {
+              _this50.executeActions('global').then(function () {
                 resolve();
               });
             } else {
@@ -5454,7 +5513,7 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "loadView",
       value: function loadView(view, force) {
-        var _this50 = this;
+        var _this51 = this;
 
         if (typeof force === 'undefined') {
           force = false;
@@ -5474,23 +5533,23 @@ if (typeof WebsyDesigns !== 'undefined') {
 
         if (this.options.views[view].controller && this.options.views[view].initialized !== true) {
           this.options.views[view].controller.init(function () {
-            _this50.options.views[view].initialized = true;
+            _this51.options.views[view].initialized = true;
 
-            if (_this50.options.views[view].prepped !== true) {
-              _this50.prep(view);
+            if (_this51.options.views[view].prepped !== true) {
+              _this51.prep(view);
             }
 
-            _this50.executeActions(view).then(function () {
-              if ((_this50.globalObjectsLoaded === false || _this50.options.alwaysLoadGlobal === true) && view !== 'global') {
-                _this50.loadObjects('global', force);
+            _this51.executeActions(view).then(function () {
+              if ((_this51.globalObjectsLoaded === false || _this51.options.alwaysLoadGlobal === true) && view !== 'global') {
+                _this51.loadObjects('global', force);
 
-                _this50.globalObjectsLoaded = true;
+                _this51.globalObjectsLoaded = true;
               }
 
-              _this50.loadObjects(view, force);
+              _this51.loadObjects(view, force);
 
               if (view === 'global') {
-                _this50.globalObjectsLoaded = true;
+                _this51.globalObjectsLoaded = true;
               }
             });
           });
@@ -5503,16 +5562,16 @@ if (typeof WebsyDesigns !== 'undefined') {
           this.executeActions(view).then(function () {
             console.log('Actions complete', view);
 
-            if ((_this50.globalObjectsLoaded === false || _this50.options.alwaysLoadGlobal === true) && view !== 'global') {
-              _this50.loadObjects('global', force);
+            if ((_this51.globalObjectsLoaded === false || _this51.options.alwaysLoadGlobal === true) && view !== 'global') {
+              _this51.loadObjects('global', force);
 
-              _this50.globalObjectsLoaded = true;
+              _this51.globalObjectsLoaded = true;
             }
 
-            _this50.loadObjects(view, force);
+            _this51.loadObjects(view, force);
 
             if (view === 'global') {
-              _this50.globalObjectsLoaded = true;
+              _this51.globalObjectsLoaded = true;
             }
           });
         }
@@ -5520,7 +5579,7 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "executeAction",
       value: function executeAction(index, actionList, callbackFn) {
-        var _this51 = this;
+        var _this52 = this;
 
         var item = actionList[index];
 
@@ -5538,7 +5597,7 @@ if (typeof WebsyDesigns !== 'undefined') {
                   if (index === actionList.length) {
                     callbackFn();
                   } else {
-                    _this51.executeAction(index, actionList, callbackFn);
+                    _this52.executeAction(index, actionList, callbackFn);
                   }
                 });
               } else {
@@ -5547,7 +5606,7 @@ if (typeof WebsyDesigns !== 'undefined') {
                 if (index === actionList.length) {
                   callbackFn();
                 } else {
-                  _this51.executeAction(index, actionList, callbackFn);
+                  _this52.executeAction(index, actionList, callbackFn);
                 }
               }
             });
@@ -5561,7 +5620,7 @@ if (typeof WebsyDesigns !== 'undefined') {
             if (index === actionList.length) {
               callbackFn();
             } else {
-              _this51.executeAction(index, actionList, callbackFn);
+              _this52.executeAction(index, actionList, callbackFn);
             }
           });
         }
@@ -5569,20 +5628,20 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "executeActions",
       value: function executeActions(view) {
-        var _this52 = this;
+        var _this53 = this;
 
         return new Promise(function (resolve, reject) {
-          if (!_this52.options.views[view] || !_this52.options.views[view].actions || _this52.options.views[view].actions.length === 0) {
+          if (!_this53.options.views[view] || !_this53.options.views[view].actions || _this53.options.views[view].actions.length === 0) {
             resolve();
           }
 
-          _this52.executeAction(0, _this52.options.views[view].actions, resolve);
+          _this53.executeAction(0, _this53.options.views[view].actions, resolve);
         });
       }
     }, {
       key: "loadObjects",
       value: function loadObjects(view, force) {
-        var _this53 = this;
+        var _this54 = this;
 
         console.log('Loading objects', view);
 
@@ -5608,16 +5667,16 @@ if (typeof WebsyDesigns !== 'undefined') {
               }
             } else if (objList[i].definition) {
               if (typeof objList[i].definition === 'string' && objList[i].definition.toLowerCase().indexOf('.json') !== -1) {
-                _this53.request('GET', objList[i].definition).then(function (def) {
+                _this54.request('GET', objList[i].definition).then(function (def) {
                   objList[i].definition = def;
 
-                  _this53.createObjectFromDefinition(objList[i]);
+                  _this54.createObjectFromDefinition(objList[i]);
                 });
               } else {
-                _this53.createObjectFromDefinition(objList[i]);
+                _this54.createObjectFromDefinition(objList[i]);
               }
             } else {
-              _this53.createObjectFromDefinition(objList[i]);
+              _this54.createObjectFromDefinition(objList[i]);
             }
           };
 
@@ -5678,7 +5737,7 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "createObjectFromDefinition",
       value: function createObjectFromDefinition(objectConfig) {
-        var _this54 = this;
+        var _this55 = this;
 
         if (objectConfig.retries) {
           objectConfig.retries = 0;
@@ -5698,16 +5757,16 @@ if (typeof WebsyDesigns !== 'undefined') {
             objectConfig.objectId = model.id;
             objectConfig.attached = true;
 
-            if (_this54.supportedChartTypes.indexOf(objectConfig.definition.qInfo.qType) !== -1) {
+            if (_this55.supportedChartTypes.indexOf(objectConfig.definition.qInfo.qType) !== -1) {
               var options = _extends({}, objectConfig.options, {
                 model: model,
                 def: objectConfig.definition,
-                app: _this54.app
+                app: _this55.app
               });
 
-              objectConfig.vis = new _this54.chartLibrary[objectConfig.definition.qInfo.qType]("".concat(objectConfig.elementId, "_vis"), options);
+              objectConfig.vis = new _this55.chartLibrary[objectConfig.definition.qInfo.qType]("".concat(objectConfig.elementId, "_vis"), options);
               model.on('changed', function () {
-                if (objectConfig.attached === true && _this54.paused === false) {
+                if (objectConfig.attached === true && _this55.paused === false) {
                   objectConfig.vis.render();
                 }
               });
@@ -5717,7 +5776,7 @@ if (typeof WebsyDesigns !== 'undefined') {
               objectConfig.model = model;
               objectConfig.render(objectConfig, model);
               model.on('changed', function () {
-                if (objectConfig.attached === true && _this54.paused === false) {
+                if (objectConfig.attached === true && _this55.paused === false) {
                   objectConfig.render(objectConfig, model);
                 }
               });
@@ -5725,11 +5784,11 @@ if (typeof WebsyDesigns !== 'undefined') {
           }, function (err) {
             console.log('Error creating object', err);
 
-            if (objectConfig.retries < _this54.options.retryCount) {
+            if (objectConfig.retries < _this55.options.retryCount) {
               console.log('retrying');
               objectConfig.retries++;
 
-              _this54.createObjectFromDefinition(objectConfig);
+              _this55.createObjectFromDefinition(objectConfig);
             } else {
               console.log('Max retries reached.');
             }
@@ -5878,7 +5937,7 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "select",
       value: function select(index, selections, callbackFn) {
-        var _this55 = this;
+        var _this56 = this;
 
         if (index === selections.length) {
           callbackFn();
@@ -5913,13 +5972,13 @@ if (typeof WebsyDesigns !== 'undefined') {
             f.selectValues(values).then(function () {
               index++;
 
-              _this55.select(index, selections, callbackFn);
+              _this56.select(index, selections, callbackFn);
             });
           }, function (err) {
             console.log('field for selection not found', err);
             index++;
 
-            _this55.select(index, selections, callbackFn);
+            _this56.select(index, selections, callbackFn);
           });
         }
       }

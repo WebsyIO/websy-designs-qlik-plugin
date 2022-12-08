@@ -114,7 +114,11 @@ class Dropdown {
     this.options.model.clearSelections(`/${this.options.path}/qListObjectDef`.replace(/\/\//g, '/'))
   }
   onClose (elementId) {
-    this.options.model.endSelections(true)
+    this.options.model.endSelections(true).then(() => {
+      if (this.options.onClose) {
+        this.options.onClose(elementId)
+      }
+    })
   }
   handleScroll (event) {    
     if (event.target.scrollTop / (event.target.scrollHeight - event.target.clientHeight) > 0.7) {
@@ -221,6 +225,6 @@ class Dropdown {
         this.dropdown.selectedItems = []
       }        
     }   
-    return listObject.qDataPages[0].qMatrix.map(r => (Object.assign(r[0], {label: r[0].qText || '-', classes: [`state-${r[0].qState}`]})))                    
+    return listObject.qDataPages[0].qMatrix.map((r, i) => (Object.assign(r[0], {index: i, label: r[0].qText || '-', classes: [`state-${r[0].qState}`]})))                    
   }
 }

@@ -291,7 +291,7 @@ class Bookmarks {
       this.closeMyBookmarksUL()
       event.target.classList.toggle('closed')
     }
-    if (event.target.classList.contains('createSubmit')) {
+    if (event.target.classList.contains('create-submit')) {
       const bookmarkBackground = document.getElementById(`${this.elementId}_bookmarkPopup`)
       bookmarkBackground.style.backgroundColor = 'transparent'
       this.options.app.createBookmark(

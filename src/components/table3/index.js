@@ -58,20 +58,22 @@ class Table3 {
         onSetPage: this.setPageNum.bind(this),
         onScrollX: this.handleVirtualScrollX.bind(this)
       }, this.options))
-      this.rowList = new WebsyDesigns.DragDrop(`${this.elementId}_pivotRows`, {
-        group: this.elementId,
-        items: [],
-        onItemAdded: () => {         
-          this.updatePivotStructure()
-        }
-      })
-      this.columnList = new WebsyDesigns.DragDrop(`${this.elementId}_pivotColumns`, {
-        group: this.elementId,
-        items: [],
-        onItemAdded: () => {         
-          this.updatePivotStructure()
-        }
-      })
+      if (this.options.allowPivoting === true) {
+        this.rowList = new WebsyDesigns.DragDrop(`${this.elementId}_pivotRows`, {
+          group: this.elementId,
+          items: [],
+          onItemAdded: () => {         
+            this.updatePivotStructure()
+          }
+        })
+        this.columnList = new WebsyDesigns.DragDrop(`${this.elementId}_pivotColumns`, {
+          group: this.elementId,
+          items: [],
+          onItemAdded: () => {         
+            this.updatePivotStructure()
+          }
+        })
+      }      
       el.addEventListener('click', this.handleClick.bind(this))
     }
     this.render()
@@ -215,6 +217,10 @@ class Table3 {
   buildStraightColumnsAndTotals () {
     // used for straight tables
     this.columns = this.layout.qHyperCube.qDimensionInfo.concat(this.layout.qHyperCube.qMeasureInfo)
+    // append the column definitions
+    this.properties.qHyperCubeDef.qDimensions.concat(this.properties.qHyperCubeDef.qMeasures).forEach((cDef, i) => {
+      this.columns[i].def = cDef
+    })
     let activeSort = this.layout.qHyperCube.qEffectiveInterColumnSortOrder[0]      
     this.columns = this.columns.map((c, i) => {
       c.colIndex = this.columnOrder.indexOf(i)
@@ -239,9 +245,14 @@ class Table3 {
       // if (this.options.columnOverrides[i]) {
       //   c = {...c, ...this.options.columnOverrides[i]}
       // }
-      if (c.searchable === true) {
-        if (!c.onSearch) {
+      if (c.searchable !== false && i < this.layout.qHyperCube.qDimensionInfo.length) {
+        c.searchable = true
+        if (!c.onSearch) {    
+          c.isExternalSearch = true   
+          let dimId = c.def.qLibraryId || c.def.qDef.qFieldDefs[0]            
+          c.dimId = c.cId || dimId
           c.onSearch = this.handleSearch.bind(this)
+          c.onCloseSearch = this.handleCloseSearch.bind(this)
         }
       }
       return c
@@ -276,6 +287,34 @@ class Table3 {
       this.pinnedColumns = 1
     }
     this.table.calculateSizes(this.columnParamValues, this.layout.qHyperCube.qSize.qcy, this.layout.qHyperCube.qSize.qcx, this.pinnedColumns)     
+    this.columns.forEach((c, i) => {
+      if (c.searchable) {
+        if (c.isExternalSearch === true) {                 
+          if (!this.dropdowns[c.dimId]) {
+            this.options.app.createSessionObject({
+              qInfo: { qType: 'table-dropdown' },
+              qListObjectDef: c.def
+            }).then(model => {
+              this.dropdowns[c.dimId] = new WebsyDesigns.QlikPlugin.Dropdown(`${this.elementId}_tableContainer_columnSearch_${c.dimId || i}`, {
+                model,
+                multiSelect: true,
+                closeAfterSelection: false,
+                onClose: this.handleCloseSearch
+              })
+              model.on('changed', () => {
+                this.dropdowns[c.dimId].render()
+              })
+              // d.instance.options.model = model
+              // d.instance.render()
+            })
+          }
+          else {
+            // d.instance.options.model = this.dropdowns[d.dimId]
+            // d.instance.render()
+          }          
+        }
+      }
+    }) 
     this.table.options.activeSort = activeSort
     console.log('column params', this.columnParamValues)
   }
@@ -391,6 +430,7 @@ class Table3 {
         } 
         else {
           this.busy = false
+          callbackFn()  
         }
       }
     }
@@ -459,13 +499,13 @@ class Table3 {
   }
   handleSearch (event, column) {
     console.log(event, column)
-    if (this.dropdowns[column.searchField]) {
-      let el = document.getElementById(`${this.elementId}_columnSearch_${event.target.getAttribute('data-col-index')}`)
+    if (this.dropdowns[column.dimId]) {
+      let el = document.getElementById(`${this.elementId}_tableContainer_columnSearch_${column.dimId}`)
       if (el) {
         el.classList.toggle('active')
         el.style.top = `${event.pageY}px`
         el.style.right = `calc(100vw - ${event.pageX + event.target.offsetWidth}px)`
-        this.dropdowns[column.searchField].open()
+        this.dropdowns[column.dimId].open()
       }
     }
   }
@@ -564,6 +604,9 @@ class Table3 {
     this.options.model.getLayout().then(layout => {    
       this.options.model.getEffectiveProperties().then(props => {
         this.properties = props      
+        if (this.options.onUpdate) {
+          this.options.onUpdate(props, layout)
+        }
         console.log('table 3 plugin layout', layout)
         this.endCol = layout.qHyperCube.qSize.qcx + layout.qHyperCube.qNoOfLeftDims
         this.layout = layout
@@ -678,18 +721,18 @@ class Table3 {
           c.value = c.qText || '-'
         }
         if (c.qAttrExps && c.qAttrExps.qValues) {
-          let t = 'qDimensionInfo'
-          let tIndex = i
-          if (i > this.layout.qHyperCube.qDimensionInfo.length - 1) {
-            t = 'qMeasureInfo'
-            tIndex -= this.layout.qHyperCube.qDimensionInfo.length
-          }
+          // let t = 'qDimensionInfo'
+          let tIndex = i + (this.startCol || 0)
+          // if (i > this.layout.qHyperCube.qDimensionInfo.length - 1) {
+          //   t = 'qMeasureInfo'
+          //   tIndex -= this.layout.qHyperCube.qDimensionInfo.length
+          // }
           c.qAttrExps.qValues.forEach((a, aI) => {
             if (a.qText && a.qText !== '') {
-              if (this.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI] && this.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+              if (this.columns[tIndex].qAttrExprInfo[aI] && this.columns[tIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                 c.color = a.qText
               }
-              else if (this.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI] && this.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+              else if (this.columns[tIndex].qAttrExprInfo[aI] && this.columns[tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                 c.backgroundColor = a.qText
               }
             }
@@ -866,7 +909,7 @@ class Table3 {
         } 
         else if (o.qElemNo === -4) {
           o.qText = ''
-          o.qType = 'T'
+          // o.qType = 'T'
         }
       }
       o.rowspan = Math.max(1, input.qSubNodes.length)
@@ -877,7 +920,7 @@ class Table3 {
         if (level > 0) {
           o.style = `padding-left: ${level * 20}px;`
         }        
-        if (o.qType !== 'T') {
+        if (o.qType !== 'E') {
           leftNodes.push([o])
         }        
         tempNode = []
@@ -1026,6 +1069,9 @@ class Table3 {
         qValue: JSON.stringify(dims)
       }
     ]
+    if (this.options.onPivot) {
+      this.options.onPivot()
+    }
     this.options.model.applyPatches(patchDefs, true)
   }
 }
