@@ -21,7 +21,42 @@ class Bookmarks {
       dock: 'left',
       bookmarkIcon: `<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 512 512'><path d='M352 48H160a48 48 0 00-48 48v368l144-128 144 128V96a48 48 0 00-48-48z' fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='32' /></svg>`,
       closeIcon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 512 512"><line x1="368" y1="368" x2="144" y2="144" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><line x1="368" y1="144" x2="144" y2="368" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></svg>`,
-      searchIcon: `<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 512 512"><path d="M221.09 64a157.09 157.09 0 10157.09 157.09A157.1 157.1 0 00221.09 64z" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="32"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="32" d="M338.29 338.29L448 448"/></svg>`
+      searchIcon: `<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 512 512"><path d="M221.09 64a157.09 157.09 0 10157.09 157.09A157.1 157.1 0 00221.09 64z" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="32"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="32" d="M338.29 338.29L448 448"/></svg>`,
+      editIcon: `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+          <path d="M384 224v184a40 40 0 01-40 40H104a40 40 0 01-40-40V168a40 40 0 0140-40h167.48"
+          fill="none" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="32"/>
+          <path d="M459.94 53.25a16.06 16.06 0 00-23.22-.56L424.35 65a8 8 0 000 11.31l11.34 11.32a8 8 0 0011.34
+          0l12.06-12c6.1-6.09 6.67-16.01.85-22.38zM399.34 90L218.82 270.2a9 9 0 00-2.31 3.93L208.16 299a3.91 3.91
+            0 004.86 4.86l24.85-8.35a9 9 0 003.93-2.31L422 112.66a9 9 0 000-12.66l-9.95-10a9 9 0 00-12.71 0z"/>
+        </svg>
+      `,
+      deleteIcon: `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><title>Trash</title>
+          <path d="M296 64h-80a7.91 7.91 0 00-8 8v24h96V72a7.91 7.91 0 00-8-8z" fill="none"/>
+          <path d="M432 96h-96V72a40 40 0 00-40-40h-80a40 40 0 00-40 40v24H80a16 16 0 000 32h17l19 304.92c1.42
+            26.85 22 47.08 48 47.08h184c26.13 0 46.3-19.78 48-47l19-305h17a16 16 0 000-32zM192.57 416H192a16 16 0 
+            01-16-15.43l-8-224a16 16 0 1132-1.14l8 224A16 16 0 01192.57 416zM272 400a16 16 0 01-32 0V176a16 16 0 0132
+            0zm32-304h-96V72a7.91 7.91 0 018-8h80a7.91 7.91 0 018 8zm32 304.57A16 16 0 01320 416h-.58A16 16 0 01304 
+            399.43l8-224a16 16 0 1132 1.14z"/>
+        </svg>               
+      `,
+      copyIcon: `Copy`,
+      tickIcon: `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+          <path d="M448 256c0-106-86-192-192-192S64 150 64 256s86 192 192 192 192-86 192-192z" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="32"/><path fill="none"
+            stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" 
+            stroke-width="32" d="M352 176L217.6 336 160 272"/>
+        </svg>
+      `,
+      crossIcon: ``,
+      infoIcon: `
+        <svg class="i-icon-public" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+          <path d="M256 56C145.72 56 56 145.72 56 256s89.72 200 200 200 200-89.72 200-200S366.28 
+          56 256 56zm0 82a26 26 0 11-26 26 26 26 0 0126-26zm48 226h-88a16 16 0 010-32h28v-88h-16a16 16 0 010-32h32a16 16 0 0116 
+          16v104h28a16 16 0 010 32z"/>
+        </svg>
+      `      
     }
     this.options = Object.assign({}, DEFAULTS, options)
     const el = document.getElementById(this.elementId)
@@ -113,11 +148,10 @@ class Bookmarks {
             }
           }
         }
-      )
-        .then((model) => {
-          this.options.model = model
-          this.render()
-        })
+      ).then((model) => {
+        this.options.model = model
+        this.render()
+      })
     }    
   }
   createBookmarkHtml (bookmark, bookmarkType) {
@@ -126,12 +160,8 @@ class Bookmarks {
         <span class="bookmark-text" data-bookmark="${bookmark.qInfo.qId}">${bookmark.qMeta.title}</span>
         <div class="date-and-i">
           <span class="bookmark-text">${new Date(bookmark.qMeta.createdDate).toLocaleString().slice(0, 10)}</span>
-          <span class="infoBtn">
-            <svg data-bookmark="${bookmark.qInfo.qId}" class="i-icon-public" id="i-icon-public" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-              <path d="M256 56C145.72 56 56 145.72 56 256s89.72 200 200 200 200-89.72 200-200S366.28 
-              56 256 56zm0 82a26 26 0 11-26 26 26 26 0 0126-26zm48 226h-88a16 16 0 010-32h28v-88h-16a16 16 0 010-32h32a16 16 0 0116 
-              16v104h28a16 16 0 010 32z"/>
-            </svg>
+          <span class="info-button" data-bookmark="${bookmark.qInfo.qId}">
+            ${this.options.infoIcon}
           </span>
         </div>
       </div>          
@@ -142,32 +172,22 @@ class Bookmarks {
       
     if (bookmark.qMeta.privileges.indexOf('update') !== -1) { 
       html += `
-        <svg xmlns="http://www.w3.org/2000/svg" data-bookmark="${bookmark.qInfo.qId}" class="edit-info" id="edit-info-${bookmark.qInfo.qId}" viewBox="0 0 512 512">
-          <path d="M384 224v184a40 40 0 01-40 40H104a40 40 0 01-40-40V168a40 40 0 0140-40h167.48"
-          fill="none" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="32"/>
-          <path d="M459.94 53.25a16.06 16.06 0 00-23.22-.56L424.35 65a8 8 0 000 11.31l11.34 11.32a8 8 0 0011.34
-          0l12.06-12c6.1-6.09 6.67-16.01.85-22.38zM399.34 90L218.82 270.2a9 9 0 00-2.31 3.93L208.16 299a3.91 3.91
-            0 004.86 4.86l24.85-8.35a9 9 0 003.93-2.31L422 112.66a9 9 0 000-12.66l-9.95-10a9 9 0 00-12.71 0z"/>
-        </svg>              
         <div class="edit-topline">
-          <svg xmlns="http://www.w3.org/2000/svg" class="tick-icon" id="tick-icon" viewBox="0 0 512 512">
-            <path d="M448 256c0-106-86-192-192-192S64 150 64 256s86 192 192 192 192-86 192-192z" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="32"/><path fill="none"
-              stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" 
-              stroke-width="32" d="M352 176L217.6 336 160 272"/>
-          </svg>`
+          <div data-bookmark="${bookmark.qInfo.qId}" class="edit-info active" id="edit-info-${bookmark.qInfo.qId}">
+            ${this.options.editIcon}
+          </div> 
+          <div class="tick-icon" id="tick-icon-${bookmark.qInfo.qId}">
+            ${this.options.tickIcon}
+          </div>                             
+      `
       if (bookmark.qMeta.privileges.indexOf('delete') !== -1) {
         html += `
-          <svg xmlns="http://www.w3.org/2000/svg" class="trash-icon" data-bookmark="${bookmark.qInfo.qId}" id="trashIcon-${bookmark.qInfo.qId}" viewBox="0 0 512 512"><title>Trash</title>
-            <path d="M296 64h-80a7.91 7.91 0 00-8 8v24h96V72a7.91 7.91 0 00-8-8z" fill="none"/>
-            <path d="M432 96h-96V72a40 40 0 00-40-40h-80a40 40 0 00-40 40v24H80a16 16 0 000 32h17l19 304.92c1.42
-              26.85 22 47.08 48 47.08h184c26.13 0 46.3-19.78 48-47l19-305h17a16 16 0 000-32zM192.57 416H192a16 16 0 
-              01-16-15.43l-8-224a16 16 0 1132-1.14l8 224A16 16 0 01192.57 416zM272 400a16 16 0 01-32 0V176a16 16 0 0132
-              0zm32-304h-96V72a7.91 7.91 0 018-8h80a7.91 7.91 0 018 8zm32 304.57A16 16 0 01320 416h-.58A16 16 0 01304 
-              399.43l8-224a16 16 0 1132 1.14z"/>
-          </svg>               
+          <div class="trash-icon" data-bookmark="${bookmark.qInfo.qId}" id="deleteIcon-${bookmark.qInfo.qId}">
+            ${this.options.deleteIcon}
+          </div>
         `
       }
-      html += `
+      html += `        
         </div>
         <div id="edit-inputs-${bookmark.qInfo.qId}" data-bookmark="${bookmark.qInfo.qId}" class="edit-inputs">
           <input type="text" id="edit-title-${bookmark.qInfo.qId}" placeholder="Bookmark title"  value="${bookmark.qMeta.title}"/>
@@ -333,7 +353,7 @@ class Bookmarks {
           this.render()
         })
     }
-    if (event.target.classList.contains('i-icon-public')) {
+    if (event.target.classList.contains('info-button')) {
       this.toggleInfo(event)
     }
     if (event.target.classList.contains('i-icon-my')) {
@@ -351,7 +371,7 @@ class Bookmarks {
       this.editInfo(event)
       this.hideInfoTopline(event)
       this.showTickIcon(event)
-      this.showTrashIcon(event)
+      this.showdeleteIcon(event)
     }
     if (event.target.classList.contains('tick-icon')) {
       const bookmarkId = event.target.getAttribute('data-bookmark')
@@ -515,10 +535,12 @@ class Bookmarks {
     const bookmarkId = event.target.getAttribute('data-bookmark')
     const showTick = document.getElementById(`tick-icon-${bookmarkId}`)
     showTick.classList.toggle('active')
+    const showEdit = document.getElementById(`edit-info-${bookmarkId}`)
+    showEdit.classList.toggle('active')
   }
-  showTrashIcon (event) {
+  showdeleteIcon (event) {
     const bookmarkId = event.target.getAttribute('data-bookmark')
-    const showTrash = document.getElementById(`trashIcon-${bookmarkId}`)
+    const showTrash = document.getElementById(`deleteIcon-${bookmarkId}`)
     showTrash.classList.toggle('active')
   }
   handleContextMenu (event) {
@@ -1052,7 +1074,7 @@ class CurrentSelections {
           if (this.current.indexOf(key) === -1) {
             const sEl = document.getElementById(`${this.elementId}_${key}`)
             if (sEl) {
-              el.removeChild(sEl) 
+              sEl.remove()
             }            
             this.options.app.destroySessionObject(this.dropdowns[key].model.id)
             delete this.dropdowns[key]
@@ -1107,6 +1129,7 @@ class DatePicker {
     }))
     this.listening = true
     this.dateList = []
+    this.selectedRangeIndex = 0
     this.hourList = new Array(24).fill(0).map((d, i) => (i < 10 ? '0' : '') + i + ':00')
     this.altHourList = new Array(24).fill(0).map((d, i) => (i + ':00')) 
     if (typeof d3 !== 'undefined') {
@@ -1154,7 +1177,7 @@ class DatePicker {
       d = new Date(d)
     }
     // d.setTime(d.getTime() + d.getTimezoneOffset() * 60000)
-    return new Date(d.setHours(0, 0, 0, 0))
+    return new Date(d.setUTCHours(12, 0, 0, 0))
   }
   fromQlikDate (d) {    
     let output = new Date(Math.round((d - 25569) * 86400000))        
@@ -1182,11 +1205,17 @@ class DatePicker {
     return this.formatDate(d).replace(/ /g, '')
   }
   toQlikDateNum (d) {
-    return Math.floor((d.getTime() / 86400000 + 25569))
+    if (typeof d === 'number') {
+      return Math.floor((d / 86400000 + 25569)) 
+    }
+    else {
+      return Math.floor((d.getTime() / 86400000 + 25569))
+    }
   }
-  onChange (data, isRange) {    
+  onChange (data, isRange, selectedRangeIndex) {    
     let start    
     let end    
+    this.selectedRangeIndex = selectedRangeIndex
     let valueList = data.map(d => {
       if (this.options.mode === 'date') {
         if (typeof d === 'number') {
@@ -1215,15 +1244,22 @@ class DatePicker {
     if (isRange) {
       if (this.options.mode === 'date') {
         if (valueList.length === 2 && valueList[0] !== valueList[1]) {
-          let diff = valueList[1] - valueList[0]
-          for (let i = valueList[0]; i < (valueList[1] + 1); i += (1000 * 60 * 60 * 24)) {
-            if (this.completeDateList[i]) {
-              elemNums.push(this.completeDateList[i].qElemNumber)
+          // let diff = (valueList[1] - valueList[0]) / (1000 * 60 * 60 * 24)     
+          let qlikStart = this.toQlikDateNum(valueList[0])
+          let qlikEnd = this.toQlikDateNum(valueList[1])
+          for (let i = qlikStart; i < qlikEnd + 1; i++) {
+            if (this.completeQlikDateList[i] && typeof this.completeQlikDateList[i].qElemNumber !== 'undefined') {
+              elemNums.push(this.completeQlikDateList[i].qElemNumber)
             }
-          }
+          }  
+          // for (let i = valueList[0]; i < (valueList[1] + 1); i += (1000 * 60 * 60 * 24)) {
+          //   if (this.completeDateList[i] && this.completeDateList[i].qElemNumber) {
+          //     elemNums.push(this.completeDateList[i].qElemNumber)
+          //   }
+          // }
         }
         else {
-          if (this.completeDateList[valueList[0]]) {
+          if (this.completeDateList[valueList[0]] && typeof this.completeDateList[valueList[0]].qElemNumber !== 'undefined') {
             elemNums.push(this.completeDateList[valueList[0]].qElemNumber)
           }          
         }
@@ -1253,7 +1289,8 @@ class DatePicker {
     else if (this.options.mode === 'date') {
       if (elemNums.length === 0) {
         // we should always be selecting something if we arrive in the onchange function
-        this.picker.selectRange(0, true)
+        // not true any more
+        // this.picker.selectRange(0, true)
       }
       else {
         this.options.model.selectListObjectValues('/qListObjectDef', elemNums, false, this.options.softLock)
@@ -1268,7 +1305,7 @@ class DatePicker {
     // })    
   }
   onClear () {
-    this.options.model.clear()
+    this.options.model.clearSelections('/qListObjectDef')
   }
   render () {
     this.options.model.getLayout().then(layout => {
@@ -1283,6 +1320,7 @@ class DatePicker {
         if (layout.qListObject.qDataPages[0] && this.listening === true) {
           // ensure we have a complete calendar
           this.completeDateList = {}
+          this.completeQlikDateList = {}
           let oneDay = (1000 * 60 * 60 * 24)
           let start
           let end          
@@ -1338,11 +1376,15 @@ class DatePicker {
           for (let i = 0; i < diff + 1; i++) {
             if (this.options.mode === 'date') {
               let temp = this.fromQlikDate(start + i)
-              // temp.setHours(0, 0, 0)      
+              // temp.setUTCHours(0, 0, 0)      
               this.completeDateList[temp.getTime()] = {
                 qNum: (start + i),
                 qState: 'Z'
               } 
+              this.completeQlikDateList[start + i] = {
+                qNum: (start + i),
+                qState: 'Z'
+              }
             }
             else if (this.options.mode === 'year') {
               this.completeDateList[start + i] = {
@@ -1352,7 +1394,7 @@ class DatePicker {
             }
             else if (this.options.mode === 'monthyear') {
               let temp = this.floorDate(new Date(new Date(start.getTime()).setMonth(start.getMonth() + i)))
-              // temp.setHours(0, 0, 0)
+              // temp.setUTCHours(0, 0, 0)
               this.completeDateList[temp.getTime()] = {
                 qNum: this.monthYearIsDate === true ? this.toQlikDateNum(temp) : `${temp.getFullYear()}${temp.getMonth() < 9 ? '0' : ''}${temp.getMonth() + 1}`,
                 qState: 'Z'
@@ -1367,6 +1409,9 @@ class DatePicker {
             if (this.options.mode === 'date') {
               if (this.completeDateList[this.fromQlikDate(r[0].qNum).getTime()]) {
                 this.completeDateList[this.fromQlikDate(r[0].qNum).getTime()] = r[0]
+              }
+              if (this.completeQlikDateList[r[0].qNum]) {
+                this.completeQlikDateList[r[0].qNum] = r[0]
               }
               if (i === 0) {
                 min = this.fromQlikDate(r[0].qNum)
@@ -1390,6 +1435,9 @@ class DatePicker {
               if (this.monthYearIsDate === true) {
                 if (this.completeDateList[this.fromQlikDate(r[0].qNum).getTime()]) {
                   this.completeDateList[this.fromQlikDate(r[0].qNum).getTime()] = r[0]
+                }
+                if (this.completeQlikDateList[r[0].qNum]) {
+                  this.completeQlikDateList[r[0].qNum] = r[0]
                 }
                 if (i === 0) {
                   min = this.fromQlikDate(r[0].qNum)
@@ -1486,15 +1534,17 @@ class DatePicker {
             this.picker.options.hours = completeDateListArr
           }
           this.picker.setDateBounds([min, max])
-          if (selectedRange.length === layout.qListObject.qDataPages[0].qMatrix.length) {
-            // do nothing because all values are selected
-          }
-          else if (selectedRange.length > 0) {
-            this.picker.selectCustomRange(selectedRange)
-          }
-          else if (selectedRange.length === 0) {
-            this.picker.selectRange(0, false)
-          }
+          if (this.selectedRangeIndex < 0) {
+            if (selectedRange.length === layout.qListObject.qDataPages[0].qMatrix.length) {
+              // do nothing because all values are selected
+            }
+            else if (selectedRange.length > 0) {
+              this.picker.selectCustomRange(selectedRange)
+            }
+            else if (selectedRange.length === 0) {
+              this.picker.selectRange(0, false)
+            }
+          }          
           this.picker.render(disabledDates)
           this.listening = true
         }
@@ -3166,7 +3216,10 @@ class Table3 {
       columnOverrides: [],
       maxColWidth: '50%',
       allowPivoting: false,
-      dropdownOptions: {} 
+      pivotPanel: 'docked',
+      pivotButtonText: 'Pivot',
+      dropdownOptions: {},
+      maxPlaceholderRows: 1000
     }
     // if (Dropdown) {
     //   if (!WebsyDesignsQlikPlugins) {
@@ -3196,11 +3249,27 @@ class Table3 {
       let html = ''
       let tableStyle = 'height: 100%'
       if (this.options.allowPivoting === true) {
-        tableStyle = 'height: calc(100% - 100px);'
+        if (this.options.pivotPanel === 'docked') {
+          tableStyle = 'height: calc(100% - 100px);' 
+        }
+        else {
+          tableStyle = 'height: calc(100% - 30px);' 
+          html += `
+            <div class="pivot-button-container">
+              <button class="toggle-pivot-panel">${this.options.pivotButtonText}</button>
+            </div>
+          `
+        }        
         html += `
-          <div id='${this.elementId}_pivotContainer' class='websy-designs-pivot-container'>
-            <div id='${this.elementId}_pivotRows'></div>
-            <div id='${this.elementId}_pivotColumns'></div>
+          <div id='${this.elementId}_pivotContainer' class='websy-designs-pivot-container ${this.options.pivotPanel}'>
+            <div>
+              <h3>Rows</h3>
+              <div id='${this.elementId}_pivotRows'></div>
+            </div>
+            <div>
+              <h3>Columns</h3>
+              <div id='${this.elementId}_pivotColumns'></div>
+            </div>
           </div>       
         `
       }             
@@ -3251,7 +3320,7 @@ class Table3 {
     const maxMLabel = this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError).reduce((a, b) => a.qFallbackTitle > b.qFallbackTitle ? a : b).qFallbackTitle
     const maxMLength = maxMLabel.length > maxMValue ? maxMLabel : new Array(maxMValue).fill('X').join('')
     let effectiveOrder = this.layout.qHyperCube.qEffectiveInterColumnSortOrder
-    let dimensionLengths = this.layout.qHyperCube.qDimensionInfo.map(d => d.qApprMaxGlyphCount > d.qFallbackTitle.length ? new Array(d.qApprMaxGlyphCount).fill('X').join('') : d.qFallbackTitle)
+    let dimensionLengths = this.layout.qHyperCube.qDimensionInfo.filter(d => !d.qError).map(d => d.qApprMaxGlyphCount > d.qFallbackTitle.length ? new Array(d.qApprMaxGlyphCount).fill('X').join('') : d.qFallbackTitle)
     let activeColumns = []
     let rows = []
     let columns = []
@@ -3308,8 +3377,10 @@ class Table3 {
       for (let i = 0; i < count; i++) {
         rowsWidth += this.columns[this.columns.length - 1][i].actualWidth        
       }
-      rEl.style.width = rowsWidth + 'px'
-      rEl.style.maxWidth = rowsWidth + 'px'       
+      if (this.options.pivotPanel === 'docked') {
+        rEl.style.width = rowsWidth + 'px'
+        rEl.style.maxWidth = rowsWidth + 'px'        
+      }      
       this.rowList.options.items = rows.map((dim, dimIndex) => {
         let dimId = dim.qLibraryId || dim.qDef.qFieldLabels[0] || dim.qDef.qFieldDefs[0]            
         return {
@@ -3438,7 +3509,7 @@ class Table3 {
         width: c.width || null
       }))
     let measureLabel = activeDimensions.pop()
-    const maxMValue = this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError).reduce((a, b) => a.qApprMaxGlyphCount > b.qApprMaxGlyphCount ? a : b, 0)
+    const maxMValue = this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError).reduce((a, b) => a.qApprMaxGlyphCount > b.qApprMaxGlyphCount ? a : b, {qApprMaxGlyphCount: 0})
     const maxMLabel = this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError).reduce((a, b) => a > b.qFallbackTitle.length ? a : b.qFallbackTitle.length, 0)
     this.columnParamValues = this.columnParamValues.concat(new Array(this.layout.qHyperCube.qSize.qcx).fill(new Array(Math.max(maxMValue.qApprMaxGlyphCount, maxMLabel)).fill('X').join('')).map(d => ({value: d, width: null})))    
     if (this.layout.scrolling && this.layout.scrolling.keepFirstColumnInView === true) {
@@ -3479,14 +3550,17 @@ class Table3 {
   buildDataStructure () {
     this.fullData = []
     this.rowIndexList = []
-    if (this.layout.qHyperCube.qMode === 'S') {
-      for (let r = 0; r < this.layout.qHyperCube.qSize.qcy; r++) {
+    this.buildEmptyRows(0)
+  }
+  buildEmptyRows (start) {
+    for (let r = start; r < Math.min(this.layout.qHyperCube.qSize.qcy, (start + this.options.maxPlaceholderRows)); r++) {      
+      if (!this.fullData[r]) {
         let row = []
         for (let c = 0; c < this.layout.qHyperCube.qSize.qcx; c++) {
           row.push({})          
         }
-        this.fullData.push(row)
-      }
+        this.fullData.push(row) 
+      }      
     }
   }
   checkDataExists (start, end) {
@@ -3505,16 +3579,21 @@ class Table3 {
           }        
         }
         console.log('slicing pre', top)
+        this.buildEmptyRows(top)
         if (top < end && top !== -1) {
           this.getData(top, () => {
+            console.log('if callback for', top)
             resolve()
           }, true)        
         }
         else if (top !== -1) {
-          this.getData(top, () => {}, true)
-          resolve()
+          this.getData(top, () => {
+            console.log('else if callback for', top)
+            resolve()
+          }, true)          
         }      
         else {
+          console.log('else callback for', top)
           resolve()
         } 
       }           
@@ -3555,6 +3634,7 @@ class Table3 {
               }
               // else {
               // pages[0].qMatrix = pages[0].qMatrix.filter(r => r[0].qText !== '-')
+              console.log('callback splicing', pages[0].qArea.qTop)
               this.fullData.splice(pages[0].qArea.qTop, pages[0].qArea.qHeight, ...pages[0].qMatrix)
               for (let i = 0; i < pages[0].qArea.qHeight; i++) {
                 if (this.rowIndexList.indexOf(pages[0].qArea.qTop + i) === -1) {
@@ -3623,6 +3703,13 @@ class Table3 {
     else if (cell && cell.qElemNumber) {
       this.options.model.selectHyperCubeValues('/qHyperCubeDef', 0, [cell.qElemNumber], false)
     }
+    else if (event.target.classList.contains('toggle-pivot-panel')) {
+      const el = document.getElementById(`${this.elementId}_pivotContainer`)
+      if (el) {
+        event.target.classList.toggle('active')
+        el.classList.toggle('active')
+      }
+    }
   }
   handleScroll (direction, startRow, endRow, startCol, endCol) {    
     this.startCol = startCol
@@ -3637,7 +3724,49 @@ class Table3 {
           this.table.columns = [columnsInView]   
         }        
         else {
-          let columnsInView = this.columns
+          console.log('columns', this.columns)
+          let columnsInView = this.columns.map((cP) => {
+            let acc = 0
+            let adjAcc = 0
+            let firstColTrimmed = false
+            let newRow = cP.map((cC, i) => {                            
+              let c = Object.assign({}, cC)
+              if (i < this.pinnedColumns) {
+                acc += c.colspan || 1    
+                adjAcc += c.colspan || 1    
+                c.inView = true
+                return c
+              }              
+              if (c.colspan > 1) {
+                // not last level of column headers
+                if (acc < startCol && acc + c.colspan > startCol && firstColTrimmed === false) {
+                  c.colspan = c.colspan - (startCol - acc)
+                  c.inView = true
+                  firstColTrimmed = true
+                }
+                else if (acc >= startCol) {
+                  c.inView = true
+                }
+                // else if (acc >= startCol && acc + c.colspan <= endCol) {                  
+                //   c.inView = true
+                // }
+                // else if (acc <= endCol && acc + c.colspan >= endCol) {
+                //   // c.colspan = c.colspan - (endCol - acc)
+                //   c.inView = true
+                // }
+                else {
+                  c.inView = false
+                }               
+              }              
+              else {
+                c.inView = i >= startCol && i <= endCol
+              }  
+              acc += cC.colspan || 1    
+              adjAcc += c.colspan || 1    
+              return c                                   
+            }) 
+            return newRow.filter(d => d.inView === true)
+          })          
           this.table.columns = columnsInView
         }
       }
@@ -3647,9 +3776,9 @@ class Table3 {
         })      
         this.table.totals = totalsInView
       }
-      // console.log('slicing data', this.fullData.slice(startRow, endRow + 1))
+      console.log('callback slicing data', startRow, endRow + 1)
       this.appendRows(this.transformData(this.fullData.slice(startRow, endRow + 1).map(row => {
-        return row.filter((c, i) => {
+        return row.filter((c, i) => {          
           return i < this.pinnedColumns || (i >= startCol && i <= endCol)
         })
       })))
@@ -3760,6 +3889,22 @@ class Table3 {
     // }
     this.table.showLoading({message: 'Loading...'})    
     this.options.model.getLayout().then(layout => {    
+      if (layout.qHyperCube.qError && layout.qHyperCube.qCalcCondMsg) {
+        this.table.hideLoading()
+        this.table.showError({message: this.options.customError || layout.qHyperCube.qCalcCondMsg})
+        return
+      }
+      if (this.options.forcedRowLimit && layout.qHyperCube.qSize.qcy > this.options.forcedRowLimit) {
+        this.table.hideLoading()
+        this.table.showError({message: this.options.forcedRowLimitError || this.options.customError || layout.qHyperCube.qCalcCondMsg})
+        return
+      }
+      if (this.options.forcedColLimit && layout.qHyperCube.qSize.qcx > this.options.forcedColLimit) {
+        this.table.hideLoading()
+        this.table.showError({message: this.options.forcedColLimitError || this.options.customError || layout.qHyperCube.qCalcCondMsg})
+        return
+      }
+      this.table.hideError()
       this.options.model.getEffectiveProperties().then(props => {
         this.properties = props      
         if (this.options.onUpdate) {
@@ -3781,12 +3926,6 @@ class Table3 {
           this.table.options.leftColumns = (this.options.freezeColumns || this.layout.qHyperCube.qNoOfLeftDims)
         }
         this.table.options.pageCount = this.pageCount
-        if (layout.qHyperCube.qError && layout.qHyperCube.qCalcCondMsg) {
-          this.table.hideLoading()
-          this.table.showError({message: this.options.customError || layout.qHyperCube.qCalcCondMsg})
-          return
-        }
-        this.table.hideError()
         this.dataWidth = this.layout.qHyperCube.qSize.qcx
         this.columnOrder = this.layout.qHyperCube.qColumnOrder
         if (typeof this.columnOrder === 'undefined') {
@@ -3981,6 +4120,9 @@ class Table3 {
     for (let r = 0; r < page.qData.length; r++) {
       let row = page.qData[r]      
       for (let c = 0; c < row.length; c++) {
+        if (!row[c].classes) {
+          row[c].classes = []
+        }
         row[c].pos = 'Data'  
         row[c].style = 'text-align: right;'       
         // row[c].width = `${this.columnParams.cellWidths[(this.options.freezeColumns || this.layout.qHyperCube.qNoOfLeftDims) + c] || this.columnParams.cellWidths[this.columnParams.cellWidths.length - 1]}px`
@@ -3994,7 +4136,14 @@ class Table3 {
         let lastTop = topNodesTransposed[topNodesTransposed.length - 1][c]
         if (['T', 'E'].indexOf(row[c].qType) !== -1 || ['T'].indexOf(lastTop.qType) !== -1) {
           row[c].qType = 'T'
-        }                           
+        } 
+        if (leftNodes[r] && leftNodes[r][leftNodes[r].length - 1].qType === 'T') {
+          if (!leftNodes[r][leftNodes[r].length - 1].classes) {
+            leftNodes[r][leftNodes[r].length - 1].classes = []
+          }
+          leftNodes[r][leftNodes[r].length - 1].classes.push('total-cell')
+          row[c].classes.push('total-cell')
+        }                          
         row[c].value = row[c].qText || ''            
       }
       if (leftNodes[r]) {
@@ -4041,6 +4190,7 @@ class Table3 {
       }
     }
     visibleColCount = topNodesTransposed[topNodesTransposed.length - 1]
+    console.log('top nodes', topNodesTransposed)
     // output = topNodesTransposed.concat(output)
     // This function is used to convert the qLeft structure from a parent/child hierarchy
     // into a 2 dimensions array    
@@ -4061,8 +4211,11 @@ class Table3 {
         o.color = this.getFontColor(o.qAttrExps.qValues[1].qText)
       }
       delete o.qSubNodes  
+      if (o.qElemNo < 0 && this.layout.qHyperCube.qIndentMode === true && level > 0) {        
+        return
+      }
       if (typeof o.qText === 'undefined') {
-        if (o.qElemNo === -1) {
+        if (o.qElemNo === -1) {          
           o.qText = 'Totals'
         } 
         else if (o.qElemNo === -4) {
@@ -4155,10 +4308,10 @@ class Table3 {
       }      
       o.colspan = Math.max(1, input.qSubNodes.length)
       input.colspan = Math.max(1, input.qSubNodes.length)
-      if (level === this.layout.qHyperCube.qEffectiveInterColumnSortOrder.length - this.layout.qHyperCube.qNoOfLeftDims) {
-        o.inView = topNodesTransposed[level].length >= this.startCol && topNodesTransposed[level].length <= this.endCol
-        input.inView = topNodesTransposed[level].length >= this.startCol && topNodesTransposed[level].length <= this.endCol
-      }      
+      // if (level === this.layout.qHyperCube.qEffectiveInterColumnSortOrder.length - this.layout.qHyperCube.qNoOfLeftDims) {
+      //   o.inView = topNodesTransposed[level].length >= this.startCol && topNodesTransposed[level].length <= this.endCol
+      //   input.inView = topNodesTransposed[level].length >= this.startCol && topNodesTransposed[level].length <= this.endCol
+      // }      
       if (input.qSubNodes.length === 0) {                  
         // if (o.qElemNo === -99 && o.qCanCollapse === true) {
         if (index >= this.startCol && index <= this.endCol) {
@@ -4175,13 +4328,13 @@ class Table3 {
         let s = 0
         let inView = false
         for (let i = 0; i < input.qSubNodes.length; i++) {          
-          if (input.qSubNodes[i].inView === true) {
-            inView = true
-            s += input.qSubNodes[i].colspan            
-          }
+          // if (input.qSubNodes[i].inView === true) {
+          // inView = true
+          s += input.qSubNodes[i].colspan            
+          // }
         }
-        o.inView = inView
-        input.inView = inView
+        // o.inView = inView
+        // input.inView = inView
         o.rowIndex = topCounter
         topCounter += s
         o.colspan = s
@@ -4256,7 +4409,7 @@ if (typeof WebsyDesigns !== 'undefined') {
     Table2,
     Table3,
     GeoMap,
-    Dropdown,
+    Dropdown,    
     DatePicker,
     KPI
   }
@@ -4281,42 +4434,53 @@ class ObjectManager {
       applySelections: false,
       actions: [],
       retryCount: 5,
-      initialActions: [],
-      visualisationPlugins: [
-        {
-          id: 'kpi',
-          definition: KPI
-        },
-        {
-          id: 'table',
-          definition: Table
-        },
-        {
-          id: 'chart',
-          definition: Chart 
-        },
-        {
-          id: 'map',
-          definition: GeoMap 
-        },
-        {
-          id: 'dropdown',
-          definition: Dropdown
-        },
-        {
-          id: 'datepicker',
-          definition: DatePicker
-        }
-      ]
+      initialActions: []  
     }
+    const defaultVisualisationPlugins = [
+      {
+        id: 'kpi',
+        definition: KPI
+      },
+      {
+        id: 'table',
+        definition: Table
+      },
+      {
+        id: 'chart',
+        definition: Chart 
+      },
+      {
+        id: 'map',
+        definition: GeoMap 
+      },
+      {
+        id: 'dropdown',
+        definition: Dropdown
+      },
+      {
+        id: 'datepicker',
+        definition: DatePicker
+      }
+    ]
     this.app = null
     this.paused = false
     this.supportedChartTypes = []
     this.activeViews = []
     this.chartLibrary = {}
     this.globalObjectsLoaded = false    
-    this.options = this.mergeObjects({}, defaults, options)            
-    // this.options = Object.assign({}, defaults, options)            
+    // this.options = this.mergeObjects({}, defaults, options)            
+    this.options = Object.assign({}, defaults, options)
+    if (options.visualisationPlugins && options.visualisationPlugins.length > 0) {
+      const visKeys = options.visualisationPlugins.map(d => d.id)
+      defaultVisualisationPlugins.forEach(p => {
+        if (visKeys.indexOf(p.id) === -1) {
+          this.options.visualisationPlugins.push(p)
+        }
+      })
+    }
+    else {
+      this.options.visualisationPlugins = Object.assign({}, defaultVisualisationPlugins)
+    }          
     if (this.options.visualisationPlugins && this.options.visualisationPlugins.length > 0) {
       for (let i = 0; i < this.options.visualisationPlugins.length; i++) {
         this.registerVisualisation(this.options.visualisationPlugins[i].id, this.options.visualisationPlugins[i].definition)
@@ -4343,7 +4507,7 @@ class ObjectManager {
   mergeObjects () {    
     // Variables
     let extended = {}
-    let deep = false
+    let deep = true
     let i = 0
 
     // Check if a deep merge
@@ -4353,17 +4517,27 @@ class ObjectManager {
     }
 
     // Merge the object into the extended object
-    let merge = function (obj) {
+    let merge = (obj) => {
       for (let prop in obj) {
         if (obj.hasOwnProperty(prop)) {
           if (deep && Object.prototype.toString.call(obj[prop]) === '[object Object]') {
             // If we're doing a deep merge and the property is an object
-            extended[prop] = this.mergeObjects(true, extended[prop], obj[prop])
+            extended[prop] = this.mergeObjects(extended, extended[prop], obj[prop])
           } 
           else {
             // Otherwise, do a regular merge
             if (Array.isArray(extended[prop]) && Array.isArray(obj[prop])) {
-              extended[prop] = extended[prop].concat(obj[prop])
+              if (obj[prop].length > 0) {
+                // try {
+                extended[prop] = [...extended[prop], ...obj[prop]]
+                // } 
+                // catch (error) {
+                //   console.log('prop', prop)
+                //   console.log(extended[prop])
+                //   console.log(obj[prop])
+                //   console.log(error)
+                // }                
+              }              
             }
             else {
               extended[prop] = obj[prop]  
@@ -4681,6 +4855,10 @@ class ObjectManager {
   }
   executeAction (index, actionList, callbackFn) {
     let item = actionList[index]
+    if (typeof item === 'undefined') {
+      callbackFn()
+      return
+    }
     if (typeof item.params === 'undefined') {
       item.params = []
     }

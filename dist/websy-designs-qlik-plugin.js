@@ -54,7 +54,13 @@ var Bookmarks = /*#__PURE__*/function () {
       dock: 'left',
       bookmarkIcon: "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 512 512'><path d='M352 48H160a48 48 0 00-48 48v368l144-128 144 128V96a48 48 0 00-48-48z' fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='32' /></svg>",
       closeIcon: "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 512 512\"><line x1=\"368\" y1=\"368\" x2=\"144\" y2=\"144\" style=\"fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px\"/><line x1=\"368\" y1=\"144\" x2=\"144\" y2=\"368\" style=\"fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px\"/></svg>",
-      searchIcon: "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"30\" height=\"30\" viewBox=\"0 0 512 512\"><path d=\"M221.09 64a157.09 157.09 0 10157.09 157.09A157.1 157.1 0 00221.09 64z\" fill=\"none\" stroke=\"currentColor\" stroke-miterlimit=\"10\" stroke-width=\"32\"/><path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-miterlimit=\"10\" stroke-width=\"32\" d=\"M338.29 338.29L448 448\"/></svg>"
+      searchIcon: "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"30\" height=\"30\" viewBox=\"0 0 512 512\"><path d=\"M221.09 64a157.09 157.09 0 10157.09 157.09A157.1 157.1 0 00221.09 64z\" fill=\"none\" stroke=\"currentColor\" stroke-miterlimit=\"10\" stroke-width=\"32\"/><path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-miterlimit=\"10\" stroke-width=\"32\" d=\"M338.29 338.29L448 448\"/></svg>",
+      editIcon: "\n        <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\">\n          <path d=\"M384 224v184a40 40 0 01-40 40H104a40 40 0 01-40-40V168a40 40 0 0140-40h167.48\"\n          fill=\"none\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/>\n          <path d=\"M459.94 53.25a16.06 16.06 0 00-23.22-.56L424.35 65a8 8 0 000 11.31l11.34 11.32a8 8 0 0011.34\n          0l12.06-12c6.1-6.09 6.67-16.01.85-22.38zM399.34 90L218.82 270.2a9 9 0 00-2.31 3.93L208.16 299a3.91 3.91\n            0 004.86 4.86l24.85-8.35a9 9 0 003.93-2.31L422 112.66a9 9 0 000-12.66l-9.95-10a9 9 0 00-12.71 0z\"/>\n        </svg>\n      ",
+      deleteIcon: "\n        <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\"><title>Trash</title>\n          <path d=\"M296 64h-80a7.91 7.91 0 00-8 8v24h96V72a7.91 7.91 0 00-8-8z\" fill=\"none\"/>\n          <path d=\"M432 96h-96V72a40 40 0 00-40-40h-80a40 40 0 00-40 40v24H80a16 16 0 000 32h17l19 304.92c1.42\n            26.85 22 47.08 48 47.08h184c26.13 0 46.3-19.78 48-47l19-305h17a16 16 0 000-32zM192.57 416H192a16 16 0 \n            01-16-15.43l-8-224a16 16 0 1132-1.14l8 224A16 16 0 01192.57 416zM272 400a16 16 0 01-32 0V176a16 16 0 0132\n            0zm32-304h-96V72a7.91 7.91 0 018-8h80a7.91 7.91 0 018 8zm32 304.57A16 16 0 01320 416h-.58A16 16 0 01304 \n            399.43l8-224a16 16 0 1132 1.14z\"/>\n        </svg>               \n      ",
+      copyIcon: "Copy",
+      tickIcon: "\n        <svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\">\n          <path d=\"M448 256c0-106-86-192-192-192S64 150 64 256s86 192 192 192 192-86 192-192z\" fill=\"none\" stroke=\"currentColor\" stroke-miterlimit=\"10\" stroke-width=\"32\"/><path fill=\"none\"\n            stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" \n            stroke-width=\"32\" d=\"M352 176L217.6 336 160 272\"/>\n        </svg>\n      ",
+      crossIcon: "",
+      infoIcon: "\n        <svg class=\"i-icon-public\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\">\n          <path d=\"M256 56C145.72 56 56 145.72 56 256s89.72 200 200 200 200-89.72 200-200S366.28 \n          56 256 56zm0 82a26 26 0 11-26 26 26 26 0 0126-26zm48 226h-88a16 16 0 010-32h28v-88h-16a16 16 0 010-32h32a16 16 0 0116 \n          16v104h28a16 16 0 010 32z\"/>\n        </svg>\n      "
     };
     this.options = _extends({}, DEFAULTS, options);
     var el = document.getElementById(this.elementId);
@@ -92,16 +98,16 @@ var Bookmarks = /*#__PURE__*/function () {
   _createClass(Bookmarks, [{
     key: "createBookmarkHtml",
     value: function createBookmarkHtml(bookmark, bookmarkType) {
-      var html = "\n      <div class=\"public-li\" id=\"public-li\" data-bookmark=\"".concat(bookmark.qInfo.qId, "\">\n        <span class=\"bookmark-text\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\">").concat(bookmark.qMeta.title, "</span>\n        <div class=\"date-and-i\">\n          <span class=\"bookmark-text\">").concat(new Date(bookmark.qMeta.createdDate).toLocaleString().slice(0, 10), "</span>\n          <span class=\"infoBtn\">\n            <svg data-bookmark=\"").concat(bookmark.qInfo.qId, "\" class=\"i-icon-public\" id=\"i-icon-public\" xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\">\n              <path d=\"M256 56C145.72 56 56 145.72 56 256s89.72 200 200 200 200-89.72 200-200S366.28 \n              56 256 56zm0 82a26 26 0 11-26 26 26 26 0 0126-26zm48 226h-88a16 16 0 010-32h28v-88h-16a16 16 0 010-32h32a16 16 0 0116 \n              16v104h28a16 16 0 010 32z\"/>\n            </svg>\n          </span>\n        </div>\n      </div>          \n      <div class=\"info-popup\" id=\"info-popup-").concat(bookmark.qInfo.qId, "\">\n        <div class=\"info-topline\" id=\"info-topline-").concat(bookmark.qInfo.qId, "\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\">\n          <span class=\"description-heading\" id=\"description-heading\">").concat(bookmark.qMeta.description, "</span>\n        </div>");
+      var html = "\n      <div class=\"public-li\" id=\"public-li\" data-bookmark=\"".concat(bookmark.qInfo.qId, "\">\n        <span class=\"bookmark-text\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\">").concat(bookmark.qMeta.title, "</span>\n        <div class=\"date-and-i\">\n          <span class=\"bookmark-text\">").concat(new Date(bookmark.qMeta.createdDate).toLocaleString().slice(0, 10), "</span>\n          <span class=\"info-button\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\">\n            ").concat(this.options.infoIcon, "\n          </span>\n        </div>\n      </div>          \n      <div class=\"info-popup\" id=\"info-popup-").concat(bookmark.qInfo.qId, "\">\n        <div class=\"info-topline\" id=\"info-topline-").concat(bookmark.qInfo.qId, "\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\">\n          <span class=\"description-heading\" id=\"description-heading\">").concat(bookmark.qMeta.description, "</span>\n        </div>");
 
       if (bookmark.qMeta.privileges.indexOf('update') !== -1) {
-        html += "\n        <svg xmlns=\"http://www.w3.org/2000/svg\" data-bookmark=\"".concat(bookmark.qInfo.qId, "\" class=\"edit-info\" id=\"edit-info-").concat(bookmark.qInfo.qId, "\" viewBox=\"0 0 512 512\">\n          <path d=\"M384 224v184a40 40 0 01-40 40H104a40 40 0 01-40-40V168a40 40 0 0140-40h167.48\"\n          fill=\"none\" stroke=\"white\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"32\"/>\n          <path d=\"M459.94 53.25a16.06 16.06 0 00-23.22-.56L424.35 65a8 8 0 000 11.31l11.34 11.32a8 8 0 0011.34\n          0l12.06-12c6.1-6.09 6.67-16.01.85-22.38zM399.34 90L218.82 270.2a9 9 0 00-2.31 3.93L208.16 299a3.91 3.91\n            0 004.86 4.86l24.85-8.35a9 9 0 003.93-2.31L422 112.66a9 9 0 000-12.66l-9.95-10a9 9 0 00-12.71 0z\"/>\n        </svg>              \n        <div class=\"edit-topline\">\n          <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"tick-icon\" id=\"tick-icon\" viewBox=\"0 0 512 512\">\n            <path d=\"M448 256c0-106-86-192-192-192S64 150 64 256s86 192 192 192 192-86 192-192z\" fill=\"none\" stroke=\"currentColor\" stroke-miterlimit=\"10\" stroke-width=\"32\"/><path fill=\"none\"\n              stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" \n              stroke-width=\"32\" d=\"M352 176L217.6 336 160 272\"/>\n          </svg>");
+        html += "\n        <div class=\"edit-topline\">\n          <div data-bookmark=\"".concat(bookmark.qInfo.qId, "\" class=\"edit-info active\" id=\"edit-info-").concat(bookmark.qInfo.qId, "\">\n            ").concat(this.options.editIcon, "\n          </div> \n          <div class=\"tick-icon\" id=\"tick-icon-").concat(bookmark.qInfo.qId, "\">\n            ").concat(this.options.tickIcon, "\n          </div>                             \n      ");
 
         if (bookmark.qMeta.privileges.indexOf('delete') !== -1) {
-          html += "\n          <svg xmlns=\"http://www.w3.org/2000/svg\" class=\"trash-icon\" data-bookmark=\"".concat(bookmark.qInfo.qId, "\" id=\"trashIcon-").concat(bookmark.qInfo.qId, "\" viewBox=\"0 0 512 512\"><title>Trash</title>\n            <path d=\"M296 64h-80a7.91 7.91 0 00-8 8v24h96V72a7.91 7.91 0 00-8-8z\" fill=\"none\"/>\n            <path d=\"M432 96h-96V72a40 40 0 00-40-40h-80a40 40 0 00-40 40v24H80a16 16 0 000 32h17l19 304.92c1.42\n              26.85 22 47.08 48 47.08h184c26.13 0 46.3-19.78 48-47l19-305h17a16 16 0 000-32zM192.57 416H192a16 16 0 \n              01-16-15.43l-8-224a16 16 0 1132-1.14l8 224A16 16 0 01192.57 416zM272 400a16 16 0 01-32 0V176a16 16 0 0132\n              0zm32-304h-96V72a7.91 7.91 0 018-8h80a7.91 7.91 0 018 8zm32 304.57A16 16 0 01320 416h-.58A16 16 0 01304 \n              399.43l8-224a16 16 0 1132 1.14z\"/>\n          </svg>               \n        ");
+          html += "\n          <div class=\"trash-icon\" data-bookmark=\"".concat(bookmark.qInfo.qId, "\" id=\"deleteIcon-").concat(bookmark.qInfo.qId, "\">\n            ").concat(this.options.deleteIcon, "\n          </div>\n        ");
         }
 
-        html += "\n        </div>\n        <div id=\"edit-inputs-".concat(bookmark.qInfo.qId, "\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\" class=\"edit-inputs\">\n          <input type=\"text\" id=\"edit-title-").concat(bookmark.qInfo.qId, "\" placeholder=\"Bookmark title\"  value=\"").concat(bookmark.qMeta.title, "\"/>\n          <input type=\"text\" id=\"edit-description-").concat(bookmark.qInfo.qId, "\" placeholder=\"Bookmark description\" value=\"").concat(bookmark.qMeta.description, "\"  />\n        </div>");
+        html += "        \n        </div>\n        <div id=\"edit-inputs-".concat(bookmark.qInfo.qId, "\" data-bookmark=\"").concat(bookmark.qInfo.qId, "\" class=\"edit-inputs\">\n          <input type=\"text\" id=\"edit-title-").concat(bookmark.qInfo.qId, "\" placeholder=\"Bookmark title\"  value=\"").concat(bookmark.qMeta.title, "\"/>\n          <input type=\"text\" id=\"edit-description-").concat(bookmark.qInfo.qId, "\" placeholder=\"Bookmark description\" value=\"").concat(bookmark.qMeta.description, "\"  />\n        </div>");
       }
 
       html += "\n      <span class=\"selections\">Selections: ".concat(bookmark.qData.selectionFields, "</span>\n    ");
@@ -268,7 +274,7 @@ var Bookmarks = /*#__PURE__*/function () {
         });
       }
 
-      if (event.target.classList.contains('i-icon-public')) {
+      if (event.target.classList.contains('info-button')) {
         this.toggleInfo(event);
       }
 
@@ -292,7 +298,7 @@ var Bookmarks = /*#__PURE__*/function () {
         this.editInfo(event);
         this.hideInfoTopline(event);
         this.showTickIcon(event);
-        this.showTrashIcon(event);
+        this.showdeleteIcon(event);
       }
 
       if (event.target.classList.contains('tick-icon')) {
@@ -501,12 +507,14 @@ var Bookmarks = /*#__PURE__*/function () {
       var bookmarkId = event.target.getAttribute('data-bookmark');
       var showTick = document.getElementById("tick-icon-".concat(bookmarkId));
       showTick.classList.toggle('active');
+      var showEdit = document.getElementById("edit-info-".concat(bookmarkId));
+      showEdit.classList.toggle('active');
     }
   }, {
-    key: "showTrashIcon",
-    value: function showTrashIcon(event) {
+    key: "showdeleteIcon",
+    value: function showdeleteIcon(event) {
       var bookmarkId = event.target.getAttribute('data-bookmark');
-      var showTrash = document.getElementById("trashIcon-".concat(bookmarkId));
+      var showTrash = document.getElementById("deleteIcon-".concat(bookmarkId));
       showTrash.classList.toggle('active');
     }
   }, {
@@ -1177,7 +1185,7 @@ var CurrentSelections = /*#__PURE__*/function () {
             var sEl = document.getElementById("".concat(_this12.elementId, "_").concat(key));
 
             if (sEl) {
-              el.removeChild(sEl);
+              sEl.remove();
             }
 
             _this12.options.app.destroySessionObject(_this12.dropdowns[key].model.id);
@@ -1250,6 +1258,7 @@ var DatePicker = /*#__PURE__*/function () {
     }));
     this.listening = true;
     this.dateList = [];
+    this.selectedRangeIndex = 0;
     this.hourList = new Array(24).fill(0).map(function (d, i) {
       return (i < 10 ? '0' : '') + i + ':00';
     });
@@ -1309,7 +1318,7 @@ var DatePicker = /*#__PURE__*/function () {
       } // d.setTime(d.getTime() + d.getTimezoneOffset() * 60000)
 
 
-      return new Date(d.setHours(0, 0, 0, 0));
+      return new Date(d.setUTCHours(12, 0, 0, 0));
     }
   }, {
     key: "fromQlikDate",
@@ -1347,15 +1356,20 @@ var DatePicker = /*#__PURE__*/function () {
   }, {
     key: "toQlikDateNum",
     value: function toQlikDateNum(d) {
-      return Math.floor(d.getTime() / 86400000 + 25569);
+      if (typeof d === 'number') {
+        return Math.floor(d / 86400000 + 25569);
+      } else {
+        return Math.floor(d.getTime() / 86400000 + 25569);
+      }
     }
   }, {
     key: "onChange",
-    value: function onChange(data, isRange) {
+    value: function onChange(data, isRange, selectedRangeIndex) {
       var _this15 = this;
 
       var start;
       var end;
+      this.selectedRangeIndex = selectedRangeIndex;
       var valueList = data.map(function (d) {
         if (_this15.options.mode === 'date') {
           if (typeof d === 'number') {
@@ -1383,15 +1397,22 @@ var DatePicker = /*#__PURE__*/function () {
       if (isRange) {
         if (this.options.mode === 'date') {
           if (valueList.length === 2 && valueList[0] !== valueList[1]) {
-            var diff = valueList[1] - valueList[0];
+            // let diff = (valueList[1] - valueList[0]) / (1000 * 60 * 60 * 24)     
+            var qlikStart = this.toQlikDateNum(valueList[0]);
+            var qlikEnd = this.toQlikDateNum(valueList[1]);
 
-            for (var i = valueList[0]; i < valueList[1] + 1; i += 1000 * 60 * 60 * 24) {
-              if (this.completeDateList[i]) {
-                elemNums.push(this.completeDateList[i].qElemNumber);
+            for (var i = qlikStart; i < qlikEnd + 1; i++) {
+              if (this.completeQlikDateList[i] && typeof this.completeQlikDateList[i].qElemNumber !== 'undefined') {
+                elemNums.push(this.completeQlikDateList[i].qElemNumber);
               }
-            }
+            } // for (let i = valueList[0]; i < (valueList[1] + 1); i += (1000 * 60 * 60 * 24)) {
+            //   if (this.completeDateList[i] && this.completeDateList[i].qElemNumber) {
+            //     elemNums.push(this.completeDateList[i].qElemNumber)
+            //   }
+            // }
+
           } else {
-            if (this.completeDateList[valueList[0]]) {
+            if (this.completeDateList[valueList[0]] && typeof this.completeDateList[valueList[0]].qElemNumber !== 'undefined') {
               elemNums.push(this.completeDateList[valueList[0]].qElemNumber);
             }
           }
@@ -1421,9 +1442,9 @@ var DatePicker = /*#__PURE__*/function () {
           return v.qElemNumber;
         }), false, this.options.softLock);
       } else if (this.options.mode === 'date') {
-        if (elemNums.length === 0) {
-          // we should always be selecting something if we arrive in the onchange function
-          this.picker.selectRange(0, true);
+        if (elemNums.length === 0) {// we should always be selecting something if we arrive in the onchange function
+          // not true any more
+          // this.picker.selectRange(0, true)
         } else {
           this.options.model.selectListObjectValues('/qListObjectDef', elemNums, false, this.options.softLock);
         }
@@ -1438,7 +1459,7 @@ var DatePicker = /*#__PURE__*/function () {
   }, {
     key: "onClear",
     value: function onClear() {
-      this.options.model.clear();
+      this.options.model.clearSelections('/qListObjectDef');
     }
   }, {
     key: "render",
@@ -1459,6 +1480,7 @@ var DatePicker = /*#__PURE__*/function () {
           if (layout.qListObject.qDataPages[0] && _this16.listening === true) {
             // ensure we have a complete calendar
             _this16.completeDateList = {};
+            _this16.completeQlikDateList = {};
             var oneDay = 1000 * 60 * 60 * 24;
             var start;
             var end;
@@ -1514,10 +1536,14 @@ var DatePicker = /*#__PURE__*/function () {
 
             for (var i = 0; i < diff + 1; i++) {
               if (_this16.options.mode === 'date') {
-                var temp = _this16.fromQlikDate(start + i); // temp.setHours(0, 0, 0)      
+                var temp = _this16.fromQlikDate(start + i); // temp.setUTCHours(0, 0, 0)      
 
 
                 _this16.completeDateList[temp.getTime()] = {
+                  qNum: start + i,
+                  qState: 'Z'
+                };
+                _this16.completeQlikDateList[start + i] = {
                   qNum: start + i,
                   qState: 'Z'
                 };
@@ -1527,7 +1553,7 @@ var DatePicker = /*#__PURE__*/function () {
                   qState: 'Z'
                 };
               } else if (_this16.options.mode === 'monthyear') {
-                var _temp = _this16.floorDate(new Date(new Date(start.getTime()).setMonth(start.getMonth() + i))); // temp.setHours(0, 0, 0)
+                var _temp = _this16.floorDate(new Date(new Date(start.getTime()).setMonth(start.getMonth() + i))); // temp.setUTCHours(0, 0, 0)
 
 
                 _this16.completeDateList[_temp.getTime()] = {
@@ -1543,6 +1569,10 @@ var DatePicker = /*#__PURE__*/function () {
               if (_this16.options.mode === 'date') {
                 if (_this16.completeDateList[_this16.fromQlikDate(r[0].qNum).getTime()]) {
                   _this16.completeDateList[_this16.fromQlikDate(r[0].qNum).getTime()] = r[0];
+                }
+
+                if (_this16.completeQlikDateList[r[0].qNum]) {
+                  _this16.completeQlikDateList[r[0].qNum] = r[0];
                 }
 
                 if (i === 0) {
@@ -1564,6 +1594,10 @@ var DatePicker = /*#__PURE__*/function () {
                 if (_this16.monthYearIsDate === true) {
                   if (_this16.completeDateList[_this16.fromQlikDate(r[0].qNum).getTime()]) {
                     _this16.completeDateList[_this16.fromQlikDate(r[0].qNum).getTime()] = r[0];
+                  }
+
+                  if (_this16.completeQlikDateList[r[0].qNum]) {
+                    _this16.completeQlikDateList[r[0].qNum] = r[0];
                   }
 
                   if (i === 0) {
@@ -1662,11 +1696,13 @@ var DatePicker = /*#__PURE__*/function () {
 
             _this16.picker.setDateBounds([min, max]);
 
-            if (selectedRange.length === layout.qListObject.qDataPages[0].qMatrix.length) {// do nothing because all values are selected
-            } else if (selectedRange.length > 0) {
-              _this16.picker.selectCustomRange(selectedRange);
-            } else if (selectedRange.length === 0) {
-              _this16.picker.selectRange(0, false);
+            if (_this16.selectedRangeIndex < 0) {
+              if (selectedRange.length === layout.qListObject.qDataPages[0].qMatrix.length) {// do nothing because all values are selected
+              } else if (selectedRange.length > 0) {
+                _this16.picker.selectCustomRange(selectedRange);
+              } else if (selectedRange.length === 0) {
+                _this16.picker.selectRange(0, false);
+              }
             }
 
             _this16.picker.render(disabledDates);
@@ -3777,7 +3813,10 @@ var Table3 = /*#__PURE__*/function () {
       columnOverrides: [],
       maxColWidth: '50%',
       allowPivoting: false,
-      dropdownOptions: {}
+      pivotPanel: 'docked',
+      pivotButtonText: 'Pivot',
+      dropdownOptions: {},
+      maxPlaceholderRows: 1000
     }; // if (Dropdown) {
     //   if (!WebsyDesignsQlikPlugins) {
     //     WebsyDesignsQlikPlugins = {}
@@ -3809,8 +3848,14 @@ var Table3 = /*#__PURE__*/function () {
       var tableStyle = 'height: 100%';
 
       if (this.options.allowPivoting === true) {
-        tableStyle = 'height: calc(100% - 100px);';
-        html += "\n          <div id='".concat(this.elementId, "_pivotContainer' class='websy-designs-pivot-container'>\n            <div id='").concat(this.elementId, "_pivotRows'></div>\n            <div id='").concat(this.elementId, "_pivotColumns'></div>\n          </div>       \n        ");
+        if (this.options.pivotPanel === 'docked') {
+          tableStyle = 'height: calc(100% - 100px);';
+        } else {
+          tableStyle = 'height: calc(100% - 30px);';
+          html += "\n            <div class=\"pivot-button-container\">\n              <button class=\"toggle-pivot-panel\">".concat(this.options.pivotButtonText, "</button>\n            </div>\n          ");
+        }
+
+        html += "\n          <div id='".concat(this.elementId, "_pivotContainer' class='websy-designs-pivot-container ").concat(this.options.pivotPanel, "'>\n            <div>\n              <h3>Rows</h3>\n              <div id='").concat(this.elementId, "_pivotRows'></div>\n            </div>\n            <div>\n              <h3>Columns</h3>\n              <div id='").concat(this.elementId, "_pivotColumns'></div>\n            </div>\n          </div>       \n        ");
       }
 
       html += "\n        <div id='".concat(this.elementId, "_tableContainer' style='").concat(tableStyle, "'></div>\n      ");
@@ -3876,7 +3921,9 @@ var Table3 = /*#__PURE__*/function () {
       }).qFallbackTitle;
       var maxMLength = maxMLabel.length > maxMValue ? maxMLabel : new Array(maxMValue).fill('X').join('');
       var effectiveOrder = this.layout.qHyperCube.qEffectiveInterColumnSortOrder;
-      var dimensionLengths = this.layout.qHyperCube.qDimensionInfo.map(function (d) {
+      var dimensionLengths = this.layout.qHyperCube.qDimensionInfo.filter(function (d) {
+        return !d.qError;
+      }).map(function (d) {
         return d.qApprMaxGlyphCount > d.qFallbackTitle.length ? new Array(d.qApprMaxGlyphCount).fill('X').join('') : d.qFallbackTitle;
       });
       var activeColumns = [];
@@ -3946,8 +3993,11 @@ var Table3 = /*#__PURE__*/function () {
           rowsWidth += this.columns[this.columns.length - 1][_i19].actualWidth;
         }
 
-        rEl.style.width = rowsWidth + 'px';
-        rEl.style.maxWidth = rowsWidth + 'px';
+        if (this.options.pivotPanel === 'docked') {
+          rEl.style.width = rowsWidth + 'px';
+          rEl.style.maxWidth = rowsWidth + 'px';
+        }
+
         this.rowList.options.items = rows.map(function (dim, dimIndex) {
           var dimId = dim.qLibraryId || dim.qDef.qFieldLabels[0] || dim.qDef.qFieldDefs[0];
           return {
@@ -4104,7 +4154,9 @@ var Table3 = /*#__PURE__*/function () {
         return !m.qError;
       }).reduce(function (a, b) {
         return a.qApprMaxGlyphCount > b.qApprMaxGlyphCount ? a : b;
-      }, 0);
+      }, {
+        qApprMaxGlyphCount: 0
+      });
       var maxMLabel = this.layout.qHyperCube.qMeasureInfo.filter(function (m) {
         return !m.qError;
       }).reduce(function (a, b) {
@@ -4157,9 +4209,13 @@ var Table3 = /*#__PURE__*/function () {
     value: function buildDataStructure() {
       this.fullData = [];
       this.rowIndexList = [];
-
-      if (this.layout.qHyperCube.qMode === 'S') {
-        for (var r = 0; r < this.layout.qHyperCube.qSize.qcy; r++) {
+      this.buildEmptyRows(0);
+    }
+  }, {
+    key: "buildEmptyRows",
+    value: function buildEmptyRows(start) {
+      for (var r = start; r < Math.min(this.layout.qHyperCube.qSize.qcy, start + this.options.maxPlaceholderRows); r++) {
+        if (!this.fullData[r]) {
           var row = [];
 
           for (var c = 0; c < this.layout.qHyperCube.qSize.qcx; c++) {
@@ -4192,15 +4248,20 @@ var Table3 = /*#__PURE__*/function () {
 
           console.log('slicing pre', top);
 
+          _this41.buildEmptyRows(top);
+
           if (top < end && top !== -1) {
             _this41.getData(top, function () {
+              console.log('if callback for', top);
               resolve();
             }, true);
           } else if (top !== -1) {
-            _this41.getData(top, function () {}, true);
-
-            resolve();
+            _this41.getData(top, function () {
+              console.log('else if callback for', top);
+              resolve();
+            }, true);
           } else {
+            console.log('else callback for', top);
             resolve();
           }
         }
@@ -4255,6 +4316,8 @@ var Table3 = /*#__PURE__*/function () {
                 } // else {
                 // pages[0].qMatrix = pages[0].qMatrix.filter(r => r[0].qText !== '-')
 
+
+                console.log('callback splicing', pages[0].qArea.qTop);
 
                 (_this42$fullData = _this42.fullData).splice.apply(_this42$fullData, [pages[0].qArea.qTop, pages[0].qArea.qHeight].concat(_toConsumableArray(pages[0].qMatrix)));
 
@@ -4332,6 +4395,13 @@ var Table3 = /*#__PURE__*/function () {
         this.render();
       } else if (cell && cell.qElemNumber) {
         this.options.model.selectHyperCubeValues('/qHyperCubeDef', 0, [cell.qElemNumber], false);
+      } else if (event.target.classList.contains('toggle-pivot-panel')) {
+        var el = document.getElementById("".concat(this.elementId, "_pivotContainer"));
+
+        if (el) {
+          event.target.classList.toggle('active');
+          el.classList.toggle('active');
+        }
       }
     }
   }, {
@@ -4351,7 +4421,53 @@ var Table3 = /*#__PURE__*/function () {
 
             _this43.table.columns = [columnsInView];
           } else {
-            var _columnsInView = _this43.columns;
+            console.log('columns', _this43.columns);
+
+            var _columnsInView = _this43.columns.map(function (cP) {
+              var acc = 0;
+              var adjAcc = 0;
+              var firstColTrimmed = false;
+              var newRow = cP.map(function (cC, i) {
+                var c = _extends({}, cC);
+
+                if (i < _this43.pinnedColumns) {
+                  acc += c.colspan || 1;
+                  adjAcc += c.colspan || 1;
+                  c.inView = true;
+                  return c;
+                }
+
+                if (c.colspan > 1) {
+                  // not last level of column headers
+                  if (acc < startCol && acc + c.colspan > startCol && firstColTrimmed === false) {
+                    c.colspan = c.colspan - (startCol - acc);
+                    c.inView = true;
+                    firstColTrimmed = true;
+                  } else if (acc >= startCol) {
+                    c.inView = true;
+                  } // else if (acc >= startCol && acc + c.colspan <= endCol) {                  
+                  //   c.inView = true
+                  // }
+                  // else if (acc <= endCol && acc + c.colspan >= endCol) {
+                  //   // c.colspan = c.colspan - (endCol - acc)
+                  //   c.inView = true
+                  // }
+                  else {
+                    c.inView = false;
+                  }
+                } else {
+                  c.inView = i >= startCol && i <= endCol;
+                }
+
+                acc += cC.colspan || 1;
+                adjAcc += c.colspan || 1;
+                return c;
+              });
+              return newRow.filter(function (d) {
+                return d.inView === true;
+              });
+            });
+
             _this43.table.columns = _columnsInView;
           }
         }
@@ -4362,8 +4478,9 @@ var Table3 = /*#__PURE__*/function () {
           });
 
           _this43.table.totals = totalsInView;
-        } // console.log('slicing data', this.fullData.slice(startRow, endRow + 1))
+        }
 
+        console.log('callback slicing data', startRow, endRow + 1);
 
         _this43.appendRows(_this43.transformData(_this43.fullData.slice(startRow, endRow + 1).map(function (row) {
           return row.filter(function (c, i) {
@@ -4498,6 +4615,38 @@ var Table3 = /*#__PURE__*/function () {
         message: 'Loading...'
       });
       this.options.model.getLayout().then(function (layout) {
+        if (layout.qHyperCube.qError && layout.qHyperCube.qCalcCondMsg) {
+          _this44.table.hideLoading();
+
+          _this44.table.showError({
+            message: _this44.options.customError || layout.qHyperCube.qCalcCondMsg
+          });
+
+          return;
+        }
+
+        if (_this44.options.forcedRowLimit && layout.qHyperCube.qSize.qcy > _this44.options.forcedRowLimit) {
+          _this44.table.hideLoading();
+
+          _this44.table.showError({
+            message: _this44.options.forcedRowLimitError || _this44.options.customError || layout.qHyperCube.qCalcCondMsg
+          });
+
+          return;
+        }
+
+        if (_this44.options.forcedColLimit && layout.qHyperCube.qSize.qcx > _this44.options.forcedColLimit) {
+          _this44.table.hideLoading();
+
+          _this44.table.showError({
+            message: _this44.options.forcedColLimitError || _this44.options.customError || layout.qHyperCube.qCalcCondMsg
+          });
+
+          return;
+        }
+
+        _this44.table.hideError();
+
         _this44.options.model.getEffectiveProperties().then(function (props) {
           _this44.properties = props;
 
@@ -4525,19 +4674,6 @@ var Table3 = /*#__PURE__*/function () {
           }
 
           _this44.table.options.pageCount = _this44.pageCount;
-
-          if (layout.qHyperCube.qError && layout.qHyperCube.qCalcCondMsg) {
-            _this44.table.hideLoading();
-
-            _this44.table.showError({
-              message: _this44.options.customError || layout.qHyperCube.qCalcCondMsg
-            });
-
-            return;
-          }
-
-          _this44.table.hideError();
-
           _this44.dataWidth = _this44.layout.qHyperCube.qSize.qcx;
           _this44.columnOrder = _this44.layout.qHyperCube.qColumnOrder;
 
@@ -4754,6 +4890,10 @@ var Table3 = /*#__PURE__*/function () {
         var row = page.qData[r];
 
         for (var c = 0; c < row.length; c++) {
+          if (!row[c].classes) {
+            row[c].classes = [];
+          }
+
           row[c].pos = 'Data';
           row[c].style = 'text-align: right;'; // row[c].width = `${this.columnParams.cellWidths[(this.options.freezeColumns || this.layout.qHyperCube.qNoOfLeftDims) + c] || this.columnParams.cellWidths[this.columnParams.cellWidths.length - 1]}px`
 
@@ -4770,6 +4910,15 @@ var Table3 = /*#__PURE__*/function () {
 
           if (['T', 'E'].indexOf(row[c].qType) !== -1 || ['T'].indexOf(lastTop.qType) !== -1) {
             row[c].qType = 'T';
+          }
+
+          if (leftNodes[r] && leftNodes[r][leftNodes[r].length - 1].qType === 'T') {
+            if (!leftNodes[r][leftNodes[r].length - 1].classes) {
+              leftNodes[r][leftNodes[r].length - 1].classes = [];
+            }
+
+            leftNodes[r][leftNodes[r].length - 1].classes.push('total-cell');
+            row[c].classes.push('total-cell');
           }
 
           row[c].value = row[c].qText || '';
@@ -4823,7 +4972,8 @@ var Table3 = /*#__PURE__*/function () {
         }
       }
 
-      visibleColCount = topNodesTransposed[topNodesTransposed.length - 1]; // output = topNodesTransposed.concat(output)
+      visibleColCount = topNodesTransposed[topNodesTransposed.length - 1];
+      console.log('top nodes', topNodesTransposed); // output = topNodesTransposed.concat(output)
       // This function is used to convert the qLeft structure from a parent/child hierarchy
       // into a 2 dimensions array    
 
@@ -4848,6 +4998,10 @@ var Table3 = /*#__PURE__*/function () {
         }
 
         delete o.qSubNodes;
+
+        if (o.qElemNo < 0 && this.layout.qHyperCube.qIndentMode === true && level > 0) {
+          return;
+        }
 
         if (typeof o.qText === 'undefined') {
           if (o.qElemNo === -1) {
@@ -4963,12 +5117,10 @@ var Table3 = /*#__PURE__*/function () {
         }
 
         o.colspan = Math.max(1, input.qSubNodes.length);
-        input.colspan = Math.max(1, input.qSubNodes.length);
-
-        if (level === this.layout.qHyperCube.qEffectiveInterColumnSortOrder.length - this.layout.qHyperCube.qNoOfLeftDims) {
-          o.inView = topNodesTransposed[level].length >= this.startCol && topNodesTransposed[level].length <= this.endCol;
-          input.inView = topNodesTransposed[level].length >= this.startCol && topNodesTransposed[level].length <= this.endCol;
-        }
+        input.colspan = Math.max(1, input.qSubNodes.length); // if (level === this.layout.qHyperCube.qEffectiveInterColumnSortOrder.length - this.layout.qHyperCube.qNoOfLeftDims) {
+        //   o.inView = topNodesTransposed[level].length >= this.startCol && topNodesTransposed[level].length <= this.endCol
+        //   input.inView = topNodesTransposed[level].length >= this.startCol && topNodesTransposed[level].length <= this.endCol
+        // }      
 
         if (input.qSubNodes.length === 0) {
           // if (o.qElemNo === -99 && o.qCanCollapse === true) {
@@ -4987,14 +5139,13 @@ var Table3 = /*#__PURE__*/function () {
           var inView = false;
 
           for (var _i27 = 0; _i27 < input.qSubNodes.length; _i27++) {
-            if (input.qSubNodes[_i27].inView === true) {
-              inView = true;
-              s += input.qSubNodes[_i27].colspan;
-            }
-          }
+            // if (input.qSubNodes[i].inView === true) {
+            // inView = true
+            s += input.qSubNodes[_i27].colspan; // }
+          } // o.inView = inView
+          // input.inView = inView
 
-          o.inView = inView;
-          input.inView = inView;
+
           o.rowIndex = topCounter;
           topCounter += s;
           o.colspan = s;
@@ -5102,6 +5253,8 @@ if (typeof WebsyDesigns !== 'undefined') {
 
   var ObjectManager = /*#__PURE__*/function () {
     function ObjectManager(options) {
+      var _this46 = this;
+
       _classCallCheck(this, ObjectManager);
 
       var defaults = {
@@ -5109,34 +5262,48 @@ if (typeof WebsyDesigns !== 'undefined') {
         applySelections: false,
         actions: [],
         retryCount: 5,
-        initialActions: [],
-        visualisationPlugins: [{
-          id: 'kpi',
-          definition: KPI
-        }, {
-          id: 'table',
-          definition: Table
-        }, {
-          id: 'chart',
-          definition: Chart
-        }, {
-          id: 'map',
-          definition: GeoMap
-        }, {
-          id: 'dropdown',
-          definition: Dropdown
-        }, {
-          id: 'datepicker',
-          definition: DatePicker
-        }]
+        initialActions: []
       };
+      var defaultVisualisationPlugins = [{
+        id: 'kpi',
+        definition: KPI
+      }, {
+        id: 'table',
+        definition: Table
+      }, {
+        id: 'chart',
+        definition: Chart
+      }, {
+        id: 'map',
+        definition: GeoMap
+      }, {
+        id: 'dropdown',
+        definition: Dropdown
+      }, {
+        id: 'datepicker',
+        definition: DatePicker
+      }];
       this.app = null;
       this.paused = false;
       this.supportedChartTypes = [];
       this.activeViews = [];
       this.chartLibrary = {};
-      this.globalObjectsLoaded = false;
-      this.options = this.mergeObjects({}, defaults, options); // this.options = Object.assign({}, defaults, options)            
+      this.globalObjectsLoaded = false; // this.options = this.mergeObjects({}, defaults, options)            
+
+      this.options = _extends({}, defaults, options);
+
+      if (options.visualisationPlugins && options.visualisationPlugins.length > 0) {
+        var visKeys = options.visualisationPlugins.map(function (d) {
+          return d.id;
+        });
+        defaultVisualisationPlugins.forEach(function (p) {
+          if (visKeys.indexOf(p.id) === -1) {
+            _this46.options.visualisationPlugins.push(p);
+          }
+        });
+      } else {
+        this.options.visualisationPlugins = _extends({}, defaultVisualisationPlugins);
+      }
 
       if (this.options.visualisationPlugins && this.options.visualisationPlugins.length > 0) {
         for (var i = 0; i < this.options.visualisationPlugins.length; i++) {
@@ -5165,9 +5332,11 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "mergeObjects",
       value: function mergeObjects() {
+        var _this47 = this;
+
         // Variables
         var extended = {};
-        var deep = false;
+        var deep = true;
         var i = 0; // Check if a deep merge
 
         if (typeof arguments[0] === 'boolean') {
@@ -5181,11 +5350,20 @@ if (typeof WebsyDesigns !== 'undefined') {
             if (obj.hasOwnProperty(prop)) {
               if (deep && Object.prototype.toString.call(obj[prop]) === '[object Object]') {
                 // If we're doing a deep merge and the property is an object
-                extended[prop] = this.mergeObjects(true, extended[prop], obj[prop]);
+                extended[prop] = _this47.mergeObjects(extended, extended[prop], obj[prop]);
               } else {
                 // Otherwise, do a regular merge
                 if (Array.isArray(extended[prop]) && Array.isArray(obj[prop])) {
-                  extended[prop] = extended[prop].concat(obj[prop]);
+                  if (obj[prop].length > 0) {
+                    // try {
+                    extended[prop] = [].concat(_toConsumableArray(extended[prop]), _toConsumableArray(obj[prop])); // } 
+                    // catch (error) {
+                    //   console.log('prop', prop)
+                    //   console.log(extended[prop])
+                    //   console.log(obj[prop])
+                    //   console.log(error)
+                    // }                
+                  }
                 } else {
                   extended[prop] = obj[prop];
                 }
@@ -5204,14 +5382,14 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "init",
       value: function init() {
-        var _this46 = this;
+        var _this48 = this;
 
         return new Promise(function (resolve, reject) {
-          _this46.prep('global');
+          _this48.prep('global');
 
-          _this46.connectToApp().then(function () {
-            _this46.executeAction(0, _this46.options.initialActions, function () {
-              _this46.selectFromUrl(function () {
+          _this48.connectToApp().then(function () {
+            _this48.executeAction(0, _this48.options.initialActions, function () {
+              _this48.selectFromUrl(function () {
                 resolve();
               });
             });
@@ -5292,7 +5470,7 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "prep",
       value: function prep(view) {
-        var _this47 = this;
+        var _this49 = this;
 
         // for (let view in this.options.views) {
         // sort out the elements in each view
@@ -5314,29 +5492,29 @@ if (typeof WebsyDesigns !== 'undefined') {
 
 
         var _loop = function _loop(a) {
-          var el = document.getElementById(_this47.options.actions[a].elementId);
+          var el = document.getElementById(_this49.options.actions[a].elementId);
 
           if (el) {
-            el.addEventListener(_this47.options.actions[a].event, function () {
+            el.addEventListener(_this49.options.actions[a].event, function () {
               var _loop2 = function _loop2(i) {
-                var item = _this47.options.actions[a].items[i];
+                var item = _this49.options.actions[a].items[i];
 
                 if (typeof item.params === 'undefined') {
                   item.params = [];
                 }
 
                 if (item.field) {
-                  _this47.app.getField(item.field).then(function (field) {
+                  _this49.app.getField(item.field).then(function (field) {
                     field[item.method].apply(field, _toConsumableArray(item.params));
                   });
                 } else {
-                  var _this47$app;
+                  var _this49$app;
 
-                  (_this47$app = _this47.app)[item.method].apply(_this47$app, _toConsumableArray(item.params));
+                  (_this49$app = _this49.app)[item.method].apply(_this49$app, _toConsumableArray(item.params));
                 }
               };
 
-              for (var i = 0; i < _this47.options.actions[a].items.length; i++) {
+              for (var i = 0; i < _this49.options.actions[a].items.length; i++) {
                 _loop2(i);
               }
             });
@@ -5352,14 +5530,14 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "connectToApp",
       value: function connectToApp() {
-        var _this48 = this;
+        var _this50 = this;
 
         return new Promise(function (resolve, reject) {
           // check for enigma.js      
-          var originalId = _this48.options.enigmaConfig.app;
+          var originalId = _this50.options.enigmaConfig.app;
 
-          if (_this48.options.enigmaConfig.app) {
-            _this48.options.enigmaConfig.app = _this48.normalizeId(_this48.options.enigmaConfig.app);
+          if (_this50.options.enigmaConfig.app) {
+            _this50.options.enigmaConfig.app = _this50.normalizeId(_this50.options.enigmaConfig.app);
           }
 
           if (typeof enigma === 'undefined') {
@@ -5369,46 +5547,46 @@ if (typeof WebsyDesigns !== 'undefined') {
             return;
           }
 
-          if (typeof _this48.options.enigmaSchema === 'undefined') {
+          if (typeof _this50.options.enigmaSchema === 'undefined') {
             reject({
               error: 'enigmaSchema property not found.'
             });
             return;
           }
 
-          var url = _this48.options.enigmaConfig.url;
+          var url = _this50.options.enigmaConfig.url;
 
-          if (_this48.options.enigmaConfig.ticket) {
+          if (_this50.options.enigmaConfig.ticket) {
             if (url.indexOf('?') === -1) {
               url += '?';
             } else {
               url += '&';
             }
 
-            url += "qlikTicket=".concat(_this48.options.enigmaConfig.ticket);
+            url += "qlikTicket=".concat(_this50.options.enigmaConfig.ticket);
           }
 
           var config = {
-            schema: _this48.options.enigmaSchema,
+            schema: _this50.options.enigmaSchema,
             url: url
           };
           var session = enigma.create(config);
-          _this48.session = session;
+          _this50.session = session;
           session.open().then(function (global) {
-            _this48.global = global;
+            _this50.global = global;
             global.getActiveDoc().then(function (app) {
               if (app) {
-                _this48.app = app;
+                _this50.app = app;
 
-                if (_this48.options.views.global) {
-                  _this48.executeActions('global').then(function () {
+                if (_this50.options.views.global) {
+                  _this50.executeActions('global').then(function () {
                     resolve();
                   });
                 } else {
                   resolve();
                 }
               } else {
-                return _this48.openApp(originalId).then(function () {
+                return _this50.openApp(originalId).then(function () {
                   resolve();
                 });
               }
@@ -5416,10 +5594,10 @@ if (typeof WebsyDesigns !== 'undefined') {
               var e = err;
 
               if (originalId) {
-                return _this48.openApp(originalId).then(function () {
+                return _this50.openApp(originalId).then(function () {
                   resolve();
                 }, function (err) {
-                  _this48.sessionOnNotification({
+                  _this50.sessionOnNotification({
                     err: err
                   });
                 });
@@ -5428,40 +5606,40 @@ if (typeof WebsyDesigns !== 'undefined') {
               }
             });
 
-            if (_this48.options.keepAlive === true) {
-              _this48.keepAlive();
+            if (_this50.options.keepAlive === true) {
+              _this50.keepAlive();
             }
           }, function (err) {
             reject(err);
           });
           session.on('traffic:received', function (data) {
             if (typeof data.suspend !== 'undefined') {
-              _this48.sessionSuspended();
+              _this50.sessionSuspended();
             }
           });
           session.on('notification:*', function (eventName, data) {
             if (eventName === 'OnAuthenticationInformation') {
               if (data.mustAuthenticate === true) {
-                if (_this48.options.enigmaConfig.authUrl) {
-                  window.location = _this48.options.enigmaConfig.authUrl + window.location.search.replace('?', '%3F').replace('=', '%3D');
-                } else if (_this48.options.enigmaConfig.onMustAuthenticate) {
-                  _this48.options.enigmaConfig.onMustAuthenticate();
+                if (_this50.options.enigmaConfig.authUrl) {
+                  window.location = _this50.options.enigmaConfig.authUrl + window.location.search.replace('?', '%3F').replace('=', '%3D');
+                } else if (_this50.options.enigmaConfig.onMustAuthenticate) {
+                  _this50.options.enigmaConfig.onMustAuthenticate();
                 } else if (data.loginUri) {
                   window.location = data.loginUri;
                 }
               } else if (data.mustAuthenticate === false) {
-                _this48.user = {
+                _this50.user = {
                   userDirectory: data.userDirectory,
                   userId: data.userId
                 };
               }
             } else {
-              _this48.sessionOnNotification(data, eventName);
+              _this50.sessionOnNotification(data, eventName);
             }
           });
-          session.on('suspended', _this48.sessionSuspended.bind(_this48));
-          session.on('resumed', _this48.sessionResumed.bind(_this48));
-          session.on('closed', _this48.sessionClosed.bind(_this48));
+          session.on('suspended', _this50.sessionSuspended.bind(_this50));
+          session.on('resumed', _this50.sessionResumed.bind(_this50));
+          session.on('closed', _this50.sessionClosed.bind(_this50));
         });
       }
     }, {
@@ -5482,24 +5660,24 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "keepAlive",
       value: function keepAlive() {
-        var _this49 = this;
+        var _this51 = this;
 
         this.global.engineVersion();
         setTimeout(function () {
-          _this49.keepAlive();
+          _this51.keepAlive();
         }, 59000);
       }
     }, {
       key: "openApp",
       value: function openApp(appId) {
-        var _this50 = this;
+        var _this52 = this;
 
         return new Promise(function (resolve, reject) {
-          _this50.global.openDoc(appId).then(function (app) {
-            _this50.app = app;
+          _this52.global.openDoc(appId).then(function (app) {
+            _this52.app = app;
 
-            if (_this50.options.views.global) {
-              _this50.executeActions('global').then(function () {
+            if (_this52.options.views.global) {
+              _this52.executeActions('global').then(function () {
                 resolve();
               });
             } else {
@@ -5513,7 +5691,7 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "loadView",
       value: function loadView(view, force) {
-        var _this51 = this;
+        var _this53 = this;
 
         if (typeof force === 'undefined') {
           force = false;
@@ -5533,23 +5711,23 @@ if (typeof WebsyDesigns !== 'undefined') {
 
         if (this.options.views[view].controller && this.options.views[view].initialized !== true) {
           this.options.views[view].controller.init(function () {
-            _this51.options.views[view].initialized = true;
+            _this53.options.views[view].initialized = true;
 
-            if (_this51.options.views[view].prepped !== true) {
-              _this51.prep(view);
+            if (_this53.options.views[view].prepped !== true) {
+              _this53.prep(view);
             }
 
-            _this51.executeActions(view).then(function () {
-              if ((_this51.globalObjectsLoaded === false || _this51.options.alwaysLoadGlobal === true) && view !== 'global') {
-                _this51.loadObjects('global', force);
+            _this53.executeActions(view).then(function () {
+              if ((_this53.globalObjectsLoaded === false || _this53.options.alwaysLoadGlobal === true) && view !== 'global') {
+                _this53.loadObjects('global', force);
 
-                _this51.globalObjectsLoaded = true;
+                _this53.globalObjectsLoaded = true;
               }
 
-              _this51.loadObjects(view, force);
+              _this53.loadObjects(view, force);
 
               if (view === 'global') {
-                _this51.globalObjectsLoaded = true;
+                _this53.globalObjectsLoaded = true;
               }
             });
           });
@@ -5562,16 +5740,16 @@ if (typeof WebsyDesigns !== 'undefined') {
           this.executeActions(view).then(function () {
             console.log('Actions complete', view);
 
-            if ((_this51.globalObjectsLoaded === false || _this51.options.alwaysLoadGlobal === true) && view !== 'global') {
-              _this51.loadObjects('global', force);
+            if ((_this53.globalObjectsLoaded === false || _this53.options.alwaysLoadGlobal === true) && view !== 'global') {
+              _this53.loadObjects('global', force);
 
-              _this51.globalObjectsLoaded = true;
+              _this53.globalObjectsLoaded = true;
             }
 
-            _this51.loadObjects(view, force);
+            _this53.loadObjects(view, force);
 
             if (view === 'global') {
-              _this51.globalObjectsLoaded = true;
+              _this53.globalObjectsLoaded = true;
             }
           });
         }
@@ -5579,9 +5757,14 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "executeAction",
       value: function executeAction(index, actionList, callbackFn) {
-        var _this52 = this;
+        var _this54 = this;
 
         var item = actionList[index];
+
+        if (typeof item === 'undefined') {
+          callbackFn();
+          return;
+        }
 
         if (typeof item.params === 'undefined') {
           item.params = [];
@@ -5597,7 +5780,7 @@ if (typeof WebsyDesigns !== 'undefined') {
                   if (index === actionList.length) {
                     callbackFn();
                   } else {
-                    _this52.executeAction(index, actionList, callbackFn);
+                    _this54.executeAction(index, actionList, callbackFn);
                   }
                 });
               } else {
@@ -5606,7 +5789,7 @@ if (typeof WebsyDesigns !== 'undefined') {
                 if (index === actionList.length) {
                   callbackFn();
                 } else {
-                  _this52.executeAction(index, actionList, callbackFn);
+                  _this54.executeAction(index, actionList, callbackFn);
                 }
               }
             });
@@ -5620,7 +5803,7 @@ if (typeof WebsyDesigns !== 'undefined') {
             if (index === actionList.length) {
               callbackFn();
             } else {
-              _this52.executeAction(index, actionList, callbackFn);
+              _this54.executeAction(index, actionList, callbackFn);
             }
           });
         }
@@ -5628,20 +5811,20 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "executeActions",
       value: function executeActions(view) {
-        var _this53 = this;
+        var _this55 = this;
 
         return new Promise(function (resolve, reject) {
-          if (!_this53.options.views[view] || !_this53.options.views[view].actions || _this53.options.views[view].actions.length === 0) {
+          if (!_this55.options.views[view] || !_this55.options.views[view].actions || _this55.options.views[view].actions.length === 0) {
             resolve();
           }
 
-          _this53.executeAction(0, _this53.options.views[view].actions, resolve);
+          _this55.executeAction(0, _this55.options.views[view].actions, resolve);
         });
       }
     }, {
       key: "loadObjects",
       value: function loadObjects(view, force) {
-        var _this54 = this;
+        var _this56 = this;
 
         console.log('Loading objects', view);
 
@@ -5667,16 +5850,16 @@ if (typeof WebsyDesigns !== 'undefined') {
               }
             } else if (objList[i].definition) {
               if (typeof objList[i].definition === 'string' && objList[i].definition.toLowerCase().indexOf('.json') !== -1) {
-                _this54.request('GET', objList[i].definition).then(function (def) {
+                _this56.request('GET', objList[i].definition).then(function (def) {
                   objList[i].definition = def;
 
-                  _this54.createObjectFromDefinition(objList[i]);
+                  _this56.createObjectFromDefinition(objList[i]);
                 });
               } else {
-                _this54.createObjectFromDefinition(objList[i]);
+                _this56.createObjectFromDefinition(objList[i]);
               }
             } else {
-              _this54.createObjectFromDefinition(objList[i]);
+              _this56.createObjectFromDefinition(objList[i]);
             }
           };
 
@@ -5737,7 +5920,7 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "createObjectFromDefinition",
       value: function createObjectFromDefinition(objectConfig) {
-        var _this55 = this;
+        var _this57 = this;
 
         if (objectConfig.retries) {
           objectConfig.retries = 0;
@@ -5757,16 +5940,16 @@ if (typeof WebsyDesigns !== 'undefined') {
             objectConfig.objectId = model.id;
             objectConfig.attached = true;
 
-            if (_this55.supportedChartTypes.indexOf(objectConfig.definition.qInfo.qType) !== -1) {
+            if (_this57.supportedChartTypes.indexOf(objectConfig.definition.qInfo.qType) !== -1) {
               var options = _extends({}, objectConfig.options, {
                 model: model,
                 def: objectConfig.definition,
-                app: _this55.app
+                app: _this57.app
               });
 
-              objectConfig.vis = new _this55.chartLibrary[objectConfig.definition.qInfo.qType]("".concat(objectConfig.elementId, "_vis"), options);
+              objectConfig.vis = new _this57.chartLibrary[objectConfig.definition.qInfo.qType]("".concat(objectConfig.elementId, "_vis"), options);
               model.on('changed', function () {
-                if (objectConfig.attached === true && _this55.paused === false) {
+                if (objectConfig.attached === true && _this57.paused === false) {
                   objectConfig.vis.render();
                 }
               });
@@ -5776,7 +5959,7 @@ if (typeof WebsyDesigns !== 'undefined') {
               objectConfig.model = model;
               objectConfig.render(objectConfig, model);
               model.on('changed', function () {
-                if (objectConfig.attached === true && _this55.paused === false) {
+                if (objectConfig.attached === true && _this57.paused === false) {
                   objectConfig.render(objectConfig, model);
                 }
               });
@@ -5784,11 +5967,11 @@ if (typeof WebsyDesigns !== 'undefined') {
           }, function (err) {
             console.log('Error creating object', err);
 
-            if (objectConfig.retries < _this55.options.retryCount) {
+            if (objectConfig.retries < _this57.options.retryCount) {
               console.log('retrying');
               objectConfig.retries++;
 
-              _this55.createObjectFromDefinition(objectConfig);
+              _this57.createObjectFromDefinition(objectConfig);
             } else {
               console.log('Max retries reached.');
             }
@@ -5937,7 +6120,7 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "select",
       value: function select(index, selections, callbackFn) {
-        var _this56 = this;
+        var _this58 = this;
 
         if (index === selections.length) {
           callbackFn();
@@ -5972,13 +6155,13 @@ if (typeof WebsyDesigns !== 'undefined') {
             f.selectValues(values).then(function () {
               index++;
 
-              _this56.select(index, selections, callbackFn);
+              _this58.select(index, selections, callbackFn);
             });
           }, function (err) {
             console.log('field for selection not found', err);
             index++;
 
-            _this56.select(index, selections, callbackFn);
+            _this58.select(index, selections, callbackFn);
           });
         }
       }

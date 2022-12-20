@@ -1,4 +1,7 @@
 .websy-bookmark {
+  svg {
+    pointer-events: none;
+  }
   .websy-bookmark-search {
     padding: 0 1rem .5rem;
     margin: 2px 0;
@@ -110,6 +113,7 @@
     line-height: 20px;
     color: #595959;
     font-weight: 400;
+    text-align: left;
   }
   .public-text {
     text-align: center;
@@ -208,9 +212,6 @@
   .public-li:hover {
     background-color: #f0f0f0;
   }
-  .infoBtn {
-    pointer-events: initial;
-  }
   .my-bookmarks {
     margin: 30px 15px 20px;
   }
@@ -256,14 +257,15 @@
       color: #cccccc;
     }
   }
-  .i-icon-public {
-    width: 15px;
+  .info-button {
+    width: 20px;
+    pointer-events: initial;
     visibility: hidden;
     * {
       pointer-events: none;
     }
   }
-  .public-li:hover .i-icon-public {
+  .public-li:hover .info-button {
     visibility: visible;
   }
   .delete-icon {
@@ -408,14 +410,17 @@
   }
   .edit-inputs {
     display: none;
-    width: 400px;
     &.active {
       display: flex;
       flex-direction: column;
     }
+    input {
+      padding: 5px;
+      margin-bottom: 5px;
+    }
   }
   .edit-info {
-    width: 24px;
+    display: none;
     cursor: pointer;
     * {
       pointer-events: none;
@@ -423,9 +428,8 @@
   }
   .tick-icon {
     display: none;
-    width: 24px;
     &.active {
-      display: block;
+      // display: block;
       margin: 0 11px;
       color: rgb(7, 190, 7);
       cursor: pointer;
@@ -437,13 +441,24 @@
   .edit-topline {
     display: flex;
     justify-content: flex-end;
+    height: 30px;
+    align-items: center;
+    color: #404040;
+    > div {
+      padding-left: 10px;
+      align-items: center;
+      > :nth-child( 1 ) {
+        margin-left: 3px;
+      }
+      &.active {
+        display: flex;
+      }
+    }
   }
   .trash-icon {
     display: none;
-    width: 22px;
     &.active {
-      display: block;
-      fill: rgb(255, 255, 255);
+      display: flex;
       margin: 10px 3px;
       cursor: pointer;
       * {

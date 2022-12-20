@@ -19,42 +19,53 @@ class ObjectManager {
       applySelections: false,
       actions: [],
       retryCount: 5,
-      initialActions: [],
-      visualisationPlugins: [
-        {
-          id: 'kpi',
-          definition: KPI
-        },
-        {
-          id: 'table',
-          definition: Table
-        },
-        {
-          id: 'chart',
-          definition: Chart 
-        },
-        {
-          id: 'map',
-          definition: GeoMap 
-        },
-        {
-          id: 'dropdown',
-          definition: Dropdown
-        },
-        {
-          id: 'datepicker',
-          definition: DatePicker
-        }
-      ]
+      initialActions: []  
     }
+    const defaultVisualisationPlugins = [
+      {
+        id: 'kpi',
+        definition: KPI
+      },
+      {
+        id: 'table',
+        definition: Table
+      },
+      {
+        id: 'chart',
+        definition: Chart 
+      },
+      {
+        id: 'map',
+        definition: GeoMap 
+      },
+      {
+        id: 'dropdown',
+        definition: Dropdown
+      },
+      {
+        id: 'datepicker',
+        definition: DatePicker
+      }
+    ]
     this.app = null
     this.paused = false
     this.supportedChartTypes = []
     this.activeViews = []
     this.chartLibrary = {}
     this.globalObjectsLoaded = false    
-    this.options = this.mergeObjects({}, defaults, options)            
-    // this.options = Object.assign({}, defaults, options)            
+    // this.options = this.mergeObjects({}, defaults, options)            
+    this.options = Object.assign({}, defaults, options)
+    if (options.visualisationPlugins && options.visualisationPlugins.length > 0) {
+      const visKeys = options.visualisationPlugins.map(d => d.id)
+      defaultVisualisationPlugins.forEach(p => {
+        if (visKeys.indexOf(p.id) === -1) {
+          this.options.visualisationPlugins.push(p)
+        }
+      })
+    }
+    else {
+      this.options.visualisationPlugins = Object.assign({}, defaultVisualisationPlugins)
+    }          
     if (this.options.visualisationPlugins && this.options.visualisationPlugins.length > 0) {
       for (let i = 0; i < this.options.visualisationPlugins.length; i++) {
         this.registerVisualisation(this.options.visualisationPlugins[i].id, this.options.visualisationPlugins[i].definition)
@@ -81,7 +92,7 @@ class ObjectManager {
   mergeObjects () {    
     // Variables
     let extended = {}
-    let deep = false
+    let deep = true
     let i = 0
 
     // Check if a deep merge
@@ -91,17 +102,27 @@ class ObjectManager {
     }
 
     // Merge the object into the extended object
-    let merge = function (obj) {
+    let merge = (obj) => {
       for (let prop in obj) {
         if (obj.hasOwnProperty(prop)) {
           if (deep && Object.prototype.toString.call(obj[prop]) === '[object Object]') {
             // If we're doing a deep merge and the property is an object
-            extended[prop] = this.mergeObjects(true, extended[prop], obj[prop])
+            extended[prop] = this.mergeObjects(extended, extended[prop], obj[prop])
           } 
           else {
             // Otherwise, do a regular merge
             if (Array.isArray(extended[prop]) && Array.isArray(obj[prop])) {
-              extended[prop] = extended[prop].concat(obj[prop])
+              if (obj[prop].length > 0) {
+                // try {
+                extended[prop] = [...extended[prop], ...obj[prop]]
+                // } 
+                // catch (error) {
+                //   console.log('prop', prop)
+                //   console.log(extended[prop])
+                //   console.log(obj[prop])
+                //   console.log(error)
+                // }                
+              }              
             }
             else {
               extended[prop] = obj[prop]  
@@ -419,6 +440,10 @@ class ObjectManager {
   }
   executeAction (index, actionList, callbackFn) {
     let item = actionList[index]
+    if (typeof item === 'undefined') {
+      callbackFn()
+      return
+    }
     if (typeof item.params === 'undefined') {
       item.params = []
     }

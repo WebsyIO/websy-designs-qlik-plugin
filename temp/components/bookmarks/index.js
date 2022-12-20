@@ -6,7 +6,42 @@ class Bookmarks {
       dock: 'left',
       bookmarkIcon: `<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 512 512'><path d='M352 48H160a48 48 0 00-48 48v368l144-128 144 128V96a48 48 0 00-48-48z' fill='none' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='32' /></svg>`,
       closeIcon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 512 512"><line x1="368" y1="368" x2="144" y2="144" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><line x1="368" y1="144" x2="144" y2="368" style="fill:none;stroke:#000;stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></svg>`,
-      searchIcon: `<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 512 512"><path d="M221.09 64a157.09 157.09 0 10157.09 157.09A157.1 157.1 0 00221.09 64z" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="32"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="32" d="M338.29 338.29L448 448"/></svg>`
+      searchIcon: `<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 512 512"><path d="M221.09 64a157.09 157.09 0 10157.09 157.09A157.1 157.1 0 00221.09 64z" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="32"/><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="32" d="M338.29 338.29L448 448"/></svg>`,
+      editIcon: `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+          <path d="M384 224v184a40 40 0 01-40 40H104a40 40 0 01-40-40V168a40 40 0 0140-40h167.48"
+          fill="none" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="32"/>
+          <path d="M459.94 53.25a16.06 16.06 0 00-23.22-.56L424.35 65a8 8 0 000 11.31l11.34 11.32a8 8 0 0011.34
+          0l12.06-12c6.1-6.09 6.67-16.01.85-22.38zM399.34 90L218.82 270.2a9 9 0 00-2.31 3.93L208.16 299a3.91 3.91
+            0 004.86 4.86l24.85-8.35a9 9 0 003.93-2.31L422 112.66a9 9 0 000-12.66l-9.95-10a9 9 0 00-12.71 0z"/>
+        </svg>
+      `,
+      deleteIcon: `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><title>Trash</title>
+          <path d="M296 64h-80a7.91 7.91 0 00-8 8v24h96V72a7.91 7.91 0 00-8-8z" fill="none"/>
+          <path d="M432 96h-96V72a40 40 0 00-40-40h-80a40 40 0 00-40 40v24H80a16 16 0 000 32h17l19 304.92c1.42
+            26.85 22 47.08 48 47.08h184c26.13 0 46.3-19.78 48-47l19-305h17a16 16 0 000-32zM192.57 416H192a16 16 0 
+            01-16-15.43l-8-224a16 16 0 1132-1.14l8 224A16 16 0 01192.57 416zM272 400a16 16 0 01-32 0V176a16 16 0 0132
+            0zm32-304h-96V72a7.91 7.91 0 018-8h80a7.91 7.91 0 018 8zm32 304.57A16 16 0 01320 416h-.58A16 16 0 01304 
+            399.43l8-224a16 16 0 1132 1.14z"/>
+        </svg>               
+      `,
+      copyIcon: `Copy`,
+      tickIcon: `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+          <path d="M448 256c0-106-86-192-192-192S64 150 64 256s86 192 192 192 192-86 192-192z" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="32"/><path fill="none"
+            stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" 
+            stroke-width="32" d="M352 176L217.6 336 160 272"/>
+        </svg>
+      `,
+      crossIcon: ``,
+      infoIcon: `
+        <svg class="i-icon-public" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+          <path d="M256 56C145.72 56 56 145.72 56 256s89.72 200 200 200 200-89.72 200-200S366.28 
+          56 256 56zm0 82a26 26 0 11-26 26 26 26 0 0126-26zm48 226h-88a16 16 0 010-32h28v-88h-16a16 16 0 010-32h32a16 16 0 0116 
+          16v104h28a16 16 0 010 32z"/>
+        </svg>
+      `      
     }
     this.options = Object.assign({}, DEFAULTS, options)
     const el = document.getElementById(this.elementId)
@@ -98,11 +133,10 @@ class Bookmarks {
             }
           }
         }
-      )
-        .then((model) => {
-          this.options.model = model
-          this.render()
-        })
+      ).then((model) => {
+        this.options.model = model
+        this.render()
+      })
     }    
   }
   createBookmarkHtml (bookmark, bookmarkType) {
@@ -111,12 +145,8 @@ class Bookmarks {
         <span class="bookmark-text" data-bookmark="${bookmark.qInfo.qId}">${bookmark.qMeta.title}</span>
         <div class="date-and-i">
           <span class="bookmark-text">${new Date(bookmark.qMeta.createdDate).toLocaleString().slice(0, 10)}</span>
-          <span class="infoBtn">
-            <svg data-bookmark="${bookmark.qInfo.qId}" class="i-icon-public" id="i-icon-public" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-              <path d="M256 56C145.72 56 56 145.72 56 256s89.72 200 200 200 200-89.72 200-200S366.28 
-              56 256 56zm0 82a26 26 0 11-26 26 26 26 0 0126-26zm48 226h-88a16 16 0 010-32h28v-88h-16a16 16 0 010-32h32a16 16 0 0116 
-              16v104h28a16 16 0 010 32z"/>
-            </svg>
+          <span class="info-button" data-bookmark="${bookmark.qInfo.qId}">
+            ${this.options.infoIcon}
           </span>
         </div>
       </div>          
@@ -127,32 +157,22 @@ class Bookmarks {
       
     if (bookmark.qMeta.privileges.indexOf('update') !== -1) { 
       html += `
-        <svg xmlns="http://www.w3.org/2000/svg" data-bookmark="${bookmark.qInfo.qId}" class="edit-info" id="edit-info-${bookmark.qInfo.qId}" viewBox="0 0 512 512">
-          <path d="M384 224v184a40 40 0 01-40 40H104a40 40 0 01-40-40V168a40 40 0 0140-40h167.48"
-          fill="none" stroke="white" stroke-linecap="round" stroke-linejoin="round" stroke-width="32"/>
-          <path d="M459.94 53.25a16.06 16.06 0 00-23.22-.56L424.35 65a8 8 0 000 11.31l11.34 11.32a8 8 0 0011.34
-          0l12.06-12c6.1-6.09 6.67-16.01.85-22.38zM399.34 90L218.82 270.2a9 9 0 00-2.31 3.93L208.16 299a3.91 3.91
-            0 004.86 4.86l24.85-8.35a9 9 0 003.93-2.31L422 112.66a9 9 0 000-12.66l-9.95-10a9 9 0 00-12.71 0z"/>
-        </svg>              
         <div class="edit-topline">
-          <svg xmlns="http://www.w3.org/2000/svg" class="tick-icon" id="tick-icon" viewBox="0 0 512 512">
-            <path d="M448 256c0-106-86-192-192-192S64 150 64 256s86 192 192 192 192-86 192-192z" fill="none" stroke="currentColor" stroke-miterlimit="10" stroke-width="32"/><path fill="none"
-              stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" 
-              stroke-width="32" d="M352 176L217.6 336 160 272"/>
-          </svg>`
+          <div data-bookmark="${bookmark.qInfo.qId}" class="edit-info active" id="edit-info-${bookmark.qInfo.qId}">
+            ${this.options.editIcon}
+          </div> 
+          <div class="tick-icon" id="tick-icon-${bookmark.qInfo.qId}">
+            ${this.options.tickIcon}
+          </div>                             
+      `
       if (bookmark.qMeta.privileges.indexOf('delete') !== -1) {
         html += `
-          <svg xmlns="http://www.w3.org/2000/svg" class="trash-icon" data-bookmark="${bookmark.qInfo.qId}" id="trashIcon-${bookmark.qInfo.qId}" viewBox="0 0 512 512"><title>Trash</title>
-            <path d="M296 64h-80a7.91 7.91 0 00-8 8v24h96V72a7.91 7.91 0 00-8-8z" fill="none"/>
-            <path d="M432 96h-96V72a40 40 0 00-40-40h-80a40 40 0 00-40 40v24H80a16 16 0 000 32h17l19 304.92c1.42
-              26.85 22 47.08 48 47.08h184c26.13 0 46.3-19.78 48-47l19-305h17a16 16 0 000-32zM192.57 416H192a16 16 0 
-              01-16-15.43l-8-224a16 16 0 1132-1.14l8 224A16 16 0 01192.57 416zM272 400a16 16 0 01-32 0V176a16 16 0 0132
-              0zm32-304h-96V72a7.91 7.91 0 018-8h80a7.91 7.91 0 018 8zm32 304.57A16 16 0 01320 416h-.58A16 16 0 01304 
-              399.43l8-224a16 16 0 1132 1.14z"/>
-          </svg>               
+          <div class="trash-icon" data-bookmark="${bookmark.qInfo.qId}" id="deleteIcon-${bookmark.qInfo.qId}">
+            ${this.options.deleteIcon}
+          </div>
         `
       }
-      html += `
+      html += `        
         </div>
         <div id="edit-inputs-${bookmark.qInfo.qId}" data-bookmark="${bookmark.qInfo.qId}" class="edit-inputs">
           <input type="text" id="edit-title-${bookmark.qInfo.qId}" placeholder="Bookmark title"  value="${bookmark.qMeta.title}"/>
@@ -318,7 +338,7 @@ class Bookmarks {
           this.render()
         })
     }
-    if (event.target.classList.contains('i-icon-public')) {
+    if (event.target.classList.contains('info-button')) {
       this.toggleInfo(event)
     }
     if (event.target.classList.contains('i-icon-my')) {
@@ -336,7 +356,7 @@ class Bookmarks {
       this.editInfo(event)
       this.hideInfoTopline(event)
       this.showTickIcon(event)
-      this.showTrashIcon(event)
+      this.showdeleteIcon(event)
     }
     if (event.target.classList.contains('tick-icon')) {
       const bookmarkId = event.target.getAttribute('data-bookmark')
@@ -500,10 +520,12 @@ class Bookmarks {
     const bookmarkId = event.target.getAttribute('data-bookmark')
     const showTick = document.getElementById(`tick-icon-${bookmarkId}`)
     showTick.classList.toggle('active')
+    const showEdit = document.getElementById(`edit-info-${bookmarkId}`)
+    showEdit.classList.toggle('active')
   }
-  showTrashIcon (event) {
+  showdeleteIcon (event) {
     const bookmarkId = event.target.getAttribute('data-bookmark')
-    const showTrash = document.getElementById(`trashIcon-${bookmarkId}`)
+    const showTrash = document.getElementById(`deleteIcon-${bookmarkId}`)
     showTrash.classList.toggle('active')
   }
   handleContextMenu (event) {

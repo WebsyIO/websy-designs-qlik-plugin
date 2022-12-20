@@ -45,7 +45,7 @@ if (typeof WebsyDesigns !== 'undefined') {
     Table2,
     Table3,
     GeoMap,
-    Dropdown,
+    Dropdown,    
     DatePicker,
     KPI
   }

@@ -8,7 +8,10 @@ class Table3 {
       columnOverrides: [],
       maxColWidth: '50%',
       allowPivoting: false,
-      dropdownOptions: {} 
+      pivotPanel: 'docked',
+      pivotButtonText: 'Pivot',
+      dropdownOptions: {},
+      maxPlaceholderRows: 1000
     }
     // if (Dropdown) {
     //   if (!WebsyDesignsQlikPlugins) {
@@ -38,11 +41,27 @@ class Table3 {
       let html = ''
       let tableStyle = 'height: 100%'
       if (this.options.allowPivoting === true) {
-        tableStyle = 'height: calc(100% - 100px);'
+        if (this.options.pivotPanel === 'docked') {
+          tableStyle = 'height: calc(100% - 100px);' 
+        }
+        else {
+          tableStyle = 'height: calc(100% - 30px);' 
+          html += `
+            <div class="pivot-button-container">
+              <button class="toggle-pivot-panel">${this.options.pivotButtonText}</button>
+            </div>
+          `
+        }        
         html += `
-          <div id='${this.elementId}_pivotContainer' class='websy-designs-pivot-container'>
-            <div id='${this.elementId}_pivotRows'></div>
-            <div id='${this.elementId}_pivotColumns'></div>
+          <div id='${this.elementId}_pivotContainer' class='websy-designs-pivot-container ${this.options.pivotPanel}'>
+            <div>
+              <h3>Rows</h3>
+              <div id='${this.elementId}_pivotRows'></div>
+            </div>
+            <div>
+              <h3>Columns</h3>
+              <div id='${this.elementId}_pivotColumns'></div>
+            </div>
           </div>       
         `
       }             
@@ -93,7 +112,7 @@ class Table3 {
     const maxMLabel = this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError).reduce((a, b) => a.qFallbackTitle > b.qFallbackTitle ? a : b).qFallbackTitle
     const maxMLength = maxMLabel.length > maxMValue ? maxMLabel : new Array(maxMValue).fill('X').join('')
     let effectiveOrder = this.layout.qHyperCube.qEffectiveInterColumnSortOrder
-    let dimensionLengths = this.layout.qHyperCube.qDimensionInfo.map(d => d.qApprMaxGlyphCount > d.qFallbackTitle.length ? new Array(d.qApprMaxGlyphCount).fill('X').join('') : d.qFallbackTitle)
+    let dimensionLengths = this.layout.qHyperCube.qDimensionInfo.filter(d => !d.qError).map(d => d.qApprMaxGlyphCount > d.qFallbackTitle.length ? new Array(d.qApprMaxGlyphCount).fill('X').join('') : d.qFallbackTitle)
     let activeColumns = []
     let rows = []
     let columns = []
@@ -150,8 +169,10 @@ class Table3 {
       for (let i = 0; i < count; i++) {
         rowsWidth += this.columns[this.columns.length - 1][i].actualWidth        
       }
-      rEl.style.width = rowsWidth + 'px'
-      rEl.style.maxWidth = rowsWidth + 'px'       
+      if (this.options.pivotPanel === 'docked') {
+        rEl.style.width = rowsWidth + 'px'
+        rEl.style.maxWidth = rowsWidth + 'px'        
+      }      
       this.rowList.options.items = rows.map((dim, dimIndex) => {
         let dimId = dim.qLibraryId || dim.qDef.qFieldLabels[0] || dim.qDef.qFieldDefs[0]            
         return {
@@ -280,7 +301,7 @@ class Table3 {
         width: c.width || null
       }))
     let measureLabel = activeDimensions.pop()
-    const maxMValue = this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError).reduce((a, b) => a.qApprMaxGlyphCount > b.qApprMaxGlyphCount ? a : b, 0)
+    const maxMValue = this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError).reduce((a, b) => a.qApprMaxGlyphCount > b.qApprMaxGlyphCount ? a : b, {qApprMaxGlyphCount: 0})
     const maxMLabel = this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError).reduce((a, b) => a > b.qFallbackTitle.length ? a : b.qFallbackTitle.length, 0)
     this.columnParamValues = this.columnParamValues.concat(new Array(this.layout.qHyperCube.qSize.qcx).fill(new Array(Math.max(maxMValue.qApprMaxGlyphCount, maxMLabel)).fill('X').join('')).map(d => ({value: d, width: null})))    
     if (this.layout.scrolling && this.layout.scrolling.keepFirstColumnInView === true) {
@@ -321,14 +342,17 @@ class Table3 {
   buildDataStructure () {
     this.fullData = []
     this.rowIndexList = []
-    if (this.layout.qHyperCube.qMode === 'S') {
-      for (let r = 0; r < this.layout.qHyperCube.qSize.qcy; r++) {
+    this.buildEmptyRows(0)
+  }
+  buildEmptyRows (start) {
+    for (let r = start; r < Math.min(this.layout.qHyperCube.qSize.qcy, (start + this.options.maxPlaceholderRows)); r++) {      
+      if (!this.fullData[r]) {
         let row = []
         for (let c = 0; c < this.layout.qHyperCube.qSize.qcx; c++) {
           row.push({})          
         }
-        this.fullData.push(row)
-      }
+        this.fullData.push(row) 
+      }      
     }
   }
   checkDataExists (start, end) {
@@ -347,16 +371,21 @@ class Table3 {
           }        
         }
         console.log('slicing pre', top)
+        this.buildEmptyRows(top)
         if (top < end && top !== -1) {
           this.getData(top, () => {
+            console.log('if callback for', top)
             resolve()
           }, true)        
         }
         else if (top !== -1) {
-          this.getData(top, () => {}, true)
-          resolve()
+          this.getData(top, () => {
+            console.log('else if callback for', top)
+            resolve()
+          }, true)          
         }      
         else {
+          console.log('else callback for', top)
           resolve()
         } 
       }           
@@ -397,6 +426,7 @@ class Table3 {
               }
               // else {
               // pages[0].qMatrix = pages[0].qMatrix.filter(r => r[0].qText !== '-')
+              console.log('callback splicing', pages[0].qArea.qTop)
               this.fullData.splice(pages[0].qArea.qTop, pages[0].qArea.qHeight, ...pages[0].qMatrix)
               for (let i = 0; i < pages[0].qArea.qHeight; i++) {
                 if (this.rowIndexList.indexOf(pages[0].qArea.qTop + i) === -1) {
@@ -465,6 +495,13 @@ class Table3 {
     else if (cell && cell.qElemNumber) {
       this.options.model.selectHyperCubeValues('/qHyperCubeDef', 0, [cell.qElemNumber], false)
     }
+    else if (event.target.classList.contains('toggle-pivot-panel')) {
+      const el = document.getElementById(`${this.elementId}_pivotContainer`)
+      if (el) {
+        event.target.classList.toggle('active')
+        el.classList.toggle('active')
+      }
+    }
   }
   handleScroll (direction, startRow, endRow, startCol, endCol) {    
     this.startCol = startCol
@@ -479,7 +516,49 @@ class Table3 {
           this.table.columns = [columnsInView]   
         }        
         else {
-          let columnsInView = this.columns
+          console.log('columns', this.columns)
+          let columnsInView = this.columns.map((cP) => {
+            let acc = 0
+            let adjAcc = 0
+            let firstColTrimmed = false
+            let newRow = cP.map((cC, i) => {                            
+              let c = Object.assign({}, cC)
+              if (i < this.pinnedColumns) {
+                acc += c.colspan || 1    
+                adjAcc += c.colspan || 1    
+                c.inView = true
+                return c
+              }              
+              if (c.colspan > 1) {
+                // not last level of column headers
+                if (acc < startCol && acc + c.colspan > startCol && firstColTrimmed === false) {
+                  c.colspan = c.colspan - (startCol - acc)
+                  c.inView = true
+                  firstColTrimmed = true
+                }
+                else if (acc >= startCol) {
+                  c.inView = true
+                }
+                // else if (acc >= startCol && acc + c.colspan <= endCol) {                  
+                //   c.inView = true
+                // }
+                // else if (acc <= endCol && acc + c.colspan >= endCol) {
+                //   // c.colspan = c.colspan - (endCol - acc)
+                //   c.inView = true
+                // }
+                else {
+                  c.inView = false
+                }               
+              }              
+              else {
+                c.inView = i >= startCol && i <= endCol
+              }  
+              acc += cC.colspan || 1    
+              adjAcc += c.colspan || 1    
+              return c                                   
+            }) 
+            return newRow.filter(d => d.inView === true)
+          })          
           this.table.columns = columnsInView
         }
       }
@@ -489,9 +568,9 @@ class Table3 {
         })      
         this.table.totals = totalsInView
       }
-      // console.log('slicing data', this.fullData.slice(startRow, endRow + 1))
+      console.log('callback slicing data', startRow, endRow + 1)
       this.appendRows(this.transformData(this.fullData.slice(startRow, endRow + 1).map(row => {
-        return row.filter((c, i) => {
+        return row.filter((c, i) => {          
           return i < this.pinnedColumns || (i >= startCol && i <= endCol)
         })
       })))
@@ -602,6 +681,22 @@ class Table3 {
     // }
     this.table.showLoading({message: 'Loading...'})    
     this.options.model.getLayout().then(layout => {    
+      if (layout.qHyperCube.qError && layout.qHyperCube.qCalcCondMsg) {
+        this.table.hideLoading()
+        this.table.showError({message: this.options.customError || layout.qHyperCube.qCalcCondMsg})
+        return
+      }
+      if (this.options.forcedRowLimit && layout.qHyperCube.qSize.qcy > this.options.forcedRowLimit) {
+        this.table.hideLoading()
+        this.table.showError({message: this.options.forcedRowLimitError || this.options.customError || layout.qHyperCube.qCalcCondMsg})
+        return
+      }
+      if (this.options.forcedColLimit && layout.qHyperCube.qSize.qcx > this.options.forcedColLimit) {
+        this.table.hideLoading()
+        this.table.showError({message: this.options.forcedColLimitError || this.options.customError || layout.qHyperCube.qCalcCondMsg})
+        return
+      }
+      this.table.hideError()
       this.options.model.getEffectiveProperties().then(props => {
         this.properties = props      
         if (this.options.onUpdate) {
@@ -623,12 +718,6 @@ class Table3 {
           this.table.options.leftColumns = (this.options.freezeColumns || this.layout.qHyperCube.qNoOfLeftDims)
         }
         this.table.options.pageCount = this.pageCount
-        if (layout.qHyperCube.qError && layout.qHyperCube.qCalcCondMsg) {
-          this.table.hideLoading()
-          this.table.showError({message: this.options.customError || layout.qHyperCube.qCalcCondMsg})
-          return
-        }
-        this.table.hideError()
         this.dataWidth = this.layout.qHyperCube.qSize.qcx
         this.columnOrder = this.layout.qHyperCube.qColumnOrder
         if (typeof this.columnOrder === 'undefined') {
@@ -823,6 +912,9 @@ class Table3 {
     for (let r = 0; r < page.qData.length; r++) {
       let row = page.qData[r]      
       for (let c = 0; c < row.length; c++) {
+        if (!row[c].classes) {
+          row[c].classes = []
+        }
         row[c].pos = 'Data'  
         row[c].style = 'text-align: right;'       
         // row[c].width = `${this.columnParams.cellWidths[(this.options.freezeColumns || this.layout.qHyperCube.qNoOfLeftDims) + c] || this.columnParams.cellWidths[this.columnParams.cellWidths.length - 1]}px`
@@ -836,7 +928,14 @@ class Table3 {
         let lastTop = topNodesTransposed[topNodesTransposed.length - 1][c]
         if (['T', 'E'].indexOf(row[c].qType) !== -1 || ['T'].indexOf(lastTop.qType) !== -1) {
           row[c].qType = 'T'
-        }                           
+        } 
+        if (leftNodes[r] && leftNodes[r][leftNodes[r].length - 1].qType === 'T') {
+          if (!leftNodes[r][leftNodes[r].length - 1].classes) {
+            leftNodes[r][leftNodes[r].length - 1].classes = []
+          }
+          leftNodes[r][leftNodes[r].length - 1].classes.push('total-cell')
+          row[c].classes.push('total-cell')
+        }                          
         row[c].value = row[c].qText || ''            
       }
       if (leftNodes[r]) {
@@ -883,6 +982,7 @@ class Table3 {
       }
     }
     visibleColCount = topNodesTransposed[topNodesTransposed.length - 1]
+    console.log('top nodes', topNodesTransposed)
     // output = topNodesTransposed.concat(output)
     // This function is used to convert the qLeft structure from a parent/child hierarchy
     // into a 2 dimensions array    
@@ -903,8 +1003,11 @@ class Table3 {
         o.color = this.getFontColor(o.qAttrExps.qValues[1].qText)
       }
       delete o.qSubNodes  
+      if (o.qElemNo < 0 && this.layout.qHyperCube.qIndentMode === true && level > 0) {        
+        return
+      }
       if (typeof o.qText === 'undefined') {
-        if (o.qElemNo === -1) {
+        if (o.qElemNo === -1) {          
           o.qText = 'Totals'
         } 
         else if (o.qElemNo === -4) {
@@ -997,10 +1100,10 @@ class Table3 {
       }      
       o.colspan = Math.max(1, input.qSubNodes.length)
       input.colspan = Math.max(1, input.qSubNodes.length)
-      if (level === this.layout.qHyperCube.qEffectiveInterColumnSortOrder.length - this.layout.qHyperCube.qNoOfLeftDims) {
-        o.inView = topNodesTransposed[level].length >= this.startCol && topNodesTransposed[level].length <= this.endCol
-        input.inView = topNodesTransposed[level].length >= this.startCol && topNodesTransposed[level].length <= this.endCol
-      }      
+      // if (level === this.layout.qHyperCube.qEffectiveInterColumnSortOrder.length - this.layout.qHyperCube.qNoOfLeftDims) {
+      //   o.inView = topNodesTransposed[level].length >= this.startCol && topNodesTransposed[level].length <= this.endCol
+      //   input.inView = topNodesTransposed[level].length >= this.startCol && topNodesTransposed[level].length <= this.endCol
+      // }      
       if (input.qSubNodes.length === 0) {                  
         // if (o.qElemNo === -99 && o.qCanCollapse === true) {
         if (index >= this.startCol && index <= this.endCol) {
@@ -1017,13 +1120,13 @@ class Table3 {
         let s = 0
         let inView = false
         for (let i = 0; i < input.qSubNodes.length; i++) {          
-          if (input.qSubNodes[i].inView === true) {
-            inView = true
-            s += input.qSubNodes[i].colspan            
-          }
+          // if (input.qSubNodes[i].inView === true) {
+          // inView = true
+          s += input.qSubNodes[i].colspan            
+          // }
         }
-        o.inView = inView
-        input.inView = inView
+        // o.inView = inView
+        // input.inView = inView
         o.rowIndex = topCounter
         topCounter += s
         o.colspan = s

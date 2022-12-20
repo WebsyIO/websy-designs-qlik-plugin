@@ -121,7 +121,7 @@ class CurrentSelections {
           if (this.current.indexOf(key) === -1) {
             const sEl = document.getElementById(`${this.elementId}_${key}`)
             if (sEl) {
-              el.removeChild(sEl) 
+              sEl.remove()
             }            
             this.options.app.destroySessionObject(this.dropdowns[key].model.id)
             delete this.dropdowns[key]
