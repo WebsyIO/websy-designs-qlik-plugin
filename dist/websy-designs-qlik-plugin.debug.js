@@ -1305,7 +1305,12 @@ class DatePicker {
     // })    
   }
   onClear () {
-    this.options.model.clearSelections('/qListObjectDef')
+    if (this.options.onClear) {
+      this.options.onClear() 
+    }
+    else {
+      this.options.model.clearSelections('/qListObjectDef')
+    }
   }
   render () {
     this.options.model.getLayout().then(layout => {

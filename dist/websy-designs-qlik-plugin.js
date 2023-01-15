@@ -1459,7 +1459,11 @@ var DatePicker = /*#__PURE__*/function () {
   }, {
     key: "onClear",
     value: function onClear() {
-      this.options.model.clearSelections('/qListObjectDef');
+      if (this.options.onClear) {
+        this.options.onClear();
+      } else {
+        this.options.model.clearSelections('/qListObjectDef');
+      }
     }
   }, {
     key: "render",
