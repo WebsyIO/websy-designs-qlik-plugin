@@ -3288,7 +3288,9 @@ class Table3 {
         onSort: this.handleSort.bind(this),
         onChangePageSize: this.setPageSize.bind(this),
         onSetPage: this.setPageNum.bind(this),
-        onScrollX: this.handleVirtualScrollX.bind(this)
+        onScrollX: this.handleVirtualScrollX.bind(this),
+        onExpandCell: this.handleExpand.bind(this),
+        onCollapseCell: this.handleCollapse.bind(this)
       }, this.options))
       if (this.options.allowPivoting === true) {
         this.rowList = new WebsyDesigns.DragDrop(`${this.elementId}_pivotRows`, {
@@ -3550,7 +3552,7 @@ class Table3 {
       }
     }) 
     this.table.options.activeSort = activeSort
-    console.log('column params', this.columnParamValues)
+    // console.log('column params', this.columnParamValues)
   }
   buildDataStructure () {
     this.fullData = []
@@ -3558,15 +3560,17 @@ class Table3 {
     this.buildEmptyRows(0)
   }
   buildEmptyRows (start) {
-    for (let r = start; r < Math.min(this.layout.qHyperCube.qSize.qcy, (start + this.options.maxPlaceholderRows)); r++) {      
-      if (!this.fullData[r]) {
-        let row = []
-        for (let c = 0; c < this.layout.qHyperCube.qSize.qcx; c++) {
-          row.push({})          
-        }
-        this.fullData.push(row) 
-      }      
-    }
+    if (this.layout.qHyperCube.qMode === 'S' || this.layout.qHyperCube.qIndentMode === true) {      
+      for (let r = start; r < Math.min(this.layout.qHyperCube.qSize.qcy, (start + this.options.maxPlaceholderRows)); r++) {      
+        if (!this.fullData[r]) {
+          let row = []
+          for (let c = 0; c < this.layout.qHyperCube.qSize.qcx; c++) {
+            row.push({})          
+          }
+          this.fullData.push(row) 
+        }      
+      }
+    }    
   }
   checkDataExists (start, end) {
     return new Promise((resolve, reject) => {
@@ -3583,22 +3587,22 @@ class Table3 {
             break
           }        
         }
-        console.log('slicing pre', top)
+        // console.log('slicing pre', top)
         this.buildEmptyRows(top)
         if (top < end && top !== -1) {
           this.getData(top, () => {
-            console.log('if callback for', top)
+            // console.log('if callback for', top)
             resolve()
           }, true)        
         }
         else if (top !== -1) {
           this.getData(top, () => {
-            console.log('else if callback for', top)
+            // console.log('else if callback for', top)
             resolve()
           }, true)          
         }      
         else {
-          console.log('else callback for', top)
+          // console.log('else callback for', top)
           resolve()
         } 
       }           
@@ -3640,13 +3644,18 @@ class Table3 {
               // else {
               // pages[0].qMatrix = pages[0].qMatrix.filter(r => r[0].qText !== '-')
               console.log('callback splicing', pages[0].qArea.qTop)
-              this.fullData.splice(pages[0].qArea.qTop, pages[0].qArea.qHeight, ...pages[0].qMatrix)
-              for (let i = 0; i < pages[0].qArea.qHeight; i++) {
-                if (this.rowIndexList.indexOf(pages[0].qArea.qTop + i) === -1) {
-                  this.rowIndexList.push(pages[0].qArea.qTop + i)
-                }                                    
+              if (this.layout.qHyperCube.qMode === 'S' || this.layout.qHyperCube.qIndentMode === true) {
+                this.fullData.splice(pages[0].qArea.qTop, pages[0].qArea.qHeight, ...pages[0].qMatrix)
+                for (let i = 0; i < pages[0].qArea.qHeight; i++) {
+                  if (this.rowIndexList.indexOf(pages[0].qArea.qTop + i) === -1) {
+                    this.rowIndexList.push(pages[0].qArea.qTop + i)
+                  }                                    
+                }
+                this.rowIndexList.sort((a, b) => a - b)                                
+              }                            
+              else {
+                this.fullData = pages[0].qMatrix
               }
-              this.rowIndexList.sort((a, b) => a - b)                                
               // }
               this.busy = false
               if (callbackFn) {
@@ -3716,6 +3725,12 @@ class Table3 {
       }
     }
   }
+  handleCollapse (event, row, column, all = false) {
+    this.options.model.collapseLeft('/qHyperCubeDef', row, column, all)
+  }
+  handleExpand (event, row, column, all = false) {
+    this.options.model.expandLeft('/qHyperCubeDef', row, column, all)
+  }
   handleScroll (direction, startRow, endRow, startCol, endCol) {    
     this.startCol = startCol
     this.endCol = endCol
@@ -3782,7 +3797,9 @@ class Table3 {
         this.table.totals = totalsInView
       }
       console.log('callback slicing data', startRow, endRow + 1)
-      this.appendRows(this.transformData(this.fullData.slice(startRow, endRow + 1).map(row => {
+      let start = this.layout.qHyperCube.qMode === 'S' || this.layout.qHyperCube.qIndentMode === true ? startRow : 0
+      let end = this.layout.qHyperCube.qMode === 'S' || this.layout.qHyperCube.qIndentMode === true ? endRow : endRow - startRow
+      this.appendRows(this.transformData(this.fullData.slice(start, end + 1).map(row => {
         return row.filter((c, i) => {          
           return i < this.pinnedColumns || (i >= startCol && i <= endCol)
         })
@@ -4005,6 +4022,7 @@ class Table3 {
   }
   transformData (page) {
     // if (this.layout.qHyperCube.qMode === 'S') {      
+    let sourceColumns = this.layout.qHyperCube.qDimensionInfo.concat(this.layout.qHyperCube.qMeasureInfo)
     return page.map(r => {
       return r.map((c, i) => {
         if (this.table.options.columns[this.table.options.columns.length - 1][i] && (this.table.options.columns[this.table.options.columns.length - 1][i].showAsLink === true || this.table.options.columns[this.table.options.columns.length - 1][i].showAsNavigatorLink === true)) {
@@ -4029,12 +4047,18 @@ class Table3 {
           //   t = 'qMeasureInfo'
           //   tIndex -= this.layout.qHyperCube.qDimensionInfo.length
           // }
-          c.qAttrExps.qValues.forEach((a, aI) => {
+          c.qAttrExps.qValues.forEach((a, aI) => {            
             if (a.qText && a.qText !== '') {
-              if (this.columns[tIndex].qAttrExprInfo[aI] && this.columns[tIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+              // if (sourceColumns[tIndex] && sourceColumns[tIndex].qAttrExprInfo && sourceColumns[tIndex].qAttrExprInfo[aI] && sourceColumns[tIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+              //   c.color = a.qText
+              // }
+              // else if (sourceColumns[tIndex] && sourceColumns[tIndex].qAttrExprInfo && sourceColumns[tIndex].qAttrExprInfo[aI] && sourceColumns[tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+              //   c.backgroundColor = a.qText
+              // }
+              if (sourceColumns[c.level] && sourceColumns[c.level].qAttrExprInfo && sourceColumns[c.level].qAttrExprInfo[aI] && sourceColumns[c.level].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                 c.color = a.qText
               }
-              else if (this.columns[tIndex].qAttrExprInfo[aI] && this.columns[tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+              else if (sourceColumns[c.level] && sourceColumns[c.level].qAttrExprInfo && sourceColumns[c.level].qAttrExprInfo[aI] && sourceColumns[c.level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                 c.backgroundColor = a.qText
               }
             }
@@ -4130,14 +4154,15 @@ class Table3 {
         }
         row[c].pos = 'Data'  
         row[c].style = 'text-align: right;'       
+        row[c].level = this.layout.qHyperCube.qDimensionInfo.filter(d => !d.qError).length + c
         // row[c].width = `${this.columnParams.cellWidths[(this.options.freezeColumns || this.layout.qHyperCube.qNoOfLeftDims) + c] || this.columnParams.cellWidths[this.columnParams.cellWidths.length - 1]}px`
-        if (row[c].qAttrExps && row[c].qAttrExps.qValues && row[c].qAttrExps.qValues[0] && row[c].qAttrExps.qValues[0].qText) {
-          row[c].backgroundColor = row[c].qAttrExps.qValues[0].qText
-          row[c].color = this.getFontColor(row[c].qAttrExps.qValues[0].qText)
-        }
-        if (row[c].qAttrExps && row[c].qAttrExps.qValues && row[c].qAttrExps.qValues[1] && row[c].qAttrExps.qValues[1].qText) {
-          row[c].color = this.getFontColor(row[c].qAttrExps.qValues[1].qText)
-        }
+        // if (row[c].qAttrExps && row[c].qAttrExps.qValues && row[c].qAttrExps.qValues[0] && row[c].qAttrExps.qValues[0].qText) {
+        //   row[c].backgroundColor = row[c].qAttrExps.qValues[0].qText
+        //   row[c].color = this.getFontColor(row[c].qAttrExps.qValues[0].qText)
+        // }
+        // if (row[c].qAttrExps && row[c].qAttrExps.qValues && row[c].qAttrExps.qValues[1] && row[c].qAttrExps.qValues[1].qText) {
+        //   row[c].color = this.getFontColor(row[c].qAttrExps.qValues[1].qText)
+        // }
         let lastTop = topNodesTransposed[topNodesTransposed.length - 1][c]
         if (['T', 'E'].indexOf(row[c].qType) !== -1 || ['T'].indexOf(lastTop.qType) !== -1) {
           row[c].qType = 'T'
@@ -4207,7 +4232,8 @@ class Table3 {
       o.value = o.qText || ''
       input.value = input.qText || ''
       visibleLeftCount = Math.max(visibleLeftCount, level + 1)
-      o.childCount = o.qSubNodes.length      
+      o.childCount = o.qSubNodes.length    
+      // TODO add id mapping to attribute exressions here
       if (o.qAttrExps && o.qAttrExps.qValues && o.qAttrExps.qValues[0] && o.qAttrExps.qValues[0].qText) {
         o.backgroundColor = o.qAttrExps.qValues[0].qText
         o.color = this.getFontColor(o.qAttrExps.qValues[0].qText)
@@ -4228,6 +4254,8 @@ class Table3 {
           // o.qType = 'T'
         }
       }
+      o.expandable = o.qCanExpand
+      o.collapsable = o.qCanCollapse
       o.rowspan = Math.max(1, input.qSubNodes.length)
       input.rowspan = Math.max(1, input.qSubNodes.length)
       if (this.layout.qHyperCube.qIndentMode === true) {
@@ -4284,6 +4312,7 @@ class Table3 {
       }
       o.childCount = o.qSubNodes.length
       visibleTopCount = Math.max(visibleTopCount, level + 1)      
+      // TODO add id mapping to attribute exressions here
       if (o.qAttrExps && o.qAttrExps.qValues && o.qAttrExps.qValues[0] && o.qAttrExps.qValues[0].qText) {
         o.backgroundColor = o.qAttrExps.qValues[0].qText
         o.color = this.getFontColor(o.qAttrExps.qValues[0].qText)
@@ -5139,8 +5168,9 @@ class ObjectManager {
     this.supportedChartTypes.push(name)
     this.chartLibrary[name] = classDef
   }
-  select (index, selections, callbackFn) {
+  select (index, selections, locks, callbackFn) {
     if (index === selections.length) {
+      this.play()
       callbackFn()
       return 
     }
@@ -5172,23 +5202,32 @@ class ObjectManager {
                 }
               }
             })
-            f.selectValues(values).then(() => {
-              index++
-              this.select(index, selections, callbackFn)
+            f.selectValues(values).then(() => {              
+              if (locks.indexOf(selections[index].field) !== -1) {
+                f.lock().then(() => {
+                  index++
+                  this.select(index, selections, locks, callbackFn)
+                })
+              }
+              else {
+                index++
+                this.select(index, selections, locks, callbackFn)
+              }
             })
           },
           err => {
             console.log('field for selection not found', err)
             index++
-            this.select(index, selections, callbackFn)
+            this.select(index, selections, locks, callbackFn)
           }
         )
     }
   }
   selectFromUrl (callbackFn) {
     if (this.options.applySelections === true && location.search !== '') {
-      let selections = location.search.replace('?', '').split('&')
-      selections = selections
+      this.pause()
+      let params = location.search.replace('?', '').split('&')
+      params = params
         .map(s => {
           let parts = s.split('=')
           let parts2 = parts[1].split(',')
@@ -5206,8 +5245,9 @@ class ObjectManager {
             values: parts2
           }
         })
-        .filter(s => s.param === 'select' || s.param === 'setvariable')
-      this.select(0, selections, callbackFn)
+      let selections = params.filter(s => s.param === 'select' || s.param === 'setvariable')
+      let locks = params.filter(s => s.param === 'lock').map(d => d.field)
+      this.select(0, selections, locks, callbackFn)
     }
     else {
       callbackFn()

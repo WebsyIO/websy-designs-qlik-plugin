@@ -719,8 +719,9 @@ class ObjectManager {
     this.supportedChartTypes.push(name)
     this.chartLibrary[name] = classDef
   }
-  select (index, selections, callbackFn) {
+  select (index, selections, locks, callbackFn) {
     if (index === selections.length) {
+      this.play()
       callbackFn()
       return 
     }
@@ -752,23 +753,32 @@ class ObjectManager {
                 }
               }
             })
-            f.selectValues(values).then(() => {
-              index++
-              this.select(index, selections, callbackFn)
+            f.selectValues(values).then(() => {              
+              if (locks.indexOf(selections[index].field) !== -1) {
+                f.lock().then(() => {
+                  index++
+                  this.select(index, selections, locks, callbackFn)
+                })
+              }
+              else {
+                index++
+                this.select(index, selections, locks, callbackFn)
+              }
             })
           },
           err => {
             console.log('field for selection not found', err)
             index++
-            this.select(index, selections, callbackFn)
+            this.select(index, selections, locks, callbackFn)
           }
         )
     }
   }
   selectFromUrl (callbackFn) {
     if (this.options.applySelections === true && location.search !== '') {
-      let selections = location.search.replace('?', '').split('&')
-      selections = selections
+      this.pause()
+      let params = location.search.replace('?', '').split('&')
+      params = params
         .map(s => {
           let parts = s.split('=')
           let parts2 = parts[1].split(',')
@@ -786,8 +796,9 @@ class ObjectManager {
             values: parts2
           }
         })
-        .filter(s => s.param === 'select' || s.param === 'setvariable')
-      this.select(0, selections, callbackFn)
+      let selections = params.filter(s => s.param === 'select' || s.param === 'setvariable')
+      let locks = params.filter(s => s.param === 'lock').map(d => d.field)
+      this.select(0, selections, locks, callbackFn)
     }
     else {
       callbackFn()
