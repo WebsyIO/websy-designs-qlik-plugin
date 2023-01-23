@@ -36,6 +36,9 @@ class Table3 {
     this.dropdowns = {}
     this.searchPrepped = false
     this.pinnedColumns = 0    
+    this.startCol = 0
+    this.endCol = 0
+    this.startRow = 0
     const el = document.getElementById(this.elementId)
     if (el) {
       let html = ''
@@ -513,14 +516,15 @@ class Table3 {
     }
   }
   handleCollapse (event, row, column, all = false) {
-    this.options.model.collapseLeft('/qHyperCubeDef', row, column, all)
+    this.options.model.collapseLeft('/qHyperCubeDef', this.startRow + row, this.startCol + column, all)
   }
   handleExpand (event, row, column, all = false) {
-    this.options.model.expandLeft('/qHyperCubeDef', row, column, all)
+    this.options.model.expandLeft('/qHyperCubeDef', this.startRow + row, this.startCol + column, all)
   }
   handleScroll (direction, startRow, endRow, startCol, endCol) {    
     this.startCol = startCol
     this.endCol = endCol
+    this.startRow = startRow    
     console.log('handle scroll plugin', direction, startRow, endRow, startCol, endCol)    
     this.checkDataExists(startRow, endRow).then(() => {
       if (this.columns && this.columns.length > 0) {
@@ -766,7 +770,11 @@ class Table3 {
         else {
           this.buildPivotColumns()
         }      
-        this.getData(0, page => {
+        // let dataStart = this.startRow
+        if (this.startRow > 0 && this.startRow + this.table.sizes.rowsToRender > this.layout.qHyperCube.qSize.qcy) {
+          this.startRow = this.layout.qHyperCube.qSize.qcy - this.table.sizes.rowsToRender
+        }
+        this.getData(this.startRow, page => {
           this.table.hideLoading()
           // if (this.layout.qHyperCube.qMode === 'S') {
           this.table.render([], false)

@@ -412,7 +412,7 @@ class Table2 {
     if (this.layout.qHyperCube.qMode === 'S') {      
       return page.map(r => {
         return r.map((c, i) => {
-          if (this.table.options.columns[i].showAsLink === true || this.table.options.columns[i].showAsNavigatorLink === true) {
+          if (this.table.options.columns[i].showAsLink === true) {
             if (c.qAttrExps && c.qAttrExps.qValues && c.qAttrExps.qValues[0].qText) {
               c.value = c.qAttrExps.qValues[0].qText
               if (c.value.indexOf('https://') === -1) {

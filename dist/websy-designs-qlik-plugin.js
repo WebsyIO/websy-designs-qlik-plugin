@@ -3406,7 +3406,7 @@ var Table2 = /*#__PURE__*/function () {
       if (this.layout.qHyperCube.qMode === 'S') {
         return page.map(function (r) {
           return r.map(function (c, i) {
-            if (_this36.table.options.columns[i].showAsLink === true || _this36.table.options.columns[i].showAsNavigatorLink === true) {
+            if (_this36.table.options.columns[i].showAsLink === true) {
               if (c.qAttrExps && c.qAttrExps.qValues && c.qAttrExps.qValues[0].qText) {
                 c.value = c.qAttrExps.qValues[0].qText;
 
@@ -3845,6 +3845,9 @@ var Table3 = /*#__PURE__*/function () {
     this.dropdowns = {};
     this.searchPrepped = false;
     this.pinnedColumns = 0;
+    this.startCol = 0;
+    this.endCol = 0;
+    this.startRow = 0;
     var el = document.getElementById(this.elementId);
 
     if (el) {
@@ -4418,13 +4421,13 @@ var Table3 = /*#__PURE__*/function () {
     key: "handleCollapse",
     value: function handleCollapse(event, row, column) {
       var all = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
-      this.options.model.collapseLeft('/qHyperCubeDef', row, column, all);
+      this.options.model.collapseLeft('/qHyperCubeDef', this.startRow + row, this.startCol + column, all);
     }
   }, {
     key: "handleExpand",
     value: function handleExpand(event, row, column) {
       var all = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
-      this.options.model.expandLeft('/qHyperCubeDef', row, column, all);
+      this.options.model.expandLeft('/qHyperCubeDef', this.startRow + row, this.startCol + column, all);
     }
   }, {
     key: "handleScroll",
@@ -4433,6 +4436,7 @@ var Table3 = /*#__PURE__*/function () {
 
       this.startCol = startCol;
       this.endCol = endCol;
+      this.startRow = startRow;
       console.log('handle scroll plugin', direction, startRow, endRow, startCol, endCol);
       this.checkDataExists(startRow, endRow).then(function () {
         if (_this43.columns && _this43.columns.length > 0) {
@@ -4732,9 +4736,14 @@ var Table3 = /*#__PURE__*/function () {
             _this44.buildStraightColumnsAndTotals();
           } else {
             _this44.buildPivotColumns();
+          } // let dataStart = this.startRow
+
+
+          if (_this44.startRow > 0 && _this44.startRow + _this44.table.sizes.rowsToRender > _this44.layout.qHyperCube.qSize.qcy) {
+            _this44.startRow = _this44.layout.qHyperCube.qSize.qcy - _this44.table.sizes.rowsToRender;
           }
 
-          _this44.getData(0, function (page) {
+          _this44.getData(_this44.startRow, function (page) {
             _this44.table.hideLoading(); // if (this.layout.qHyperCube.qMode === 'S') {
 
 
