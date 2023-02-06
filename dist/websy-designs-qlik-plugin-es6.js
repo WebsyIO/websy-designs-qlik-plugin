@@ -625,7 +625,7 @@ var Chart = /*#__PURE__*/function () {
     key: "createSeriesKey",
     value: function createSeriesKey(title) {
       var rgx = new RegExp('[^a-zA-Z0-9 -]', 'g');
-      return title.replace(rgx, '_');
+      return title.replace(rgx, '_').replace(/ /g, '_');
     }
   }, {
     key: "formatValue",
