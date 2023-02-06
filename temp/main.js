@@ -620,7 +620,8 @@ class Chart {
     this.chart.close()
   }
   createSeriesKey (title) {
-    return title.replace(/ /g, '_')
+    const rgx = new RegExp('[^a-zA-Z0-9 -]', 'g')
+    return title.replace(rgx, '_')
   }
   formatValue (d, options = {}) {
     console.log('formatting', d, options)
@@ -3315,22 +3316,34 @@ class Table3 {
     }
     this.render()
   }
-  appendRows (data) {  
-    console.log('append data plugin', data)
+  appendRows (data) {      
     this.table.appendRows(data)
   }
   buildPivotColumns () {
     let pData = this.transformPivotTable(this.layout.qHyperCube.qPivotDataPages[0])    
-    this.pinnedColumns = this.layout.qHyperCube.qNoOfLeftDims
+    // this.pinnedColumns = this.layout.qHyperCube.qIndentMode === true ? 1 : this.layout.qHyperCube.qNoOfLeftDims
     this.columns = pData.columns
     this.startCol = 0
+    // if (this.layout.qHyperCube.qIndentMode !== true) {
+    //   this.startCol = this.pinnedColumns
+    // }
     this.endCol = this.columns[this.columns.length - 1].length
     this.table.options.columns = this.columns
     const maxMValue = this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError).reduce((a, b) => a.qApprMaxGlyphCount > b.qApprMaxGlyphCount ? a : b).qApprMaxGlyphCount
     const maxMLabel = this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError).reduce((a, b) => a.qFallbackTitle > b.qFallbackTitle ? a : b).qFallbackTitle
     const maxMLength = maxMLabel.length > maxMValue ? maxMLabel : new Array(maxMValue).fill('X').join('')
     let effectiveOrder = this.layout.qHyperCube.qEffectiveInterColumnSortOrder
-    let dimensionLengths = this.layout.qHyperCube.qDimensionInfo.filter(d => !d.qError).map(d => d.qApprMaxGlyphCount > d.qFallbackTitle.length ? new Array(d.qApprMaxGlyphCount).fill('X').join('') : d.qFallbackTitle)
+    let possibleExpandCollapse = this.layout.qHyperCube.qMode === 'P' && this.layout.qHyperCube.qAlwaysFullyExpanded !== true
+    let dimensionLengths = this.layout.qHyperCube.qDimensionInfo.filter(d => !d.qError).map(d => {
+      let out = possibleExpandCollapse ? 'xxx' : ''
+      if (d.qApprMaxGlyphCount > d.qFallbackTitle.length) {
+        out += new Array(d.qApprMaxGlyphCount).fill('X').join('') 
+      } 
+      else {
+        out += d.qFallbackTitle
+      }
+      return out
+    })
     let activeColumns = []
     let rows = []
     let columns = []
@@ -3338,7 +3351,7 @@ class Table3 {
       if (effectiveOrder[i] < this.layout.qHyperCube.qDimensionInfo.length) {
         if (effectiveOrder[i] >= 0) {
           let dim = this.properties.qHyperCubeDef.qDimensions[effectiveOrder[i]]                
-          if (i < this.layout.qHyperCube.qNoOfLeftDims) {          
+          if (i < this.pinnedColumns) {          
             rows.push(dim)          
           }   
           else {
@@ -3347,7 +3360,7 @@ class Table3 {
         } 
       }      
       if (this.layout.qHyperCube.qIndentMode === true) {
-        if (i < this.layout.qHyperCube.qNoOfLeftDims) {
+        if (i < this.pinnedColumns) {
           if (effectiveOrder[i] === -1) {
             activeColumns.push(maxMLength)
           }          
@@ -3359,18 +3372,18 @@ class Table3 {
           }                      
         }
       }
-      else {
+      else if (i < this.pinnedColumns) {
         activeColumns.push(dimensionLengths[i])
       }
     }       
-    if (effectiveOrder.indexOf(-1) >= (this.layout.qHyperCube.qIndentMode === true ? 1 : this.layout.qHyperCube.qNoOfLeftDims)) {
-      for (let i = (this.layout.qHyperCube.qIndentMode === true ? 1 : this.layout.qHyperCube.qNoOfLeftDims); i < this.columns[this.columns.length - 1].length; i++) {
+    if (effectiveOrder.indexOf(-1) >= (this.layout.qHyperCube.qIndentMode === true ? 1 : this.pinnedColumns)) {
+      for (let i = (this.layout.qHyperCube.qIndentMode === true ? 1 : this.pinnedColumns); i < this.columns[this.columns.length - 1].length; i++) {
         activeColumns.push(maxMLength)
       }
     }  
     else if (effectiveOrder.indexOf(-1) === -1) {
       // only a single measure has been defined
-      if (this.layout.qHyperCube.qNoOfLeftDims <= 0) {
+      if (this.pinnedColumns <= 0) {
         // we have no left dimensions so all columns should be sized according to the measure
         activeColumns = []
       }
@@ -3379,11 +3392,11 @@ class Table3 {
       }
     }                        
     let columnParamValues = activeColumns.map(d => ({value: d, width: null}))
-    this.table.calculateSizes(columnParamValues, this.layout.qHyperCube.qSize.qcy, this.layout.qHyperCube.qSize.qcx, this.pinnedColumns)     
+    this.tableSizes = this.table.calculateSizes(columnParamValues, this.layout.qHyperCube.qSize.qcy, this.layout.qHyperCube.qSize.qcx, this.pinnedColumns)     
     let rowsWidth = 0
     if (this.options.allowPivoting === true && this.options.app) {      
       const rEl = document.getElementById(`${this.elementId}_pivotRows`)
-      let count = this.layout.qHyperCube.qIndentMode === true ? 1 : this.layout.qHyperCube.qNoOfLeftDims
+      let count = this.layout.qHyperCube.qIndentMode === true ? 1 : this.pinnedColumns
       for (let i = 0; i < count; i++) {
         rowsWidth += this.columns[this.columns.length - 1][i].actualWidth        
       }
@@ -3513,7 +3526,7 @@ class Table3 {
     let activeDimensions = this.layout.qHyperCube.qDimensionInfo        
       .filter(c => !c.qError)        
     this.columnParamValues = activeDimensions
-      .filter((c, i) => (this.layout.qHyperCube.qMode === 'S' || i < this.layout.qHyperCube.qNoOfLeftDims))
+      .filter((c, i) => (this.layout.qHyperCube.qMode === 'S' || i < this.pinnedColumns))
       .map((c, i) => ({ 
         value: new Array(Math.max(c.qApprMaxGlyphCount, this.layout.qHyperCube.qDimensionInfo[i].qFallbackTitle.length)).fill('X').join(''),
         width: c.width || null
@@ -3525,7 +3538,7 @@ class Table3 {
     if (this.layout.scrolling && this.layout.scrolling.keepFirstColumnInView === true) {
       this.pinnedColumns = 1
     }
-    this.table.calculateSizes(this.columnParamValues, this.layout.qHyperCube.qSize.qcy, this.layout.qHyperCube.qSize.qcx, this.pinnedColumns)     
+    this.tableSizes = this.table.calculateSizes(this.columnParamValues, this.layout.qHyperCube.qSize.qcy, this.layout.qHyperCube.qSize.qcx, this.pinnedColumns)     
     this.columns.forEach((c, i) => {
       if (c.searchable) {
         if (c.isExternalSearch === true) {                 
@@ -3534,7 +3547,7 @@ class Table3 {
               qInfo: { qType: 'table-dropdown' },
               qListObjectDef: c.def
             }).then(model => {
-              this.dropdowns[c.dimId] = new WebsyDesigns.QlikPlugin.Dropdown(`${this.elementId}_tableContainer_columnSearch_${c.dimId || i}`, {
+              this.dropdowns[c.dimId] = new WebsyDesigns.QlikPlugins.Dropdown(`${this.elementId}_tableContainer_columnSearch_${c.dimId || i}`, {
                 model,
                 multiSelect: true,
                 closeAfterSelection: false,
@@ -3624,13 +3637,17 @@ class Table3 {
         })
       }
       else {
-        const pageDefs = [{
-          qTop: top,
-          qLeft: 0,
-          qWidth: this.dataWidth,
-          qHeight: this.dataWidth * this.options.pageSize > 10000 ? Math.floor(10000 / this.dataWidth) : this.options.pageSize
+        let qHeight = this.dataWidth * this.options.pageSize > 10000 ? Math.floor(10000 / this.dataWidth) : this.options.pageSize	
+        if (this.layout.qHyperCube.qMode === 'P' && this.layout.qHyperCube.qIndentMode !== true && this.tableSizes) {	
+          qHeight = this.tableSizes.rowsToRender	
+        }	
+        const pageDefs = [{	
+          qTop: top,	
+          qLeft: 0,	
+          qWidth: this.dataWidth,	
+          qHeight	
         }]
-        if (this.rowIndexList.length < this.layout.qHyperCube.qSize.qcy) {
+        if ((this.rowIndexList || []).length < this.layout.qHyperCube.qSize.qcy) {
           let method = 'getHyperCubeData'
           if (this.layout.qHyperCube.qMode === 'P') {
             method = 'getHyperCubePivotData'          
@@ -3639,14 +3656,12 @@ class Table3 {
             if (pages) {
               if (this.layout.qHyperCube.qMode === 'P') {
                 let pData = this.transformPivotTable(pages[0])                
-                pages[0].qMatrix = pData.data                
-                console.log('pdata', pData)
+                pages[0].qMatrix = pData.data                                
                 // this.fullData.push(pages[0])
                 // this.rowCount += pages[0].qData.length
               }
               // else {
-              // pages[0].qMatrix = pages[0].qMatrix.filter(r => r[0].qText !== '-')
-              console.log('callback splicing', pages[0].qArea.qTop)
+              // pages[0].qMatrix = pages[0].qMatrix.filter(r => r[0].qText !== '-')              
               if (this.layout.qHyperCube.qMode === 'S' || this.layout.qHyperCube.qIndentMode === true) {
                 this.fullData.splice(pages[0].qArea.qTop, pages[0].qArea.qHeight, ...pages[0].qMatrix)
                 for (let i = 0; i < pages[0].qArea.qHeight; i++) {
@@ -3670,17 +3685,8 @@ class Table3 {
                 }
               }
             }
-          }, err => {
-            let e = err          
-            if (this.errorCount < 50) {
-              this.errorCount++
-              console.log('error getting data, attempt', this.errorCount)
-              clearTimeout(this.retryFn)
-              this.retryFn = setTimeout(() => {
-                this.getData(top, callbackFn)
-              }, 300)        
-            } 
-            // callbackFn({err})
+          }, err => {            
+            console.log('error getting data', err)              
           })
         } 
         else {
@@ -3737,8 +3743,11 @@ class Table3 {
   handleScroll (direction, startRow, endRow, startCol, endCol) {    
     this.startCol = startCol
     this.endCol = endCol
-    this.startRow = startRow    
-    console.log('handle scroll plugin', direction, startRow, endRow, startCol, endCol)    
+    // if (this.layout.qHyperCube.qMode === 'P' && this.layout.qHyperCube.qIndentMode !== true) {
+    //   this.startCol = Math.max(0, startCol - this.pinnedColumns)
+    //   this.endCol = Math.max(0, endCol - this.pinnedColumns)
+    // }
+    this.startRow = startRow        
     this.checkDataExists(startRow, endRow).then(() => {
       if (this.columns && this.columns.length > 0) {
         if (this.layout.qHyperCube.qMode === 'S') {
@@ -3747,8 +3756,7 @@ class Table3 {
           })
           this.table.columns = [columnsInView]   
         }        
-        else {
-          console.log('columns', this.columns)
+        else {          
           let columnsInView = this.columns.map((cP) => {
             let acc = 0
             let adjAcc = 0
@@ -3783,7 +3791,7 @@ class Table3 {
                 }               
               }              
               else {
-                c.inView = i >= startCol && i <= endCol
+                c.inView = i >= startCol + this.pinnedColumns && i <= endCol + this.pinnedColumns
               }  
               acc += cC.colspan || 1    
               adjAcc += c.colspan || 1    
@@ -3799,19 +3807,23 @@ class Table3 {
           return i < this.pinnedColumns || (i >= startCol && i <= endCol)
         })      
         this.table.totals = totalsInView
-      }
-      console.log('callback slicing data', startRow, endRow + 1)
+      }      
       let start = this.layout.qHyperCube.qMode === 'S' || this.layout.qHyperCube.qIndentMode === true ? startRow : 0
       let end = this.layout.qHyperCube.qMode === 'S' || this.layout.qHyperCube.qIndentMode === true ? endRow : endRow - startRow
       this.appendRows(this.transformData(this.fullData.slice(start, end + 1).map(row => {
-        return row.filter((c, i) => {          
-          return i < this.pinnedColumns || (i >= startCol && i <= endCol)
+        return row.filter((c, i) => {  
+          if (this.layout.qHyperCube.qMode === 'P' && this.layout.qHyperCube.qIndentMode !== true) {
+            return c.level < this.pinnedColumns || (c.dataIndex >= startCol && c.dataIndex <= endCol)
+          }        
+          else {
+            return i < this.pinnedColumns || (i >= startCol + this.pinnedColumns && i <= endCol + this.pinnedColumns)
+          }
         })
       })))
     })
   }
   handleSearch (event, column) {
-    console.log(event, column)
+    // console.log(event, column)
     if (this.dropdowns[column.dimId]) {
       let el = document.getElementById(`${this.elementId}_tableContainer_columnSearch_${column.dimId}`)
       if (el) {
@@ -3848,7 +3860,7 @@ class Table3 {
     // let realLeft = startPoint / withoutScroll * (this.totalWidth - handleWidth)
     let realLeft = (startPoint / this.columnParams.scrollableWidth) * this.totalWidth
     let accWidth = 0
-    let leftDims = (this.options.freezeColumns || this.layout.qHyperCube.qNoOfLeftDims)
+    let leftDims = (this.options.pinnedColumns || this.layout.qHyperCube.qNoOfLeftDims)
     this.leftDataCol = 0
     for (let i = leftDims; i < this.fullColumnList.length; i++) {      
       if (realLeft >= (+this.fullColumnList[i].width.replace('px', '') + accWidth)) {
@@ -3914,109 +3926,102 @@ class Table3 {
     //   return 
     // }
     this.table.showLoading({message: 'Loading...'})    
-    this.options.model.getLayout().then(layout => {    
-      if (layout.qHyperCube.qError && layout.qHyperCube.qCalcCondMsg) {
-        this.table.hideLoading()
-        this.table.showError({message: this.options.customError || layout.qHyperCube.qCalcCondMsg})
-        return
-      }
-      if (this.options.forcedRowLimit && layout.qHyperCube.qSize.qcy > this.options.forcedRowLimit) {
-        this.table.hideLoading()
-        this.table.showError({message: this.options.forcedRowLimitError || this.options.customError || layout.qHyperCube.qCalcCondMsg})
-        return
-      }
-      if (this.options.forcedColLimit && layout.qHyperCube.qSize.qcx > this.options.forcedColLimit) {
-        this.table.hideLoading()
-        this.table.showError({message: this.options.forcedColLimitError || this.options.customError || layout.qHyperCube.qCalcCondMsg})
-        return
-      }
-      this.table.hideError()
-      this.options.model.getEffectiveProperties().then(props => {
-        this.properties = props      
-        if (this.options.onUpdate) {
-          this.options.onUpdate(props, layout)
-        }
-        console.log('table 3 plugin layout', layout)
-        this.endCol = layout.qHyperCube.qSize.qcx + layout.qHyperCube.qNoOfLeftDims
-        this.layout = layout
-        this.buildDataStructure()
-        // this.rowCount = pageNum * this.options.pageSize
-        // if (this.layout.qHyperCube.qPivotDataPages[0]) {
-        //   this.layout.qHyperCube.qPivotDataPages = []
-        // }
-        this.errorCount = 0
-        this.pageNum = pageNum      
-        this.pageCount = Math.ceil(layout.qHyperCube.qSize.qcy / this.options.pageSize)
-        this.table.options.pageNum = this.pageNum
-        if (this.layout.qHyperCube.qNoOfLeftDims) {
-          this.table.options.leftColumns = (this.options.freezeColumns || this.layout.qHyperCube.qNoOfLeftDims)
-        }
-        this.table.options.pageCount = this.pageCount
-        this.dataWidth = this.layout.qHyperCube.qSize.qcx
-        this.columnOrder = this.layout.qHyperCube.qColumnOrder
-        if (typeof this.columnOrder === 'undefined') {
-          this.columnOrder = (new Array(this.layout.qHyperCube.qSize.qcx)).fill({}).map((r, i) => i)
-        }
-        this.layout.qHyperCube.qDimensionInfo = this.layout.qHyperCube.qDimensionInfo.map((c, i) => {
-          c.searchable = true
-          if (this.options.columnOverrides[i]) {
-            c = {
-              ...c,             
-              onSearch: this.handleSearch.bind(this),
-              onCloseSearch: this.handleCloseSearch.bind(this),
-              ...this.options.columnOverrides[i]
-            }
-          }        
-          c.searchField = `dim${i}`
-          
-          return c
-        })
-        this.layout.qHyperCube.qMeasureInfo = this.layout.qHyperCube.qMeasureInfo.map((c, i) => {
-          if (this.options.columnOverrides[this.layout.qHyperCube.qDimensionInfo.length + i]) {
-            c = {...c, ...this.options.columnOverrides[this.layout.qHyperCube.qDimensionInfo.length + i]}
-          }
-          return c
-        }) 
-        if (this.layout.qHyperCube.qMode === 'S') {
-          this.buildStraightColumnsAndTotals()
-        }  
-        else {
-          this.buildPivotColumns()
-        }      
-        // let dataStart = this.startRow
-        if (this.startRow > 0 && this.startRow + this.table.sizes.rowsToRender > this.layout.qHyperCube.qSize.qcy) {
-          this.startRow = this.layout.qHyperCube.qSize.qcy - this.table.sizes.rowsToRender
-        }
-        this.getData(this.startRow, page => {
+    this.options.model.getLayout().then(layout => {  
+      this.layout = layout
+      this.dataWidth = this.layout.qHyperCube.qSize.qcx
+      this.columnOrder = this.layout.qHyperCube.qColumnOrder      
+      this.getData(0, page => {
+        this.layout.qHyperCube.qDataPages = [page]  
+        if (layout.qHyperCube.qError && layout.qHyperCube.qCalcCondMsg) {
           this.table.hideLoading()
-          // if (this.layout.qHyperCube.qMode === 'S') {
-          this.table.render([], false)
-          this.prepDropdowns()
-          // }        
-          if (page.err) {
-            const tableEl = document.getElementById(`${this.elementId}_foot`)
-            tableEl.innerHTML = `
-              <div class='request-abort-error'>Could not fetch data. Click <strong class='table-try-again'>here</strong> to try again</div>
-            ` 
+          this.table.showError({message: this.options.customError || layout.qHyperCube.qCalcCondMsg})
+          return
+        }
+        if (this.options.forcedRowLimit && layout.qHyperCube.qSize.qcy > this.options.forcedRowLimit) {
+          this.table.hideLoading()
+          this.table.showError({message: this.options.forcedRowLimitError || this.options.customError || layout.qHyperCube.qCalcCondMsg})
+          return
+        }
+        if (this.options.forcedColLimit && layout.qHyperCube.qSize.qcx > this.options.forcedColLimit) {
+          this.table.hideLoading()
+          this.table.showError({message: this.options.forcedColLimitError || this.options.customError || layout.qHyperCube.qCalcCondMsg})
+          return
+        }
+        this.table.hideError()
+        this.options.model.getEffectiveProperties().then(props => {
+          this.properties = props      
+          if (this.options.onUpdate) {
+            this.options.onUpdate(props, layout)
+          }          
+          this.endCol = layout.qHyperCube.qSize.qcx + (this.pinnedColumns || layout.qHyperCube.qNoOfLeftDims)
+          // this.layout = layout
+          this.buildDataStructure()
+          // this.rowCount = pageNum * this.options.pageSize
+          // if (this.layout.qHyperCube.qPivotDataPages[0]) {
+          //   this.layout.qHyperCube.qPivotDataPages = []
+          // }
+          this.errorCount = 0
+          this.pageNum = pageNum      
+          this.pageCount = Math.ceil(layout.qHyperCube.qSize.qcy / this.options.pageSize)
+          this.table.options.pageNum = this.pageNum          
+          this.table.options.pageCount = this.pageCount
+          // this.dataWidth = this.layout.qHyperCube.qSize.qcx
+          // this.columnOrder = this.layout.qHyperCube.qColumnOrder
+          if (typeof this.columnOrder === 'undefined') {
+            this.columnOrder = (new Array(this.layout.qHyperCube.qSize.qcx)).fill({}).map((r, i) => i)
           }
+          this.layout.qHyperCube.qDimensionInfo = this.layout.qHyperCube.qDimensionInfo.map((c, i) => {
+            c.searchable = true
+            if (this.options.columnOverrides[i]) {
+              c = {
+                ...c,             
+                onSearch: this.handleSearch.bind(this),
+                onCloseSearch: this.handleCloseSearch.bind(this),
+                ...this.options.columnOverrides[i]
+              }
+            }        
+            c.searchField = `dim${i}`
+            
+            return c
+          })
+          this.layout.qHyperCube.qMeasureInfo = this.layout.qHyperCube.qMeasureInfo.map((c, i) => {
+            if (this.options.columnOverrides[this.layout.qHyperCube.qDimensionInfo.length + i]) {
+              c = {...c, ...this.options.columnOverrides[this.layout.qHyperCube.qDimensionInfo.length + i]}
+            }
+            return c
+          }) 
+          if (this.layout.qHyperCube.qMode === 'S') {
+            this.buildStraightColumnsAndTotals()
+          }  
           else {
-            // this.fullData = page
-            this.resize()          
+            this.buildPivotColumns()            
+          }      
+          // let dataStart = this.startRow
+          if (this.startRow > 0 && this.startRow + this.table.sizes.rowsToRender > this.layout.qHyperCube.qSize.qcy) {
+            this.startRow = this.layout.qHyperCube.qSize.qcy - this.table.sizes.rowsToRender
           }
+          this.getData(this.startRow, page => {
+            this.table.hideLoading()
+            // if (this.layout.qHyperCube.qMode === 'S') {
+            this.table.render([], false)
+            this.prepDropdowns()
+            // }        
+            if (page.err) {
+              const tableEl = document.getElementById(`${this.elementId}_foot`)
+              tableEl.innerHTML = `
+                <div class='request-abort-error'>Could not fetch data. Click <strong class='table-try-again'>here</strong> to try again</div>
+              ` 
+            }
+            else {
+              // this.fullData = page
+              this.resize()          
+            }
+          })
         })
-      }, err => {
-        // try again      
-        let e = err      
-        if (this.errorCount < 50) {
-          this.errorCount++
-          console.log('error getting layout, attempt', this.errorCount)
-          clearTimeout(this.retryFn)
-          this.retryFn = setTimeout(() => {
-            this.render()
-          }, 300)               
-        }      
       })
-    })    
+    }, err => {        
+      console.log('error getting layout', err)               
+    })  
   }
   resize () {
     this.appendRows(this.transformData(this.fullData))
@@ -4028,9 +4033,7 @@ class Table3 {
     this.options.pageSize = size
     this.render()
   }
-  transformData (page) {
-    // if (this.layout.qHyperCube.qMode === 'S') {      
-    let sourceColumns = this.layout.qHyperCube.qDimensionInfo.concat(this.layout.qHyperCube.qMeasureInfo)
+  transformData (page) {    
     return page.map(r => {
       return r.map((c, i) => {
         if (this.table.options.columns[this.table.options.columns.length - 1][i] && (this.table.options.columns[this.table.options.columns.length - 1][i].showAsLink === true || this.table.options.columns[this.table.options.columns.length - 1][i].showAsNavigatorLink === true)) {
@@ -4063,10 +4066,11 @@ class Table3 {
               // else if (sourceColumns[tIndex] && sourceColumns[tIndex].qAttrExprInfo && sourceColumns[tIndex].qAttrExprInfo[aI] && sourceColumns[tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
               //   c.backgroundColor = a.qText
               // }
-              if (sourceColumns[c.level] && sourceColumns[c.level].qAttrExprInfo && sourceColumns[c.level].qAttrExprInfo[aI] && sourceColumns[c.level].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+              let measureIndex = (c.level - this.layout.qHyperCube.qDimensionInfo.length) % this.layout.qHyperCube.qMeasureInfo.length
+              if (this.layout.qHyperCube.qMeasureInfo[measureIndex] && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                 c.color = a.qText
               }
-              else if (sourceColumns[c.level] && sourceColumns[c.level].qAttrExprInfo && sourceColumns[c.level].qAttrExprInfo[aI] && sourceColumns[c.level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+              else if (this.layout.qHyperCube.qMeasureInfo[measureIndex] && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                 c.backgroundColor = a.qText
               }
             }
@@ -4148,12 +4152,14 @@ class Table3 {
     let visibleTopCount = 0    
     let visibleColCount = 0
     let tempNode = []
+    let sourceColumns = this.layout.qHyperCube.qDimensionInfo.concat(this.layout.qHyperCube.qMeasureInfo)
     for (let i = 0; i < page.qLeft.length; i++) {
       expandLeft.call(this, page.qLeft[i], 0, 0, null, [])
     }              
     for (let i = 0; i < page.qTop.length; i++) {
       expandTop.call(this, page.qTop[i], 0, i)
     }
+    this.pinnedColumns = visibleLeftCount
     for (let r = 0; r < page.qData.length; r++) {
       let row = page.qData[r]      
       for (let c = 0; c < row.length; c++) {
@@ -4162,7 +4168,9 @@ class Table3 {
         }
         row[c].pos = 'Data'  
         row[c].style = 'text-align: right;'       
-        row[c].level = this.layout.qHyperCube.qDimensionInfo.filter(d => !d.qError).length + c
+        // row[c].level = this.layout.qHyperCube.qDimensionInfo.filter(d => !d.qError).length + c
+        row[c].dataIndex = c        
+        row[c].level = this.pinnedColumns
         // row[c].width = `${this.columnParams.cellWidths[(this.options.freezeColumns || this.layout.qHyperCube.qNoOfLeftDims) + c] || this.columnParams.cellWidths[this.columnParams.cellWidths.length - 1]}px`
         // if (row[c].qAttrExps && row[c].qAttrExps.qValues && row[c].qAttrExps.qValues[0] && row[c].qAttrExps.qValues[0].qText) {
         //   row[c].backgroundColor = row[c].qAttrExps.qValues[0].qText
@@ -4206,6 +4214,15 @@ class Table3 {
     }
     if (visibleLeftCount !== 0) {                
       for (let i = 0; i < topNodesTransposed.length; i++) {
+        if (i === topNodesTransposed.length - 1 && this.layout.qHyperCube.qMode === 'P' && this.layout.qHyperCube.qIndentMode !== true) {  
+          let columns = this.layout.qHyperCube.qDimensionInfo.filter(d => !d.qError)
+          let labelledTopCells = additionalTopCells.map((d, i) => {
+            d.name = (columns[i] || {}).qFallbackTitle || ''
+            return d
+          })
+          topNodesTransposed[i] = labelledTopCells.concat(topNodesTransposed[i])
+        }
+        else {
         // if (i === topNodesTransposed.length - 1) {          
         // topNodesTransposed[i] = (this.layout.qHyperCube.qDimensionInfo.filter(d => !d.qError).filter((d, dI) => dI < visibleLeftCount).map((d, dI) => {
         //   return Object.assign({}, d, {
@@ -4223,12 +4240,11 @@ class Table3 {
         // })).concat(topNodesTransposed[i])
         // } 
         // else {
-        topNodesTransposed[i] = additionalTopCells.concat(topNodesTransposed[i])
-        // }
+          topNodesTransposed[i] = additionalTopCells.concat(topNodesTransposed[i])
+        }
       }
     }
     visibleColCount = topNodesTransposed[topNodesTransposed.length - 1]
-    console.log('top nodes', topNodesTransposed)
     // output = topNodesTransposed.concat(output)
     // This function is used to convert the qLeft structure from a parent/child hierarchy
     // into a 2 dimensions array    
@@ -4265,6 +4281,18 @@ class Table3 {
       o.expandable = o.qCanExpand
       o.collapsable = o.qCanCollapse
       o.rowspan = Math.max(1, input.qSubNodes.length)
+      if (o.qAttrExps && o.qAttrExps.qValues) {
+        o.qAttrExps.qValues.forEach((a, aI) => {            
+          if (a.qText && a.qText !== '') {
+            if (sourceColumns[o.level] && sourceColumns[o.level].qAttrExprInfo && sourceColumns[o.level].qAttrExprInfo[aI] && sourceColumns[o.level].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+              o.color = a.qText
+            }
+            else if (sourceColumns[o.level] && sourceColumns[o.level].qAttrExprInfo && sourceColumns[o.level].qAttrExprInfo[aI] && sourceColumns[o.level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+              o.backgroundColor = a.qText
+            }
+          }
+        })
+      }      
       input.rowspan = Math.max(1, input.qSubNodes.length)
       if (this.layout.qHyperCube.qIndentMode === true) {
         o.rowspan = 1

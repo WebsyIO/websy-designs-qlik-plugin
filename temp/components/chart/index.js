@@ -57,7 +57,8 @@ class Chart {
     this.chart.close()
   }
   createSeriesKey (title) {
-    return title.replace(/ /g, '_')
+    const rgx = new RegExp('[^a-zA-Z0-9 -]', 'g')
+    return title.replace(rgx, '_')
   }
   formatValue (d, options = {}) {
     console.log('formatting', d, options)
