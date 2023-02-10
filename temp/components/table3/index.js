@@ -230,6 +230,10 @@ class Table3 {
       this.columnList.render()
       this.columnList.options.items.forEach((d, i) => {
         if (!this.dropdowns[d.dimId]) {
+          if (!d.dim.qDef) {            
+            d.dim.qDef = {}
+          }
+          d.dim.qDef.qSortCriterias = [{qSortByAscii: 1, qSortByState: 1, qSortByNumeric: 1}]
           this.options.app.createSessionObject({
             qInfo: { qType: 'table-dropdown' },
             qListObjectDef: d.dim
@@ -956,7 +960,8 @@ class Table3 {
         row[c].style = 'text-align: right;'       
         // row[c].level = this.layout.qHyperCube.qDimensionInfo.filter(d => !d.qError).length + c
         row[c].dataIndex = c        
-        row[c].level = this.pinnedColumns
+        // row[c].level = this.pinnedColumns
+        row[c].level = this.pinnedColumns + c
         // row[c].width = `${this.columnParams.cellWidths[(this.options.freezeColumns || this.layout.qHyperCube.qNoOfLeftDims) + c] || this.columnParams.cellWidths[this.columnParams.cellWidths.length - 1]}px`
         // if (row[c].qAttrExps && row[c].qAttrExps.qValues && row[c].qAttrExps.qValues[0] && row[c].qAttrExps.qValues[0].qText) {
         //   row[c].backgroundColor = row[c].qAttrExps.qValues[0].qText

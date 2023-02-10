@@ -607,16 +607,39 @@ var Chart = /*#__PURE__*/function () {
       var _this5 = this;
 
       return new Promise(function (resolve, reject) {
-        if (_this5.layout.qHyperCube.qDataPages[0] && _this5.layout.qHyperCube.qDataPages[0].qMatrix) {
+        var location = 'qDataPages';
+        var method = 'getHyperCubeData';
+        var dataProp = 'qMatrix';
+
+        if (_this5.layout.qHyperCube.qMode === 'K') {
+          location = 'qStackedDataPages';
+          method = 'getHyperCubeStackData';
+          dataProp = 'qData';
+        }
+
+        if (_this5.layout.qHyperCube[location][0] && _this5.layout.qHyperCube[location][0][dataProp]) {
+          if (_this5.layout.qHyperCube.qMode === 'K') {
+            _this5.layout.qHyperCube.qDataPages = [{
+              qMatrix: _this5.transformDataToMatrix(_this5.layout.qHyperCube[location][0][dataProp][0].qSubNodes)
+            }];
+          }
+
           resolve();
         } else {
-          _this5.options.model.getHyperCubeData('/qHyperCubeDef', [{
+          _this5.options.model[method]('/qHyperCubeDef', [{
             qTop: 0,
             qLeft: 0,
             qWidth: _this5.layout.qHyperCube.qSize.qcx,
             qHeight: Math.floor(10000 / _this5.layout.qHyperCube.qSize.qcx)
           }]).then(function (pages) {
-            _this5.layout.qHyperCube.qDataPages = pages;
+            _this5.layout.qHyperCube[location] = pages;
+
+            if (_this5.layout.qHyperCube.qMode === 'K') {
+              _this5.layout.qHyperCube.qDataPages = [{
+                qMatrix: _this5.transformDataToMatrix(pages[0].qData[0].qSubNodes)
+              }];
+            }
+
             resolve();
           });
         }
@@ -706,7 +729,7 @@ var Chart = /*#__PURE__*/function () {
     value: function transformBasic() {
       var _this7 = this;
 
-      var options = _extends({}, this.optionDefaults, this.layout.options);
+      var options = _extends({}, this.optionDefaults, this.layout.options, this.options.chartOptions);
 
       this.addOptions(options.data.left, this.layout.qHyperCube.qMeasureInfo[0].options || {}); // options.data.left = Object.assign({}, this.layout.qHyperCube.qMeasureInfo[0].options || {})
 
@@ -744,7 +767,7 @@ var Chart = /*#__PURE__*/function () {
     value: function transformMultiDimensions() {
       var _this8 = this;
 
-      var options = _extends({}, this.optionDefaults, this.layout.options);
+      var options = _extends({}, this.optionDefaults, this.layout.options, this.options.chartOptions);
 
       this.addOptions(options.data.left, this.layout.qHyperCube.qMeasureInfo[0].options || {}); // options.data.left = Object.assign({}, options.data.left, this.layout.qHyperCube.qMeasureInfo[0].options || {})
 
@@ -791,11 +814,12 @@ var Chart = /*#__PURE__*/function () {
           });
         }
 
-        var c = r[2];
-        c.value = isNaN(c.qNum) ? 0 : c.qNum;
+        var c = r[2]; // c.value = isNaN(c.qNum) ? 0 : c.qNum
+
+        c.value = c.qNum;
         c.tooltipLabel = r[0].qText;
         c.tooltipValue = c.qText;
-        series[seriesIndex].data.push({
+        !isNaN(c.value) && series[seriesIndex].data.push({
           x: {
             value: v
           },
@@ -813,7 +837,7 @@ var Chart = /*#__PURE__*/function () {
     value: function transformNoDimensions() {
       var _this9 = this;
 
-      var options = _extends({}, this.optionDefaults, this.layout.options);
+      var options = _extends({}, this.optionDefaults, this.layout.options, this.options.chartOptions);
 
       var xAxis = 'bottom';
       var yAxis = 'left';
@@ -889,7 +913,7 @@ var Chart = /*#__PURE__*/function () {
     value: function transformMultiMeasure() {
       var _this10 = this;
 
-      var options = _extends({}, this.optionDefaults, this.layout.options);
+      var options = _extends({}, this.optionDefaults, this.layout.options, this.options.chartOptions);
 
       var xAxis = 'bottom';
       var x2Axis = 'bottom';
@@ -1043,6 +1067,48 @@ var Chart = /*#__PURE__*/function () {
 
       console.log('multi measure options', options, xTotals);
       return options;
+    }
+  }, {
+    key: "transformDataToMatrix",
+    value: function transformDataToMatrix(dataInput) {
+      var matrix = [];
+      dataInput.forEach(function (node, nIndex) {
+        if (node.qSubNodes.length > 0) {
+          node.qSubNodes.forEach(function (s) {
+            var row = [{
+              qText: node.qText,
+              qElemNumber: node.qElemNo
+            }];
+            var dimCell2 = {
+              qText: s.qText,
+              qElemNumber: s.qElemNo
+            };
+
+            if (s.qAttrExps) {
+              dimCell2.qAttrExps = s.qAttrExps;
+            }
+
+            row.push(dimCell2);
+
+            if (s.qSubNodes && s.qSubNodes.length > 0) {
+              var expCell = {
+                qText: s.qSubNodes[0].qText,
+                qNum: s.qSubNodes[0].qValue
+              };
+
+              if (s.qSubNodes[0].qAttrExps) {
+                expCell.qAttrExps = s.qSubNodes[0].qAttrExps;
+              }
+
+              row.push(expCell);
+            }
+
+            matrix.push([row[1], row[0], row[2]]);
+          });
+        }
+      });
+      console.log('stacked matrix', matrix);
+      return matrix;
     }
   }]);
 
@@ -4127,6 +4193,16 @@ var Table3 = /*#__PURE__*/function () {
         this.columnList.render();
         this.columnList.options.items.forEach(function (d, i) {
           if (!_this41.dropdowns[d.dimId]) {
+            if (!d.dim.qDef) {
+              d.dim.qDef = {};
+            }
+
+            d.dim.qDef.qSortCriterias = [{
+              qSortByAscii: 1,
+              qSortByState: 1,
+              qSortByNumeric: 1
+            }];
+
             _this41.options.app.createSessionObject({
               qInfo: {
                 qType: 'table-dropdown'
@@ -5007,8 +5083,9 @@ var Table3 = /*#__PURE__*/function () {
           row[c].pos = 'Data';
           row[c].style = 'text-align: right;'; // row[c].level = this.layout.qHyperCube.qDimensionInfo.filter(d => !d.qError).length + c
 
-          row[c].dataIndex = c;
-          row[c].level = this.pinnedColumns; // row[c].width = `${this.columnParams.cellWidths[(this.options.freezeColumns || this.layout.qHyperCube.qNoOfLeftDims) + c] || this.columnParams.cellWidths[this.columnParams.cellWidths.length - 1]}px`
+          row[c].dataIndex = c; // row[c].level = this.pinnedColumns
+
+          row[c].level = this.pinnedColumns + c; // row[c].width = `${this.columnParams.cellWidths[(this.options.freezeColumns || this.layout.qHyperCube.qNoOfLeftDims) + c] || this.columnParams.cellWidths[this.columnParams.cellWidths.length - 1]}px`
           // if (row[c].qAttrExps && row[c].qAttrExps.qValues && row[c].qAttrExps.qValues[0] && row[c].qAttrExps.qValues[0].qText) {
           //   row[c].backgroundColor = row[c].qAttrExps.qValues[0].qText
           //   row[c].color = this.getFontColor(row[c].qAttrExps.qValues[0].qText)
@@ -6077,18 +6154,24 @@ if (typeof WebsyDesigns !== 'undefined') {
             params = objectConfig.definition.qField;
           }
 
+          if (!objectConfig.definition.qInfo) {
+            // assume we have an objectId
+            method = 'getObject';
+          }
+
           this.app[method](params).then(function (model) {
             objectConfig.objectId = model.id;
             objectConfig.attached = true;
+            var chartType = objectConfig.type || objectConfig.definition.qInfo.qType;
 
-            if (_this60.supportedChartTypes.indexOf(objectConfig.definition.qInfo.qType) !== -1) {
+            if (_this60.supportedChartTypes.indexOf(chartType) !== -1) {
               var options = _extends({}, objectConfig.options, {
                 model: model,
                 def: objectConfig.definition,
                 app: _this60.app
               });
 
-              objectConfig.vis = new _this60.chartLibrary[objectConfig.definition.qInfo.qType]("".concat(objectConfig.elementId, "_vis"), options);
+              objectConfig.vis = new _this60.chartLibrary[chartType]("".concat(objectConfig.elementId, "_vis"), options);
               model.on('changed', function () {
                 if (objectConfig.attached === true && _this60.paused === false) {
                   objectConfig.vis.render();

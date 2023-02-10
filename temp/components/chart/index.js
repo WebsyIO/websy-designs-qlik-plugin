@@ -37,17 +37,31 @@ class Chart {
   }
   checkForData () {
     return new Promise((resolve, reject) => {
-      if (this.layout.qHyperCube.qDataPages[0] && this.layout.qHyperCube.qDataPages[0].qMatrix) {
+      let location = 'qDataPages'
+      let method = 'getHyperCubeData'
+      let dataProp = 'qMatrix'
+      if (this.layout.qHyperCube.qMode === 'K') {
+        location = 'qStackedDataPages'
+        method = 'getHyperCubeStackData'
+        dataProp = 'qData'
+      }
+      if (this.layout.qHyperCube[location][0] && this.layout.qHyperCube[location][0][dataProp]) {
+        if (this.layout.qHyperCube.qMode === 'K') {
+          this.layout.qHyperCube.qDataPages = [{ qMatrix: this.transformDataToMatrix(this.layout.qHyperCube[location][0][dataProp][0].qSubNodes) }]
+        }
         resolve()
       }
       else {
-        this.options.model.getHyperCubeData('/qHyperCubeDef', [{
+        this.options.model[method]('/qHyperCubeDef', [{
           qTop: 0,
           qLeft: 0,
           qWidth: this.layout.qHyperCube.qSize.qcx,
           qHeight: Math.floor(10000 / this.layout.qHyperCube.qSize.qcx)
         }]).then(pages => {
-          this.layout.qHyperCube.qDataPages = pages
+          this.layout.qHyperCube[location] = pages    
+          if (this.layout.qHyperCube.qMode === 'K') {
+            this.layout.qHyperCube.qDataPages = [{ qMatrix: this.transformDataToMatrix(pages[0].qData[0].qSubNodes) }]
+          }
           resolve()
         })
       }
@@ -114,7 +128,7 @@ class Chart {
     this.chart.render()
   }
   transformBasic () {
-    const options = Object.assign({}, this.optionDefaults, this.layout.options)    
+    const options = Object.assign({}, this.optionDefaults, this.layout.options, this.options.chartOptions)    
     this.addOptions(options.data.left, this.layout.qHyperCube.qMeasureInfo[0].options || {})
     // options.data.left = Object.assign({}, this.layout.qHyperCube.qMeasureInfo[0].options || {})
     options.data.left.min = this.layout.qHyperCube.qMeasureInfo[0].qMin 
@@ -145,7 +159,7 @@ class Chart {
     return options
   }
   transformMultiDimensions () {
-    const options = Object.assign({}, this.optionDefaults, this.layout.options)
+    const options = Object.assign({}, this.optionDefaults, this.layout.options, this.options.chartOptions)
     this.addOptions(options.data.left, this.layout.qHyperCube.qMeasureInfo[0].options || {})
     // options.data.left = Object.assign({}, options.data.left, this.layout.qHyperCube.qMeasureInfo[0].options || {})
     options.data.left.min = this.layout.qHyperCube.qMeasureInfo[0].qMin 
@@ -186,10 +200,11 @@ class Chart {
         })
       }
       let c = r[2]
-      c.value = isNaN(c.qNum) ? 0 : c.qNum
+      // c.value = isNaN(c.qNum) ? 0 : c.qNum
+      c.value = c.qNum
       c.tooltipLabel = r[0].qText
       c.tooltipValue = c.qText
-      series[seriesIndex].data.push({
+      !isNaN(c.value) && series[seriesIndex].data.push({
         x: { value: v },
         y: c
       })      
@@ -201,7 +216,7 @@ class Chart {
     return options   
   }
   transformNoDimensions () {
-    const options = Object.assign({}, this.optionDefaults, this.layout.options)
+    const options = Object.assign({}, this.optionDefaults, this.layout.options, this.options.chartOptions)
     let xAxis = 'bottom'
     let yAxis = 'left'
     let xScale = 'Band'
@@ -255,7 +270,7 @@ class Chart {
     return options   
   }
   transformMultiMeasure () {
-    const options = Object.assign({}, this.optionDefaults, this.layout.options)
+    const options = Object.assign({}, this.optionDefaults, this.layout.options, this.options.chartOptions)
     let xAxis = 'bottom'
     let x2Axis = 'bottom'
     let yAxis = 'left'
@@ -386,5 +401,38 @@ class Chart {
     }
     console.log('multi measure options', options, xTotals)  
     return options
+  }
+  transformDataToMatrix (dataInput) {
+    const matrix = []
+    dataInput.forEach((node, nIndex) => {
+      if (node.qSubNodes.length > 0) {
+        node.qSubNodes.forEach((s) => {
+          const row = [
+            { qText: node.qText, qElemNumber: node.qElemNo }
+          ]
+          let dimCell2 = {
+            qText: s.qText,
+            qElemNumber: s.qElemNo
+          }
+          if (s.qAttrExps) {
+            dimCell2.qAttrExps = s.qAttrExps
+          }
+          row.push(dimCell2)
+          if (s.qSubNodes && s.qSubNodes.length > 0) {
+            let expCell = {
+              qText: s.qSubNodes[0].qText,
+              qNum: s.qSubNodes[0].qValue
+            }
+            if (s.qSubNodes[0].qAttrExps) {
+              expCell.qAttrExps = s.qSubNodes[0].qAttrExps
+            }
+            row.push(expCell)
+          }
+          matrix.push([row[1], row[0], row[2]])
+        })
+      }
+    })      
+    console.log('stacked matrix', matrix)
+    return matrix
   }
 }

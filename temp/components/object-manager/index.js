@@ -579,16 +579,21 @@ class ObjectManager {
         method = 'getField'
         params = objectConfig.definition.qField
       }
+      if (!objectConfig.definition.qInfo) {
+        // assume we have an objectId
+        method = 'getObject'
+      }
       this.app[method](params).then(model => {
         objectConfig.objectId = model.id
         objectConfig.attached = true
-        if (this.supportedChartTypes.indexOf(objectConfig.definition.qInfo.qType) !== -1) {
+        let chartType = objectConfig.type || objectConfig.definition.qInfo.qType
+        if (this.supportedChartTypes.indexOf(chartType) !== -1) {
           let options = Object.assign({}, objectConfig.options, {
             model, 
             def: objectConfig.definition,
             app: this.app
           })
-          objectConfig.vis = new this.chartLibrary[objectConfig.definition.qInfo.qType](`${objectConfig.elementId}_vis`, options)
+          objectConfig.vis = new this.chartLibrary[chartType](`${objectConfig.elementId}_vis`, options)
           model.on('changed', () => {
             if (objectConfig.attached === true && this.paused === false) {
               objectConfig.vis.render()
