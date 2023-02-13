@@ -276,12 +276,22 @@ class ObjectManager {
         }
         url += `qlikTicket=${this.options.enigmaConfig.ticket}`
       }
+      const MAX_RETRIES = 5
       let config = {
         schema: this.options.enigmaSchema,
-        url
+        url,
+        onRejected: function (sessionReference, request, error) {          
+          if (error.code === this.options.enigmaSchema.enums.LocalizedErrorCode.LOCERR_GENERIC_ABORTED) {                  
+            request.tries = (request.tries || 0) + 1            
+            if (request.tries <= MAX_RETRIES) {
+              return request.retry()
+            }
+          }                
+          return this.Promise.reject(error)
+        }
       }
       let session = enigma.create(config)
-      this.session = session
+      this.session = session      
       session.open().then(global => {
         this.global = global
         global.getActiveDoc().then(app => {          
@@ -758,7 +768,7 @@ class ObjectManager {
                 }
               }
             })
-            f.selectValues(values).then(() => {              
+            f.selectValues(values, false).then(() => {              
               if (locks.indexOf(selections[index].field) !== -1) {
                 f.lock().then(() => {
                   index++

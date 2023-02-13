@@ -5764,9 +5764,21 @@ var ObjectManager = /*#__PURE__*/function () {
           url += "qlikTicket=".concat(_this53.options.enigmaConfig.ticket);
         }
 
+        var MAX_RETRIES = 5;
         var config = {
           schema: _this53.options.enigmaSchema,
-          url: url
+          url: url,
+          onRejected: function onRejected(sessionReference, request, error) {
+            if (error.code === this.options.enigmaSchema.enums.LocalizedErrorCode.LOCERR_GENERIC_ABORTED) {
+              request.tries = (request.tries || 0) + 1;
+
+              if (request.tries <= MAX_RETRIES) {
+                return request.retry();
+              }
+            }
+
+            return this.Promise.reject(error);
+          }
         };
         var session = enigma.create(config);
         _this53.session = session;
@@ -6357,7 +6369,7 @@ var ObjectManager = /*#__PURE__*/function () {
               }
             }
           });
-          f.selectValues(values).then(function () {
+          f.selectValues(values, false).then(function () {
             if (locks.indexOf(selections[index].field) !== -1) {
               f.lock().then(function () {
                 index++;
