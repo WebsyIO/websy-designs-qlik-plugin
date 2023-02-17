@@ -5722,7 +5722,7 @@ if (typeof WebsyDesigns !== 'undefined') {
                 }
 
                 if (item.field) {
-                  _this52.app.getField(item.field).then(function (field) {
+                  _this52.app.getField(item.field, item.state || '$').then(function (field) {
                     field[item.method].apply(field, _toConsumableArray(item.params));
                   });
                 } else {
@@ -6001,7 +6001,7 @@ if (typeof WebsyDesigns !== 'undefined') {
         }
 
         if (item.field) {
-          this.app.getField(item.field).then(function (field) {
+          this.app.getField(item.field, item.state || '$').then(function (field) {
             field[item.method].apply(field, _toConsumableArray(item.params)).then(function () {
               if (item.lock === true) {
                 field.lock().then(function () {

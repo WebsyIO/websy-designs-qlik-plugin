@@ -234,7 +234,7 @@ class ObjectManager {
               item.params = []
             }
             if (item.field) {
-              this.app.getField(item.field).then(field => {                
+              this.app.getField(item.field, item.state || '$').then(field => {                
                 field[item.method](...item.params)
               })
             }
@@ -458,7 +458,7 @@ class ObjectManager {
       item.params = []
     }
     if (item.field) {
-      this.app.getField(item.field).then(field => {
+      this.app.getField(item.field, item.state || '$').then(field => {
         field[item.method](...item.params).then(() => {
           if (item.lock === true) {
             field.lock().then(() => {
