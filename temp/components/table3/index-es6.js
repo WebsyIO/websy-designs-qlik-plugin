@@ -102,13 +102,16 @@ class Table3 {
         })
       }      
       el.addEventListener('click', this.handleClick.bind(this))
-    }
-    this.render()
+      this.render()
+    }    
   }
   appendRows (data) {      
     this.table.appendRows(data)
   }
   buildPivotColumns () {
+    if (!this.layout.qHyperCube.qPivotDataPages[0]) {
+      return
+    }
     let pData = this.transformPivotTable(this.layout.qHyperCube.qPivotDataPages[0])    
     // this.pinnedColumns = this.layout.qHyperCube.qIndentMode === true ? 1 : this.layout.qHyperCube.qNoOfLeftDims
     this.columns = pData.columns
@@ -116,6 +119,9 @@ class Table3 {
     // if (this.layout.qHyperCube.qIndentMode !== true) {
     //   this.startCol = this.pinnedColumns
     // }
+    if (this.columns.length === 0) {
+      return
+    }
     this.endCol = this.columns[this.columns.length - 1].length
     this.table.options.columns = this.columns
     const maxMValue = this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError).reduce((a, b) => a.qApprMaxGlyphCount > b.qApprMaxGlyphCount ? a : b).qApprMaxGlyphCount
@@ -206,10 +212,16 @@ class Table3 {
       this.rowList.render()
       this.rowList.options.items.forEach((d, i) => {
         if (!this.dropdowns[d.dimId]) {
-          this.options.app.createSessionObject({
+          let ddDef = {
             qInfo: { qType: 'table-dropdown' },
             qListObjectDef: d.dim
-          }).then(model => {
+          }
+          ddDef.qListObjectDef.qDef.qSortCriterias = [{
+            qSortByState: 1,
+            qSortByAscii: 1,
+            qSortByNumeric: 1
+          }]
+          this.options.app.createSessionObject(ddDef).then(model => {
             this.dropdowns[d.dimId] = model
             d.instance.options.model = model
             d.instance.render()
@@ -237,10 +249,16 @@ class Table3 {
             d.dim.qDef = {}
           }
           d.dim.qDef.qSortCriterias = [{qSortByAscii: 1, qSortByState: 1, qSortByNumeric: 1}]
-          this.options.app.createSessionObject({
+          let ddDef = {
             qInfo: { qType: 'table-dropdown' },
             qListObjectDef: d.dim
-          }).then(model => {
+          }
+          ddDef.qListObjectDef.qDef.qSortCriterias = [{
+            qSortByState: 1,
+            qSortByAscii: 1,
+            qSortByNumeric: 1
+          }]
+          this.options.app.createSessionObject(ddDef).then(model => {
             this.dropdowns[d.dimId] = model
             d.instance.options.model = model
             d.instance.render()
@@ -311,7 +329,7 @@ class Table3 {
     this.totals = []
     if (this.layout.qHyperCube.qGrandTotalRow && this.layout.totals && this.layout.totals.show === true) {
       if (this.layout.qHyperCube.qMode === 'S') {
-        this.totals = this.layout.qHyperCube.qDimensionInfo.map(d => ({ value: '' })).concat(this.layout.qHyperCube.qGrandTotalRow.map(t => Object.assign({}, t, { value: t.qText })))
+        this.totals = this.layout.qHyperCube.qDimensionInfo.filter(d => !d.qError).map(d => ({ value: '' })).concat(this.layout.qHyperCube.qGrandTotalRow.map(t => Object.assign({}, t, { value: t.qText })))
         this.totals.splice(0, 1, { value: this.layout.totals.label || this.totals })
       }
     }
@@ -321,7 +339,7 @@ class Table3 {
     this.columnParamValues = activeDimensions
       .filter((c, i) => (this.layout.qHyperCube.qMode === 'S' || i < this.pinnedColumns))
       .map((c, i) => ({ 
-        value: new Array(Math.max(c.qApprMaxGlyphCount, this.layout.qHyperCube.qDimensionInfo[i].qFallbackTitle.length)).fill('X').join(''),
+        value: new Array(Math.max(c.qApprMaxGlyphCount, activeDimensions[i].qFallbackTitle.length)).fill('X').join(''),
         width: c.width || null
       }))
     let measureLabel = activeDimensions.pop()
@@ -336,11 +354,17 @@ class Table3 {
       if (c.searchable) {
         if (c.isExternalSearch === true) {                 
           if (!this.dropdowns[c.dimId]) {
-            this.options.app.createSessionObject({
+            let ddDef = {
               qInfo: { qType: 'table-dropdown' },
               qListObjectDef: c.def
-            }).then(model => {
-              this.dropdowns[c.dimId] = new WebsyDesigns.QlikPlugins.Dropdown(`${this.elementId}_tableContainer_columnSearch_${c.dimId || i}`, {
+            }
+            ddDef.qListObjectDef.qDef.qSortCriterias = [{
+              qSortByState: 1,
+              qSortByAscii: 1,
+              qSortByNumeric: 1
+            }]
+            this.options.app.createSessionObject(ddDef).then(model => {
+              this.dropdowns[c.dimId] = new WebsyDesignsQlikPlugins.Dropdown(`${this.elementId}_tableContainer_columnSearch_${c.dimId || i}`, {
                 model,
                 multiSelect: true,
                 closeAfterSelection: false,
@@ -799,11 +823,13 @@ class Table3 {
             this.table.render([], false)
             this.prepDropdowns()
             // }        
-            if (page.err) {
+            if (!page || page.err) {
               const tableEl = document.getElementById(`${this.elementId}_foot`)
-              tableEl.innerHTML = `
-                <div class='request-abort-error'>Could not fetch data. Click <strong class='table-try-again'>here</strong> to try again</div>
-              ` 
+              if (this.tableEl) {
+                tableEl.innerHTML = `
+                  <div class='request-abort-error'>Could not fetch data. Click <strong class='table-try-again'>here</strong> to try again</div>
+                `
+              }               
             }
             else {
               // this.fullData = page

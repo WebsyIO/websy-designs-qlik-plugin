@@ -709,6 +709,27 @@ var Chart = /*#__PURE__*/function () {
             options = _this6.transformNoDimensions();
           }
 
+          if (layout.refLine && layout.refLine.refLines && layout.refLine.refLines.length > 0) {
+            options.refLines = layout.refLine.refLines.filter(function (r) {
+              return r.show !== false;
+            }).map(function (r) {
+              return {
+                value: r.refLineExpr.value,
+                displayValue: r.refLineExpr.label,
+                label: r.showLabel ? r.label : '',
+                color: (r.paletteColor || {
+                  color: '#000000'
+                }).color || '#000000',
+                lineWidth: (r.style || {
+                  lineThickness: 1
+                }).lineThickness || 1,
+                lineStyle: (r.style || {
+                  lineType: ''
+                }).lineType || ''
+              };
+            });
+          }
+
           _this6.chart.render(options);
         });
       });
@@ -747,6 +768,7 @@ var Chart = /*#__PURE__*/function () {
         r[0].value = r[0].qText;
         r[1].value = isNaN(r[1].qNum) ? 0 : r[1].qNum;
         r[1].tooltipValue = r[1].qText;
+        r[1].label = r[1].qText;
         options.data.bottom.data.push(r[0]);
         series.data.push({
           x: r[0],
@@ -1033,7 +1055,8 @@ var Chart = /*#__PURE__*/function () {
           c.value = isNaN(c.qNum) ? 0 : c.qNum;
           xTotals[xKeys.indexOf(x.qElemNumber)] += c.value;
           c.tooltipLabel = _this10.layout.qHyperCube.qMeasureInfo[cIndex - 1].qFallbackTitle;
-          c.tooltipValue = c.qText; // if (this.layout.qHyperCube.qMeasureInfo[cIndex - 1].options) {
+          c.tooltipValue = c.qText;
+          c.label = c.qText; // if (this.layout.qHyperCube.qMeasureInfo[cIndex - 1].options) {
           // c.color = this.layout.qHyperCube.qMeasureInfo[cIndex - 1].options.color 
           // }        
 
@@ -4024,9 +4047,8 @@ var Table3 = /*#__PURE__*/function () {
       }
 
       el.addEventListener('click', this.handleClick.bind(this));
+      this.render();
     }
-
-    this.render();
   }
 
   _createClass(Table3, [{
@@ -4039,12 +4061,20 @@ var Table3 = /*#__PURE__*/function () {
     value: function buildPivotColumns() {
       var _this41 = this;
 
+      if (!this.layout.qHyperCube.qPivotDataPages[0]) {
+        return;
+      }
+
       var pData = this.transformPivotTable(this.layout.qHyperCube.qPivotDataPages[0]); // this.pinnedColumns = this.layout.qHyperCube.qIndentMode === true ? 1 : this.layout.qHyperCube.qNoOfLeftDims
 
       this.columns = pData.columns;
       this.startCol = 0; // if (this.layout.qHyperCube.qIndentMode !== true) {
       //   this.startCol = this.pinnedColumns
       // }
+
+      if (this.columns.length === 0) {
+        return;
+      }
 
       this.endCol = this.columns[this.columns.length - 1].length;
       this.table.options.columns = this.columns;
@@ -4159,12 +4189,19 @@ var Table3 = /*#__PURE__*/function () {
         this.rowList.render();
         this.rowList.options.items.forEach(function (d, i) {
           if (!_this41.dropdowns[d.dimId]) {
-            _this41.options.app.createSessionObject({
+            var ddDef = {
               qInfo: {
                 qType: 'table-dropdown'
               },
               qListObjectDef: d.dim
-            }).then(function (model) {
+            };
+            ddDef.qListObjectDef.qDef.qSortCriterias = [{
+              qSortByState: 1,
+              qSortByAscii: 1,
+              qSortByNumeric: 1
+            }];
+
+            _this41.options.app.createSessionObject(ddDef).then(function (model) {
               _this41.dropdowns[d.dimId] = model;
               d.instance.options.model = model;
               d.instance.render();
@@ -4196,13 +4233,19 @@ var Table3 = /*#__PURE__*/function () {
               qSortByState: 1,
               qSortByNumeric: 1
             }];
-
-            _this41.options.app.createSessionObject({
+            var ddDef = {
               qInfo: {
                 qType: 'table-dropdown'
               },
               qListObjectDef: d.dim
-            }).then(function (model) {
+            };
+            ddDef.qListObjectDef.qDef.qSortCriterias = [{
+              qSortByState: 1,
+              qSortByAscii: 1,
+              qSortByNumeric: 1
+            }];
+
+            _this41.options.app.createSessionObject(ddDef).then(function (model) {
               _this41.dropdowns[d.dimId] = model;
               d.instance.options.model = model;
               d.instance.render();
@@ -4280,7 +4323,9 @@ var Table3 = /*#__PURE__*/function () {
 
       if (this.layout.qHyperCube.qGrandTotalRow && this.layout.totals && this.layout.totals.show === true) {
         if (this.layout.qHyperCube.qMode === 'S') {
-          this.totals = this.layout.qHyperCube.qDimensionInfo.map(function (d) {
+          this.totals = this.layout.qHyperCube.qDimensionInfo.filter(function (d) {
+            return !d.qError;
+          }).map(function (d) {
             return {
               value: ''
             };
@@ -4303,7 +4348,7 @@ var Table3 = /*#__PURE__*/function () {
         return _this42.layout.qHyperCube.qMode === 'S' || i < _this42.pinnedColumns;
       }).map(function (c, i) {
         return {
-          value: new Array(Math.max(c.qApprMaxGlyphCount, _this42.layout.qHyperCube.qDimensionInfo[i].qFallbackTitle.length)).fill('X').join(''),
+          value: new Array(Math.max(c.qApprMaxGlyphCount, activeDimensions[i].qFallbackTitle.length)).fill('X').join(''),
           width: c.width || null
         };
       });
@@ -4336,13 +4381,20 @@ var Table3 = /*#__PURE__*/function () {
         if (c.searchable) {
           if (c.isExternalSearch === true) {
             if (!_this42.dropdowns[c.dimId]) {
-              _this42.options.app.createSessionObject({
+              var ddDef = {
                 qInfo: {
                   qType: 'table-dropdown'
                 },
                 qListObjectDef: c.def
-              }).then(function (model) {
-                _this42.dropdowns[c.dimId] = new _websyDesignsEs["default"].QlikPlugins.Dropdown("".concat(_this42.elementId, "_tableContainer_columnSearch_").concat(c.dimId || i), {
+              };
+              ddDef.qListObjectDef.qDef.qSortCriterias = [{
+                qSortByState: 1,
+                qSortByAscii: 1,
+                qSortByNumeric: 1
+              }];
+
+              _this42.options.app.createSessionObject(ddDef).then(function (model) {
+                _this42.dropdowns[c.dimId] = new WebsyDesignsQlikPlugins.Dropdown("".concat(_this42.elementId, "_tableContainer_columnSearch_").concat(c.dimId || i), {
                   model: model,
                   multiSelect: true,
                   closeAfterSelection: false,
@@ -4896,9 +4948,12 @@ var Table3 = /*#__PURE__*/function () {
               _this46.prepDropdowns(); // }        
 
 
-              if (page.err) {
+              if (!page || page.err) {
                 var tableEl = document.getElementById("".concat(_this46.elementId, "_foot"));
-                tableEl.innerHTML = "\n                <div class='request-abort-error'>Could not fetch data. Click <strong class='table-try-again'>here</strong> to try again</div>\n              ";
+
+                if (_this46.tableEl) {
+                  tableEl.innerHTML = "\n                  <div class='request-abort-error'>Could not fetch data. Click <strong class='table-try-again'>here</strong> to try again</div>\n                ";
+                }
               } else {
                 // this.fullData = page
                 _this46.resize();

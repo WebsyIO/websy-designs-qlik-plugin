@@ -120,6 +120,16 @@ class Chart {
         else if (layout.qHyperCube.qDimensionInfo.length === 0 && layout.qHyperCube.qMeasureInfo.length > 0) {
           options = this.transformNoDimensions()
         }
+        if (layout.refLine && layout.refLine.refLines && layout.refLine.refLines.length > 0) {
+          options.refLines = layout.refLine.refLines.filter(r => r.show !== false).map(r => ({
+            value: r.refLineExpr.value,
+            displayValue: r.refLineExpr.label,
+            label: r.showLabel ? r.label : '',
+            color: (r.paletteColor || { color: '#000000' }).color || '#000000',
+            lineWidth: (r.style || { lineThickness: 1 }).lineThickness || 1,
+            lineStyle: (r.style || { lineType: '' }).lineType || ''
+          }))
+        }
         this.chart.render(options)
       })      
     })
@@ -149,6 +159,7 @@ class Chart {
       r[0].value = r[0].qText
       r[1].value = isNaN(r[1].qNum) ? 0 : r[1].qNum
       r[1].tooltipValue = r[1].qText
+      r[1].label = r[1].qText
       options.data.bottom.data.push(r[0])
       series.data.push({
         x: r[0],
@@ -378,6 +389,7 @@ class Chart {
         xTotals[xKeys.indexOf(x.qElemNumber)] += c.value
         c.tooltipLabel = this.layout.qHyperCube.qMeasureInfo[cIndex - 1].qFallbackTitle   
         c.tooltipValue = c.qText        
+        c.label = c.qText   
         // if (this.layout.qHyperCube.qMeasureInfo[cIndex - 1].options) {
         // c.color = this.layout.qHyperCube.qMeasureInfo[cIndex - 1].options.color 
         // }        
