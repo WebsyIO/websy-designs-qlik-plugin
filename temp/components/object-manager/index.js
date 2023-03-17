@@ -384,16 +384,18 @@ class ObjectManager {
   } 
   openApp (appId) {
     return new Promise((resolve, reject) => {
-      this.global.openDoc(appId).then(app => {        
-        this.app = app 
-        if (this.options.views.global) {
-          this.executeActions('global').then(() => {
-            resolve()
-          })            
-        }
-        else {
-          resolve()  
-        }
+      this.global.openDoc(appId).then(app => {    
+        app.abortModal(true).then(() => {
+          this.app = app 
+          if (this.options.views.global) {
+            this.executeActions('global').then(() => {
+              resolve()
+            })            
+          }
+          else {
+            resolve()  
+          }
+        })            
       }, err => {
         reject(err)
       })
@@ -582,7 +584,6 @@ class ObjectManager {
       objectConfig.retries = 0
     }    
     if (objectConfig.definition && this.app) {
-      console.log('Creating object', objectConfig.definition.qInfo)
       let method = 'createSessionObject'
       let params = objectConfig.definition
       if (objectConfig.definition.qField) {

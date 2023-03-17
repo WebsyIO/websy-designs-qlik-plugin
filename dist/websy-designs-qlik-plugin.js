@@ -660,16 +660,25 @@ var Chart = /*#__PURE__*/function () {
     key: "formatValue",
     value: function formatValue(d) {
       var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      var qlikSettings = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
       console.log('formatting', d, options);
       var decimals = 0;
       var isPercentage = false;
 
+      if (typeof options.max === 'undefined' && qlikSettings.qMax) {
+        options.max = qlikSettings.qMax;
+      }
+
       if (options.decimals) {
         decimals = options.decimals;
+      } else if (qlikSettings.qNumFormat.qnDec) {
+        decimals = qlikSettings.qNumFormat.qnDec;
       }
 
       if (options.showAsPercentage === true) {
         isPercentage = options.showAsPercentage;
+      } else if (qlikSettings.qNumFormat.qFmt) {
+        isPercentage = qlikSettings.qNumFormat.qFmt.indexOf('%') !== -1;
       }
 
       if ((options || {}).scale === 'Time' && d.getDate) {
@@ -695,12 +704,22 @@ var Chart = /*#__PURE__*/function () {
       return output;
     }
   }, {
+    key: "getColor",
+    value: function getColor(cell, measure) {
+      if (measure.qAttrExprInfo && measure.qAttrExprInfo[0] && measure.qAttrExprInfo[0].id === 'colorByExpression') {
+        if (cell.qAttrExps && cell.qAttrExps.qValues && cell.qAttrExps.qValues[0] && cell.qAttrExps.qValues[0].qText) {
+          return cell.qAttrExps.qValues[0].qText;
+        }
+      }
+    }
+  }, {
     key: "render",
     value: function render() {
       var _this6 = this;
 
       this.options.model.getLayout().then(function (layout) {
         _this6.layout = layout;
+        console.log('layout', layout);
 
         _this6.checkForData().then(function () {
           var options = {};
@@ -764,7 +783,7 @@ var Chart = /*#__PURE__*/function () {
       options.data.left.title = this.layout.qHyperCube.qMeasureInfo[0].qFallbackTitle;
 
       options.data.left.formatter = function (d) {
-        return _this7.formatValue(d, _this7.layout.qHyperCube.qMeasureInfo[0].options || {});
+        return _this7.formatValue(d, _this7.layout.qHyperCube.qMeasureInfo[0].options || {}, _this7.layout.qHyperCube.qMeasureInfo[0]);
       };
 
       var series = this.layout.qHyperCube.qMeasureInfo[0].options || {};
@@ -791,24 +810,37 @@ var Chart = /*#__PURE__*/function () {
 
       var options = _extends({}, this.optionDefaults, this.layout.options, this.options.chartOptions);
 
+      var xAxis = 'bottom';
+      var yAxis = 'left';
+      var xScale = 'Band';
+      var yScale = 'Linear';
+
+      if (options.orientation === 'horizontal') {
+        xAxis = 'left';
+        yAxis = 'bottom'; // xScale = 'Linear'
+        // yScale = 'Band'
+      }
+
       this.addOptions(options.data.left, this.layout.qHyperCube.qMeasureInfo[0].options || {}); // options.data.left = Object.assign({}, options.data.left, this.layout.qHyperCube.qMeasureInfo[0].options || {})
 
-      options.data.left.min = this.layout.qHyperCube.qMeasureInfo[0].qMin;
-      options.data.left.max = this.layout.qHyperCube.qMeasureInfo[0].qMax;
-      options.data.left.label = this.layout.qHyperCube.qMeasureInfo[0].qFallbackTitle;
-      this.addOptions(options.data.bottom, this.layout.qHyperCube.qDimensionInfo[1].options || {}); // options.data.bottom = Object.assign({}, options.data.bottom, this.layout.qHyperCube.qDimensionInfo[1].options || {})
+      options.data[xAxis].scale = xScale;
+      options.data[yAxis].scale = yScale;
+      options.data[yAxis].label = this.layout.qHyperCube.qMeasureInfo[0].qFallbackTitle;
+      this.addOptions(options.data[xAxis], this.layout.qHyperCube.qDimensionInfo[1].options || {}); // options.data.bottom = Object.assign({}, options.data.bottom, this.layout.qHyperCube.qDimensionInfo[1].options || {})
 
-      options.data.bottom.label = this.layout.qHyperCube.qDimensionInfo[1].qFallbackTitle;
-      options.data.bottom.data = [];
-      options.data.left.title = this.layout.qHyperCube.qMeasureInfo[0].qFallbackTitle;
+      options.data[xAxis].label = this.layout.qHyperCube.qDimensionInfo[1].qFallbackTitle;
+      options.data[xAxis].data = [];
+      options.data[yAxis].title = this.layout.qHyperCube.qMeasureInfo[0].qFallbackTitle;
 
-      options.data.left.formatter = function (d) {
-        return _this8.formatValue(d, _this8.layout.qHyperCube.qMeasureInfo[0].options || {});
+      options.data[yAxis].formatter = function (d) {
+        return _this8.formatValue(d, _this8.layout.qHyperCube.qMeasureInfo[0].options || {}, _this8.layout.qHyperCube.qMeasureInfo[0]);
       };
 
       var series = [];
       var seriesKeys = [];
       var bottomKeys = [];
+      var bottomAcc = [];
+      var bottomTotals = [];
       this.layout.qHyperCube.qDataPages[0].qMatrix.forEach(function (r) {
         var seriesIndex = seriesKeys.indexOf(r[0].qText);
         var bottomIndex = bottomKeys.indexOf(r[1].qText);
@@ -820,8 +852,11 @@ var Chart = /*#__PURE__*/function () {
 
         if (bottomIndex === -1) {
           bottomKeys.push(v);
+          bottomAcc.push(0);
+          bottomTotals.push(0);
           r[1].value = v;
-          options.data.bottom.data.push(r[1]);
+          options.data[xAxis].data.push(r[1]);
+          bottomIndex = bottomKeys.length - 1;
         }
 
         if (seriesIndex === -1) {
@@ -830,6 +865,7 @@ var Chart = /*#__PURE__*/function () {
           series.push({
             key: "series_".concat(seriesIndex),
             type: options.type || 'bar',
+            accumulative: 0,
             label: r[0].qText,
             // color: this.layout.options.color,
             data: []
@@ -839,8 +875,17 @@ var Chart = /*#__PURE__*/function () {
         var c = r[2]; // c.value = isNaN(c.qNum) ? 0 : c.qNum
 
         c.value = c.qNum;
+        c.label = c.qText;
+        c.color = _this8.getColor(c, _this8.layout.qHyperCube.qMeasureInfo[0]);
         c.tooltipLabel = r[0].qText;
         c.tooltipValue = c.qText;
+        c.accumulative = bottomAcc[bottomIndex];
+
+        if (c.value !== 'NaN') {
+          bottomTotals[bottomIndex] += c.value;
+          bottomAcc[bottomIndex] += c.value;
+        }
+
         !isNaN(c.value) && series[seriesIndex].data.push({
           x: {
             value: v
@@ -849,9 +894,11 @@ var Chart = /*#__PURE__*/function () {
         });
       });
       options.data.series = series;
-      options.data.bottom.min = options.data.bottom.data[0].value;
-      options.data.bottom.max = options.data.bottom.data[options.data.bottom.data.length - 1].value;
-      console.log('multi dimension options', options);
+      options.data[yAxis].min = this.layout.qHyperCube.qMeasureInfo[0].qMin; // options.data[yAxis].max = this.layout.qHyperCube.qMeasureInfo[0].qMax    
+
+      options.data[yAxis].max = Math.max.apply(Math, bottomTotals); // options.data[xAxis].min = options.data[xAxis].data[0].value
+      // options.data[xAxis].max = options.data[xAxis].data[options.data[xAxis].data.length - 1].value
+
       return options;
     }
   }, {
@@ -868,9 +915,8 @@ var Chart = /*#__PURE__*/function () {
 
       if (options.orientation === 'horizontal') {
         xAxis = 'left';
-        yAxis = 'bottom';
-        xScale = 'Linear';
-        yScale = 'Band';
+        yAxis = 'bottom'; // xScale = 'Linear'
+        // yScale = 'Band'
       }
 
       options.data[xAxis].scale = xScale;
@@ -980,7 +1026,7 @@ var Chart = /*#__PURE__*/function () {
           options.data[y2Axis].title = m.qFallbackTitle;
 
           options.data[y2Axis].formatter = function (d) {
-            return _this10.formatValue(d, _extends({}, m.options, options.data[y2Axis]));
+            return _this10.formatValue(d, _extends({}, m.options, options.data[y2Axis]), m);
           };
         } else {
           _this10.addOptions(options.data[yAxis], m.options || {}); // options.data[yAxis] = Object.assign({}, options.data[yAxis], m.options)
@@ -996,7 +1042,7 @@ var Chart = /*#__PURE__*/function () {
           options.data[yAxis].title = m.qFallbackTitle;
 
           options.data[yAxis].formatter = function (d) {
-            return _this10.formatValue(d, _extends({}, m.options, options.data[yAxis]));
+            return _this10.formatValue(d, _extends({}, m.options, options.data[yAxis]), m);
           };
         }
 
@@ -1017,7 +1063,7 @@ var Chart = /*#__PURE__*/function () {
 
       if (options.data[xAxis].scale !== 'Time') {
         options.data[xAxis].formatter = function (d) {
-          return _this10.formatValue(d, _this10.layout.qHyperCube.qDimensionInfo[0].options || {});
+          return _this10.formatValue(d, _this10.layout.qHyperCube.qDimensionInfo[0].options || {}, _this10.layout.qHyperCube.qMeasureInfo[0]);
         };
       } else {
         options.data[xAxis].min = this.fromQlikDate(this.layout.qHyperCube.qDimensionInfo[0].qMin);
@@ -5959,15 +6005,17 @@ if (typeof WebsyDesigns !== 'undefined') {
 
         return new Promise(function (resolve, reject) {
           _this55.global.openDoc(appId).then(function (app) {
-            _this55.app = app;
+            app.abortModal(true).then(function () {
+              _this55.app = app;
 
-            if (_this55.options.views.global) {
-              _this55.executeActions('global').then(function () {
+              if (_this55.options.views.global) {
+                _this55.executeActions('global').then(function () {
+                  resolve();
+                });
+              } else {
                 resolve();
-              });
-            } else {
-              resolve();
-            }
+              }
+            });
           }, function (err) {
             reject(err);
           });
@@ -6212,7 +6260,6 @@ if (typeof WebsyDesigns !== 'undefined') {
         }
 
         if (objectConfig.definition && this.app) {
-          console.log('Creating object', objectConfig.definition.qInfo);
           var method = 'createSessionObject';
           var params = objectConfig.definition;
 

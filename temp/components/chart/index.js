@@ -74,15 +74,24 @@ class Chart {
     const rgx = new RegExp('[^a-zA-Z0-9 -]', 'g')
     return title.replace(rgx, '_').replace(/ /g, '_')
   }
-  formatValue (d, options = {}) {
+  formatValue (d, options = {}, qlikSettings = {}) {
     console.log('formatting', d, options)
     let decimals = 0
-    let isPercentage = false    
+    let isPercentage = false
+    if (typeof options.max === 'undefined' && qlikSettings.qMax) {
+      options.max = qlikSettings.qMax
+    }                   
     if (options.decimals) {
       decimals = options.decimals
     }
+    else if (qlikSettings.qNumFormat.qnDec) {
+      decimals = qlikSettings.qNumFormat.qnDec
+    }
     if (options.showAsPercentage === true) {
       isPercentage = options.showAsPercentage
+    }
+    else if (qlikSettings.qNumFormat.qFmt) {
+      isPercentage = qlikSettings.qNumFormat.qFmt.indexOf('%') !== -1
     }
     if ((options || {}).scale === 'Time' && d.getDate) {
       d = `${d.getDate()} ${this.monthMap[d.getMonth()]} ${d.getFullYear()}`
@@ -103,9 +112,17 @@ class Chart {
     output.setTime(output.getTime() + output.getTimezoneOffset() * 60000)
     return output
   }
+  getColor (cell, measure) {
+    if (measure.qAttrExprInfo && measure.qAttrExprInfo[0] && measure.qAttrExprInfo[0].id === 'colorByExpression') {
+      if (cell.qAttrExps && cell.qAttrExps.qValues && cell.qAttrExps.qValues[0] && cell.qAttrExps.qValues[0].qText) {
+        return cell.qAttrExps.qValues[0].qText
+      }
+    }
+  }
   render () {
     this.options.model.getLayout().then(layout => {
       this.layout = layout
+      console.log('layout', layout)
       this.checkForData().then(() => {
         let options = {}
         if (layout.qHyperCube.qDimensionInfo.length === 1 && layout.qHyperCube.qMeasureInfo.length === 1) {        
@@ -150,7 +167,7 @@ class Chart {
     options.data.bottom.data = []    
     options.data.left.title = this.layout.qHyperCube.qMeasureInfo[0].qFallbackTitle
     options.data.left.formatter = d => {          
-      return this.formatValue(d, (this.layout.qHyperCube.qMeasureInfo[0].options || {}))
+      return this.formatValue(d, (this.layout.qHyperCube.qMeasureInfo[0].options || {}), this.layout.qHyperCube.qMeasureInfo[0])
     }
     let series = this.layout.qHyperCube.qMeasureInfo[0].options || {}
     series.data = []
@@ -171,22 +188,34 @@ class Chart {
   }
   transformMultiDimensions () {
     const options = Object.assign({}, this.optionDefaults, this.layout.options, this.options.chartOptions)
+    let xAxis = 'bottom'
+    let yAxis = 'left'
+    let xScale = 'Band'
+    let yScale = 'Linear'
+    if (options.orientation === 'horizontal') {
+      xAxis = 'left'
+      yAxis = 'bottom'
+      // xScale = 'Linear'
+      // yScale = 'Band'
+    }    
     this.addOptions(options.data.left, this.layout.qHyperCube.qMeasureInfo[0].options || {})
     // options.data.left = Object.assign({}, options.data.left, this.layout.qHyperCube.qMeasureInfo[0].options || {})
-    options.data.left.min = this.layout.qHyperCube.qMeasureInfo[0].qMin 
-    options.data.left.max = this.layout.qHyperCube.qMeasureInfo[0].qMax    
-    options.data.left.label = this.layout.qHyperCube.qMeasureInfo[0].qFallbackTitle
-    this.addOptions(options.data.bottom, this.layout.qHyperCube.qDimensionInfo[1].options || {})
+    options.data[xAxis].scale = xScale
+    options.data[yAxis].scale = yScale    
+    options.data[yAxis].label = this.layout.qHyperCube.qMeasureInfo[0].qFallbackTitle
+    this.addOptions(options.data[xAxis], this.layout.qHyperCube.qDimensionInfo[1].options || {})
     // options.data.bottom = Object.assign({}, options.data.bottom, this.layout.qHyperCube.qDimensionInfo[1].options || {})
-    options.data.bottom.label = this.layout.qHyperCube.qDimensionInfo[1].qFallbackTitle
-    options.data.bottom.data = []    
-    options.data.left.title = this.layout.qHyperCube.qMeasureInfo[0].qFallbackTitle
-    options.data.left.formatter = d => {          
-      return this.formatValue(d, this.layout.qHyperCube.qMeasureInfo[0].options || {})
+    options.data[xAxis].label = this.layout.qHyperCube.qDimensionInfo[1].qFallbackTitle
+    options.data[xAxis].data = []    
+    options.data[yAxis].title = this.layout.qHyperCube.qMeasureInfo[0].qFallbackTitle
+    options.data[yAxis].formatter = d => {         
+      return this.formatValue(d, this.layout.qHyperCube.qMeasureInfo[0].options || {}, this.layout.qHyperCube.qMeasureInfo[0])
     }
     const series = []
     const seriesKeys = []
     const bottomKeys = []
+    const bottomAcc = []
+    const bottomTotals = []
     this.layout.qHyperCube.qDataPages[0].qMatrix.forEach(r => {
       let seriesIndex = seriesKeys.indexOf(r[0].qText)
       let bottomIndex = bottomKeys.indexOf(r[1].qText)
@@ -196,15 +225,19 @@ class Chart {
       }
       if (bottomIndex === -1) {        
         bottomKeys.push(v)
+        bottomAcc.push(0)
+        bottomTotals.push(0)
         r[1].value = v
-        options.data.bottom.data.push(r[1])
+        options.data[xAxis].data.push(r[1])
+        bottomIndex = bottomKeys.length - 1
       }
       if (seriesIndex === -1) {
         seriesKeys.push(r[0].qText)
         seriesIndex = seriesKeys.length - 1
         series.push({
           key: `series_${seriesIndex}`,
-          type: options.type || 'bar',   
+          type: options.type || 'bar',
+          accumulative: 0,   
           label: r[0].qText,
           // color: this.layout.options.color,
           data: []
@@ -213,17 +246,26 @@ class Chart {
       let c = r[2]
       // c.value = isNaN(c.qNum) ? 0 : c.qNum
       c.value = c.qNum
+      c.label = c.qText
+      c.color = this.getColor(c, this.layout.qHyperCube.qMeasureInfo[0])
       c.tooltipLabel = r[0].qText
       c.tooltipValue = c.qText
+      c.accumulative = bottomAcc[bottomIndex]
+      if (c.value !== 'NaN') {
+        bottomTotals[bottomIndex] += c.value
+        bottomAcc[bottomIndex] += c.value
+      }      
       !isNaN(c.value) && series[seriesIndex].data.push({
         x: { value: v },
         y: c
       })      
     })
     options.data.series = series
-    options.data.bottom.min = options.data.bottom.data[0].value
-    options.data.bottom.max = options.data.bottom.data[options.data.bottom.data.length - 1].value
-    console.log('multi dimension options', options)
+    options.data[yAxis].min = this.layout.qHyperCube.qMeasureInfo[0].qMin 
+    // options.data[yAxis].max = this.layout.qHyperCube.qMeasureInfo[0].qMax    
+    options.data[yAxis].max = Math.max(...bottomTotals)
+    // options.data[xAxis].min = options.data[xAxis].data[0].value
+    // options.data[xAxis].max = options.data[xAxis].data[options.data[xAxis].data.length - 1].value
     return options   
   }
   transformNoDimensions () {
@@ -235,8 +277,8 @@ class Chart {
     if (options.orientation === 'horizontal') {
       xAxis = 'left'
       yAxis = 'bottom'
-      xScale = 'Linear'
-      yScale = 'Band'
+      // xScale = 'Linear'
+      // yScale = 'Band'
     }
     options.data[xAxis].scale = xScale
     options.data[yAxis].scale = yScale    
@@ -317,7 +359,7 @@ class Chart {
         options.data[y2Axis].scale = (m.options || {}).scale || y2Scale
         options.data[y2Axis].title = m.qFallbackTitle
         options.data[y2Axis].formatter = d => {          
-          return this.formatValue(d, Object.assign({}, m.options, options.data[y2Axis]))
+          return this.formatValue(d, Object.assign({}, m.options, options.data[y2Axis]), m)
         }
       }
       else {
@@ -331,7 +373,7 @@ class Chart {
         options.data[yAxis].scale = (m.options || {}).scale || yScale
         options.data[yAxis].title = m.qFallbackTitle
         options.data[yAxis].formatter = d => {          
-          return this.formatValue(d, Object.assign({}, m.options, options.data[yAxis]))
+          return this.formatValue(d, Object.assign({}, m.options, options.data[yAxis]), m)
         }
       }
       return series
@@ -349,7 +391,7 @@ class Chart {
     options.data[xAxis].scale = (this.layout.qHyperCube.qDimensionInfo[0].options || {}).scale || xScale
     if (options.data[xAxis].scale !== 'Time') {
       options.data[xAxis].formatter = d => {          
-        return this.formatValue(d, this.layout.qHyperCube.qDimensionInfo[0].options || {})
+        return this.formatValue(d, this.layout.qHyperCube.qDimensionInfo[0].options || {}, this.layout.qHyperCube.qMeasureInfo[0])
       } 
     } 
     else {
