@@ -699,10 +699,14 @@ var Chart = /*#__PURE__*/function () {
     }
   }, {
     key: "getColor",
-    value: function getColor(cell, measure) {
-      if (measure.qAttrExprInfo && measure.qAttrExprInfo[0] && measure.qAttrExprInfo[0].id === 'colorByExpression') {
-        if (cell.qAttrExps && cell.qAttrExps.qValues && cell.qAttrExps.qValues[0] && cell.qAttrExps.qValues[0].qText) {
-          return cell.qAttrExps.qValues[0].qText;
+    value: function getColor(cell, measure, colorProps) {
+      if (colorProps) {
+        if (!colorProps.auto) {
+          if (measure.qAttrExprInfo && measure.qAttrExprInfo[0] && measure.qAttrExprInfo[0].id === 'colorByExpression') {
+            if (cell.qAttrExps && cell.qAttrExps.qValues && cell.qAttrExps.qValues[0] && cell.qAttrExps.qValues[0].qText) {
+              return cell.qAttrExps.qValues[0].qText;
+            }
+          }
         }
       }
     }
@@ -870,7 +874,7 @@ var Chart = /*#__PURE__*/function () {
 
         c.value = c.qNum;
         c.label = c.qText;
-        c.color = _this8.getColor(c, _this8.layout.qHyperCube.qMeasureInfo[0]);
+        c.color = _this8.getColor(c, _this8.layout.qHyperCube.qMeasureInfo[0], _this8.layout.qHyperCube.color);
         c.tooltipLabel = r[0].qText;
         c.tooltipValue = c.qText;
         c.accumulative = bottomAcc[bottomIndex];

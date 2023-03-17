@@ -112,12 +112,16 @@ class Chart {
     output.setTime(output.getTime() + output.getTimezoneOffset() * 60000)
     return output
   }
-  getColor (cell, measure) {
-    if (measure.qAttrExprInfo && measure.qAttrExprInfo[0] && measure.qAttrExprInfo[0].id === 'colorByExpression') {
-      if (cell.qAttrExps && cell.qAttrExps.qValues && cell.qAttrExps.qValues[0] && cell.qAttrExps.qValues[0].qText) {
-        return cell.qAttrExps.qValues[0].qText
-      }
-    }
+  getColor (cell, measure, colorProps) {
+    if (colorProps) {
+      if (!colorProps.auto) {
+        if (measure.qAttrExprInfo && measure.qAttrExprInfo[0] && measure.qAttrExprInfo[0].id === 'colorByExpression') {
+          if (cell.qAttrExps && cell.qAttrExps.qValues && cell.qAttrExps.qValues[0] && cell.qAttrExps.qValues[0].qText) {
+            return cell.qAttrExps.qValues[0].qText
+          }
+        }
+      }       
+    }    
   }
   render () {
     this.options.model.getLayout().then(layout => {
@@ -247,7 +251,7 @@ class Chart {
       // c.value = isNaN(c.qNum) ? 0 : c.qNum
       c.value = c.qNum
       c.label = c.qText
-      c.color = this.getColor(c, this.layout.qHyperCube.qMeasureInfo[0])
+      c.color = this.getColor(c, this.layout.qHyperCube.qMeasureInfo[0], this.layout.qHyperCube.color)
       c.tooltipLabel = r[0].qText
       c.tooltipValue = c.qText
       c.accumulative = bottomAcc[bottomIndex]
