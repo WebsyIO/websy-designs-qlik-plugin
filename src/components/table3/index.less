@@ -77,3 +77,59 @@
     }
   }
 }
+.websy-cell-select-mask, .websy-cell-select-mask-side, .websy-cell-select-buttons {
+  display: none;
+  position: absolute;
+  &.active {
+    display: block;
+  }
+}
+.websy-cell-select-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+}
+.websy-cell-select-mask-side {
+  background-color: rgba(20, 20, 20, .3);
+}
+.websy-cell-selected {
+  background-color: #44aa99;
+  color: #ffffff;
+}
+.websy-cell-select-buttons {
+  background-color: #ffffff;
+  justify-content: end;
+  align-items: center;
+  &.active {
+    display: flex;
+  }
+  .websy-cell-select-cancel, .websy-cell-select-confirm {
+    margin-left: 3px;
+    margin-right: 3px;
+    height: 30px;
+    width: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    * {
+      pointer-events: none;
+    }
+  }
+  .websy-cell-select-cancel {
+    background-color: #cc6677;
+    line {
+      stroke: #ffffff;
+      fill: none;
+    }
+  }
+  .websy-cell-select-confirm {
+    background-color: #44aa99;
+    polyline {
+      stroke: #ffffff;
+      fill: none;
+    }
+  }
+}

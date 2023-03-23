@@ -11,7 +11,10 @@ class Table3 {
       pivotPanel: 'docked',
       pivotButtonText: 'Pivot',
       dropdownOptions: {},
-      maxPlaceholderRows: 1000
+      maxPlaceholderRows: 1000,
+      allowCellSelections: true,
+      confirmIcon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 512 512"><polyline points="416 128 192 384 96 288" style="stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></svg>`,
+      cancelIcon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 512 512"><line x1="368" y1="368" x2="144" y2="144" style="stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><line x1="368" y1="144" x2="144" y2="368" style="stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></svg>`
     }
     // if (Dropdown) {
     //   if (!WebsyDesignsQlikPlugins) {
@@ -19,7 +22,8 @@ class Table3 {
     //   }
     //   WebsyDesignsQlikPlugins.Dropdown = Dropdown
     // }
-    this.elementId = elementId    
+    this.elementId = elementId  
+    this.inSelections = false  
     this.options = Object.assign({}, DEFAULTS, options)
     this.fullData = []
     this.rowIndexList = []
@@ -69,11 +73,23 @@ class Table3 {
         `
       }             
       html += `
-        <div id='${this.elementId}_tableContainer' style='${tableStyle}'></div>
+        <div id='${this.elementId}_cellSelectMask' class='websy-cell-select-mask'></div>
+        <div id='${this.elementId}_tableContainer' style='${tableStyle}'></div>        
+        <div id='${this.elementId}_cellSelectMaskLeft' class='websy-cell-select-mask-side'></div>
+        <div id='${this.elementId}_cellSelectMaskRight' class='websy-cell-select-mask-side'></div>
+        <div id='${this.elementId}_cellSelectButtons' class='websy-cell-select-buttons'>
+          <div class='websy-cell-select-cancel'>
+            ${this.options.cancelIcon}
+          </div>
+          <div class='websy-cell-select-confirm'>
+            ${this.options.confirmIcon}
+          </div>
+        </div>
       `
       el.innerHTML = html
       this.table = new WebsyDesigns.WebsyTable3(`${this.elementId}_tableContainer`, Object.assign({}, {
         onClick: this.handleClick.bind(this),
+        onCellSelect: this.handleCellSelect.bind(this),
         onScroll: this.handleScroll.bind(this),      
         onSort: this.handleSort.bind(this),
         onChangePageSize: this.setPageSize.bind(this),
@@ -101,6 +117,18 @@ class Table3 {
       el.addEventListener('click', this.handleClick.bind(this))
       this.render()
     }    
+  }
+  abortModal () {
+    return new Promise((resolve, reject) => {
+      if (this.options.app) {
+        this.options.app.abortModal(true).then(() => {
+          resolve()
+        })
+      }
+      else {
+        resolve()
+      }
+    })
   }
   appendRows (data) {      
     this.table.appendRows(data)
@@ -438,6 +466,27 @@ class Table3 {
       }           
     })
   }
+  confirmCancelSelections (confirm) {
+    this.inSelections = false
+    this.options.model.endSelections(confirm).then(() => {
+      const maskEl = document.getElementById(`${this.elementId}_cellSelectMask`)
+      const maskLeftEl = document.getElementById(`${this.elementId}_cellSelectMaskLeft`)
+      const maskRightEl = document.getElementById(`${this.elementId}_cellSelectMaskRight`)        
+      const maskButtonsEl = document.getElementById(`${this.elementId}_cellSelectButtons`)
+      if (maskEl) {
+        maskEl.classList.remove('active')
+      }
+      if (maskLeftEl) {
+        maskLeftEl.classList.remove('active')
+      }
+      if (maskRightEl) {
+        maskRightEl.classList.remove('active')
+      }
+      if (maskButtonsEl) {
+        maskButtonsEl.classList.remove('active')
+      }
+    })
+  }
   getData (top = 0, callbackFn, force = false) {
     if (this.busy === false || force === true) {
       this.busy = true
@@ -533,6 +582,60 @@ class Table3 {
     }
     return (red * 0.299 + green * 0.587 + blue * 0.114) > 186 ? '#000000' : '#ffffff'
   }
+  handleCellSelect (event, data) {
+    console.log('cell select')
+    console.log(event)
+    console.log(data)
+    if (this.options.allowCellSelections === true) {
+      let elemNum = -1
+      if (typeof data.cell.qElemNo !== 'undefined') {
+        elemNum = data.cell.qElemNo
+        return
+      } 
+      else if (typeof data.cell.qElemNumber !== 'undefined') {
+        elemNum = data.cell.qElemNumber
+      }
+      if (elemNum < 0) {
+        return
+      }
+      this.inSelections = true
+      this.abortModal().then(() => {
+
+      })
+      this.options.model.beginSelections(['/qHyperCubeDef']).then(() => {        
+        const maskEl = document.getElementById(`${this.elementId}_cellSelectMask`)
+        const maskLeftEl = document.getElementById(`${this.elementId}_cellSelectMaskLeft`)
+        const maskRightEl = document.getElementById(`${this.elementId}_cellSelectMaskRight`)        
+        const maskButtonsEl = document.getElementById(`${this.elementId}_cellSelectButtons`)
+        if (maskEl) {
+          maskEl.classList.add('active')
+        }
+        if (maskLeftEl) {
+          maskLeftEl.classList.add('active')
+          maskLeftEl.style.left = '0px'
+          maskLeftEl.style.width = `${event.target.parentElement.offsetLeft}px`
+          maskLeftEl.style.top = `0px`
+          maskLeftEl.style.bottom = '0px'
+        }
+        if (maskRightEl) {
+          maskRightEl.classList.add('active')
+          maskRightEl.style.left = `${event.target.parentElement.offsetLeft + event.target.parentElement.offsetWidth}px`
+          maskRightEl.style.right = '0px'
+          maskRightEl.style.top = `0px`
+          maskRightEl.style.bottom = '0px'
+        }
+        if (maskButtonsEl) {
+          maskButtonsEl.classList.add('active')
+          maskButtonsEl.style.top = '0px'
+          maskButtonsEl.style.left = `${event.target.parentElement.offsetLeft}px`
+          maskButtonsEl.style.width = `${event.target.parentElement.offsetWidth}px`
+          maskButtonsEl.style.height = `${this.table.sizes.header.height}px`
+        }
+        event.target.parentElement.classList.add('websy-cell-selected')
+        this.options.model.selectHyperCubeValues('/qHyperCubeDef', data.colIndex, [elemNum], true)
+      })      
+    }
+  }
   handleClick (event, cell, row, column) {
     if (event.target.classList.contains('table-try-again')) {
       this.render()
@@ -546,6 +649,18 @@ class Table3 {
         event.target.classList.toggle('active')
         el.classList.toggle('active')
       }
+    }
+    else if (event.target.classList.contains('websy-cell-select-mask')) {
+      this.confirmCancelSelections(true)
+    }
+    else if (event.target.classList.contains('.websy-cell-select-mask-side')) {
+      this.confirmCancelSelections(true)
+    }
+    else if (event.target.classList.contains('websy-cell-select-confirm')) {
+      this.confirmCancelSelections(true)
+    }
+    else if (event.target.classList.contains('websy-cell-select-cancel')) {
+      this.confirmCancelSelections(false)
     }
   }
   handleCollapse (event, row, column, all = false) {
@@ -739,9 +854,19 @@ class Table3 {
     //   this.prepSearch()
     //   return 
     // }
-    this.table.showLoading({message: 'Loading...'})    
+    if (this.inSelections === false) {
+      this.table.showLoading({message: 'Loading...'})    
+    }    
     this.options.model.getLayout().then(layout => {  
       this.layout = layout
+      if (this.inSelections === true) {
+        if (layout.qSelectionInfo.qInSelections === true) {
+          return
+        }       
+        else {
+          this.confirmCancelSelections(true)
+        } 
+      }
       this.dataWidth = this.layout.qHyperCube.qSize.qcx
       this.columnOrder = this.layout.qHyperCube.qColumnOrder      
       this.getData(0, page => {

@@ -296,15 +296,17 @@ class ObjectManager {
         this.global = global
         global.getActiveDoc().then(app => {          
           if (app) {
-            this.app = app
-            if (this.options.views.global) {
-              this.executeActions('global').then(() => {
-                resolve()
-              })            
-            }
-            else {
-              resolve()  
-            }
+            app.abortModal(true).then(() => {
+              this.app = app
+              if (this.options.views.global) {
+                this.executeActions('global').then(() => {
+                  resolve()
+                })            
+              }
+              else {
+                resolve()  
+              }
+            })
           }
           else {
             return this.openApp(originalId).then(() => {
