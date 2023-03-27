@@ -4378,7 +4378,7 @@ var Table3 = /*#__PURE__*/function () {
 
           if (!c.onSearch) {
             c.isExternalSearch = true;
-            var dimId = c.def.qLibraryId || c.def.qDef.qFieldDefs[0];
+            var dimId = c.def.qLibraryId || c.def.qDef.qFieldLabels[0] || c.def.qDef.qFieldDefs[0];
             c.dimId = c.cId || dimId;
             c.onSearch = _this43.handleSearch.bind(_this43);
             c.onCloseSearch = _this43.handleCloseSearch.bind(_this43);
@@ -4424,7 +4424,7 @@ var Table3 = /*#__PURE__*/function () {
         return _this43.layout.qHyperCube.qMode === 'S' || i < _this43.pinnedColumns;
       }).map(function (c, i) {
         return {
-          value: new Array(Math.max(c.qApprMaxGlyphCount, activeDimensions[i].qFallbackTitle.length)).fill('X').join(''),
+          value: new Array(Math.max(c.showAsLink ? 0 : c.qApprMaxGlyphCount, activeDimensions[i].qFallbackTitle.length)).fill('X').join(''),
           width: c.width || null
         };
       });

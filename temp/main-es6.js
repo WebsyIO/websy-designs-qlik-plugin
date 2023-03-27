@@ -3705,7 +3705,7 @@ class Table3 {
         c.searchable = true
         if (!c.onSearch) {    
           c.isExternalSearch = true   
-          let dimId = c.def.qLibraryId || c.def.qDef.qFieldDefs[0]            
+          let dimId = c.def.qLibraryId || c.def.qDef.qFieldLabels[0] || c.def.qDef.qFieldDefs[0]            
           c.dimId = c.cId || dimId
           c.onSearch = this.handleSearch.bind(this)
           c.onCloseSearch = this.handleCloseSearch.bind(this)
@@ -3732,7 +3732,7 @@ class Table3 {
     this.columnParamValues = activeDimensions
       .filter((c, i) => (this.layout.qHyperCube.qMode === 'S' || i < this.pinnedColumns))
       .map((c, i) => ({ 
-        value: new Array(Math.max(c.qApprMaxGlyphCount, activeDimensions[i].qFallbackTitle.length)).fill('X').join(''),
+        value: new Array(Math.max((c.showAsLink ? 0 : c.qApprMaxGlyphCount), activeDimensions[i].qFallbackTitle.length)).fill('X').join(''),
         width: c.width || null
       }))
     let measureLabel = activeDimensions.pop()
