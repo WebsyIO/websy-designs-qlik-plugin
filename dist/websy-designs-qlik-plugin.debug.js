@@ -1693,6 +1693,14 @@ class Dropdown {
       onClose: this.onClose.bind(this),
       customActions: [
         {
+          label: 'Clear All',
+          fn: () => {
+            this.options.model.clearSelections(`/${this.options.path}/qListObjectDef`.replace(/\/\//g, '/')).then(() => {
+              this.render()
+            })
+          }
+        },
+        {
           label: 'Select All',
           fn: () => {
             this.options.model.selectListObjectAll(`/${this.options.path}/qListObjectDef`.replace(/\/\//g, '/')).then(() => {
@@ -3377,8 +3385,10 @@ class Table3 {
       pivotPanel: 'docked',
       pivotButtonText: 'Pivot',
       dropdownOptions: {},
+      forceRenderAfterSelect: false,
       maxPlaceholderRows: 1000,
       allowCellSelections: true,
+      resizeTimeout: 200,
       confirmIcon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 512 512"><polyline points="416 128 192 384 96 288" style="stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></svg>`,
       cancelIcon: `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 512 512"><line x1="368" y1="368" x2="144" y2="144" style="stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><line x1="368" y1="144" x2="144" y2="368" style="stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></svg>`
     }
@@ -3393,6 +3403,7 @@ class Table3 {
     this.options = Object.assign({}, DEFAULTS, options)
     this.fullData = []
     this.rowIndexList = []
+    this.resizeTimeoutFn = null
     // this.rowCount = 0
     this.pageNum = 0
     this.pageCount = 0
@@ -3405,6 +3416,7 @@ class Table3 {
     this.dimensionWidth = 0
     this.dropdowns = {}
     this.searchPrepped = false
+    this.qlikColumnOrder = []
     this.pinnedColumns = 0    
     this.startCol = 0
     this.endCol = 0
@@ -3481,6 +3493,14 @@ class Table3 {
         })
       }      
       el.addEventListener('click', this.handleClick.bind(this))
+      window.addEventListener('resize', () => {
+        if (this.resizeTimeoutFn) {
+          clearTimeout(this.resizeTimeoutFn)
+        }
+        this.resizeTimeoutFn = setTimeout(() => {
+          this.resize()
+        }, this.options.resizeTimeout)
+      })
       this.render()
     }    
   }
@@ -3670,7 +3690,10 @@ class Table3 {
   }
   buildStraightColumnsAndTotals () {
     // used for straight tables
-    this.columns = this.layout.qHyperCube.qDimensionInfo.concat(this.layout.qHyperCube.qMeasureInfo)
+    this.columns = this.layout.qHyperCube.qDimensionInfo.concat(this.layout.qHyperCube.qMeasureInfo.map(m => {
+      m.isMeasure = true
+      return m
+    }))
     // append the column definitions
     this.properties.qHyperCubeDef.qDimensions.concat(this.properties.qHyperCubeDef.qMeasures).forEach((cDef, i) => {
       this.columns[i].def = cDef
@@ -3851,6 +3874,9 @@ class Table3 {
       if (maskButtonsEl) {
         maskButtonsEl.classList.remove('active')
       }
+      if (this.options.forceRenderAfterSelect === true) {
+        this.render()
+      }
     })
   }
   getData (top = 0, callbackFn, force = false) {
@@ -3954,14 +3980,18 @@ class Table3 {
     console.log(data)
     if (this.options.allowCellSelections === true) {
       let elemNum = -1
+      let colIndex = this.qlikColumnOrder[data.colIndex]
+      if (colIndex < 0) {
+        return
+      }
       if (typeof data.cell.qElemNo !== 'undefined') {
         elemNum = data.cell.qElemNo
-        return
+        // return
       } 
       else if (typeof data.cell.qElemNumber !== 'undefined') {
         elemNum = data.cell.qElemNumber
       }
-      if (elemNum < 0) {
+      if (elemNum < 0 || data.column.isMeasure === true) {
         return
       }
       this.inSelections = true
@@ -3973,19 +4003,26 @@ class Table3 {
         const maskLeftEl = document.getElementById(`${this.elementId}_cellSelectMaskLeft`)
         const maskRightEl = document.getElementById(`${this.elementId}_cellSelectMaskRight`)        
         const maskButtonsEl = document.getElementById(`${this.elementId}_cellSelectButtons`)
+        let cellEl = null
+        if (event.target.classList.contains('websy-table-cell')) {
+          cellEl = event.target
+        }
+        else {
+          cellEl = event.target.parentElement
+        }
         if (maskEl) {
           maskEl.classList.add('active')
         }
         if (maskLeftEl) {
           maskLeftEl.classList.add('active')
           maskLeftEl.style.left = '0px'
-          maskLeftEl.style.width = `${event.target.parentElement.offsetLeft}px`
+          maskLeftEl.style.width = `${cellEl.offsetLeft}px`
           maskLeftEl.style.top = `0px`
           maskLeftEl.style.bottom = '0px'
         }
         if (maskRightEl) {
           maskRightEl.classList.add('active')
-          maskRightEl.style.left = `${event.target.parentElement.offsetLeft + event.target.parentElement.offsetWidth}px`
+          maskRightEl.style.left = `${cellEl.offsetLeft + cellEl.offsetWidth}px`
           maskRightEl.style.right = '0px'
           maskRightEl.style.top = `0px`
           maskRightEl.style.bottom = '0px'
@@ -3993,12 +4030,12 @@ class Table3 {
         if (maskButtonsEl) {
           maskButtonsEl.classList.add('active')
           maskButtonsEl.style.top = '0px'
-          maskButtonsEl.style.left = `${event.target.parentElement.offsetLeft}px`
-          maskButtonsEl.style.width = `${event.target.parentElement.offsetWidth}px`
+          maskButtonsEl.style.left = `${cellEl.offsetLeft}px`
+          maskButtonsEl.style.width = `${cellEl.offsetWidth}px`
           maskButtonsEl.style.height = `${this.table.sizes.header.height}px`
-        }
-        event.target.parentElement.classList.add('websy-cell-selected')
-        this.options.model.selectHyperCubeValues('/qHyperCubeDef', data.colIndex, [elemNum], true)
+        }        
+        cellEl.classList.add('websy-cell-selected')      
+        this.options.model.selectHyperCubeValues('/qHyperCubeDef', colIndex, [elemNum], true)
       })      
     }
   }
@@ -4234,7 +4271,8 @@ class Table3 {
         } 
       }
       this.dataWidth = this.layout.qHyperCube.qSize.qcx
-      this.columnOrder = this.layout.qHyperCube.qColumnOrder      
+      this.columnOrder = this.layout.qHyperCube.qColumnOrder   
+      this.pageNum = pageNum         
       this.getData(0, page => {
         this.layout.qHyperCube.qDataPages = [page]  
         if (layout.qHyperCube.qError && layout.qHyperCube.qCalcCondMsg) {
@@ -4260,70 +4298,13 @@ class Table3 {
           }          
           this.endCol = layout.qHyperCube.qSize.qcx + (this.pinnedColumns || layout.qHyperCube.qNoOfLeftDims)
           // this.layout = layout
-          this.buildDataStructure()
-          // this.rowCount = pageNum * this.options.pageSize
-          // if (this.layout.qHyperCube.qPivotDataPages[0]) {
-          //   this.layout.qHyperCube.qPivotDataPages = []
-          // }
-          this.errorCount = 0
-          this.pageNum = pageNum      
-          this.pageCount = Math.ceil(layout.qHyperCube.qSize.qcy / this.options.pageSize)
-          this.table.options.pageNum = this.pageNum          
-          this.table.options.pageCount = this.pageCount
-          // this.dataWidth = this.layout.qHyperCube.qSize.qcx
-          // this.columnOrder = this.layout.qHyperCube.qColumnOrder
-          if (typeof this.columnOrder === 'undefined') {
-            this.columnOrder = (new Array(this.layout.qHyperCube.qSize.qcx)).fill({}).map((r, i) => i)
+          if (this.layout.qHyperCube.qMode === 'P') {
+            this.qlikColumnOrder = this.layout.qHyperCube.qEffectiveInterColumnSortOrder
           }
-          this.layout.qHyperCube.qDimensionInfo = this.layout.qHyperCube.qDimensionInfo.map((c, i) => {
-            c.searchable = true
-            if (this.options.columnOverrides[i]) {
-              c = {
-                ...c,             
-                onSearch: this.handleSearch.bind(this),
-                onCloseSearch: this.handleCloseSearch.bind(this),
-                ...this.options.columnOverrides[i]
-              }
-            }        
-            c.searchField = `dim${i}`
-            
-            return c
-          })
-          this.layout.qHyperCube.qMeasureInfo = this.layout.qHyperCube.qMeasureInfo.map((c, i) => {
-            if (this.options.columnOverrides[this.layout.qHyperCube.qDimensionInfo.length + i]) {
-              c = {...c, ...this.options.columnOverrides[this.layout.qHyperCube.qDimensionInfo.length + i]}
-            }
-            return c
-          }) 
-          if (this.layout.qHyperCube.qMode === 'S') {
-            this.buildStraightColumnsAndTotals()
-          }  
           else {
-            this.buildPivotColumns()            
-          }      
-          // let dataStart = this.startRow
-          if (this.startRow > 0 && this.startRow + this.table.sizes.rowsToRender > this.layout.qHyperCube.qSize.qcy) {
-            this.startRow = this.layout.qHyperCube.qSize.qcy - this.table.sizes.rowsToRender
+            this.qlikColumnOrder = this.layout.qHyperCube.qColumnOrder
           }
-          this.getData(this.startRow, page => {
-            this.table.hideLoading()
-            // if (this.layout.qHyperCube.qMode === 'S') {
-            this.table.render([], false)
-            this.prepDropdowns()
-            // }        
-            if (!page || page.err) {
-              const tableEl = document.getElementById(`${this.elementId}_foot`)
-              if (this.tableEl) {
-                tableEl.innerHTML = `
-                  <div class='request-abort-error'>Could not fetch data. Click <strong class='table-try-again'>here</strong> to try again</div>
-                `
-              }               
-            }
-            else {
-              // this.fullData = page
-              this.resize()          
-            }
-          })
+          this.resize()
         })
       })
     }, err => {        
@@ -4331,7 +4312,69 @@ class Table3 {
     })  
   }
   resize () {
-    this.appendRows(this.transformData(this.fullData))
+    this.buildDataStructure()
+    // this.rowCount = pageNum * this.options.pageSize
+    // if (this.layout.qHyperCube.qPivotDataPages[0]) {
+    //   this.layout.qHyperCube.qPivotDataPages = []
+    // }
+    this.errorCount = 0    
+    this.pageCount = Math.ceil(this.layout.qHyperCube.qSize.qcy / this.options.pageSize)
+    this.table.options.pageNum = this.pageNum          
+    this.table.options.pageCount = this.pageCount
+    // this.dataWidth = this.layout.qHyperCube.qSize.qcx
+    // this.columnOrder = this.layout.qHyperCube.qColumnOrder
+    if (typeof this.columnOrder === 'undefined') {
+      this.columnOrder = (new Array(this.layout.qHyperCube.qSize.qcx)).fill({}).map((r, i) => i)
+    }
+    this.layout.qHyperCube.qDimensionInfo = this.layout.qHyperCube.qDimensionInfo.map((c, i) => {
+      c.searchable = true
+      if (this.options.columnOverrides[i]) {
+        c = {
+          ...c,             
+          onSearch: this.handleSearch.bind(this),
+          onCloseSearch: this.handleCloseSearch.bind(this),
+          ...this.options.columnOverrides[i]
+        }
+      }        
+      c.searchField = `dim${i}`
+      
+      return c
+    })
+    this.layout.qHyperCube.qMeasureInfo = this.layout.qHyperCube.qMeasureInfo.map((c, i) => {
+      if (this.options.columnOverrides[this.layout.qHyperCube.qDimensionInfo.length + i]) {
+        c = {...c, ...this.options.columnOverrides[this.layout.qHyperCube.qDimensionInfo.length + i]}
+      }
+      return c
+    }) 
+    if (this.layout.qHyperCube.qMode === 'S') {
+      this.buildStraightColumnsAndTotals()
+    }  
+    else {
+      this.buildPivotColumns()            
+    }      
+    // let dataStart = this.startRow
+    if (this.startRow > 0 && this.startRow + this.table.sizes.rowsToRender > this.layout.qHyperCube.qSize.qcy) {
+      this.startRow = this.layout.qHyperCube.qSize.qcy - this.table.sizes.rowsToRender
+    }
+    this.getData(this.startRow, page => {
+      this.table.hideLoading()
+      // if (this.layout.qHyperCube.qMode === 'S') {
+      this.table.render([], false)
+      this.prepDropdowns()
+      // }        
+      if (!page || page.err) {
+        const tableEl = document.getElementById(`${this.elementId}_foot`)
+        if (this.tableEl) {
+          tableEl.innerHTML = `
+            <div class='request-abort-error'>Could not fetch data. Click <strong class='table-try-again'>here</strong> to try again</div>
+          `
+        }               
+      }
+      else {
+        // this.fullData = page
+        this.appendRows(this.transformData(this.fullData))
+      }
+    })
   }
   setPageNum (page) {
     this.render(page)

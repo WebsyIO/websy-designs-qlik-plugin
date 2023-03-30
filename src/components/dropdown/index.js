@@ -25,6 +25,14 @@ class Dropdown {
       onClose: this.onClose.bind(this),
       customActions: [
         {
+          label: 'Clear All',
+          fn: () => {
+            this.options.model.clearSelections(`/${this.options.path}/qListObjectDef`.replace(/\/\//g, '/')).then(() => {
+              this.render()
+            })
+          }
+        },
+        {
           label: 'Select All',
           fn: () => {
             this.options.model.selectListObjectAll(`/${this.options.path}/qListObjectDef`.replace(/\/\//g, '/')).then(() => {
