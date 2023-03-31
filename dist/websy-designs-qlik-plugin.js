@@ -4732,13 +4732,13 @@ var Table3 = /*#__PURE__*/function () {
     value: function handleCellSelect(event, data) {
       var _this47 = this;
 
-      console.log('cell select');
-      console.log(event);
-      console.log(data);
-
       if (this.options.allowCellSelections === true) {
         var elemNum = -1;
         var colIndex = this.qlikColumnOrder[data.colIndex];
+
+        if (typeof colIndex === 'undefined' || colIndex === null) {
+          colIndex = data.colIndex;
+        }
 
         if (colIndex < 0) {
           return;

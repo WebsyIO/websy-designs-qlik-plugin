@@ -604,12 +604,12 @@ class Table3 {
     return (red * 0.299 + green * 0.587 + blue * 0.114) > 186 ? '#000000' : '#ffffff'
   }
   handleCellSelect (event, data) {
-    console.log('cell select')
-    console.log(event)
-    console.log(data)
     if (this.options.allowCellSelections === true) {
       let elemNum = -1
       let colIndex = this.qlikColumnOrder[data.colIndex]
+      if (typeof colIndex === 'undefined' || colIndex === null) {
+        colIndex = data.colIndex
+      }
       if (colIndex < 0) {
         return
       }
