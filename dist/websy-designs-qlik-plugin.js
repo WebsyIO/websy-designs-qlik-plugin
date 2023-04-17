@@ -723,6 +723,27 @@ var Chart = /*#__PURE__*/function () {
 
       this.options.model.getLayout().then(function (layout) {
         _this6.layout = layout;
+
+        if (layout.qHyperCube.qError && layout.qHyperCube.qCalcCondMsg) {
+          _this6.chart.hideLoading();
+
+          _this6.chart.showError({
+            message: _this6.options.customError || layout.qHyperCube.qCalcCondMsg
+          });
+
+          return;
+        }
+
+        if (layout.qHyperCube.qSize.qcy === 0 || layout.qHyperCube.qSize.qcx === 0) {
+          _this6.chart.showError({
+            message: 'No data to display'
+          });
+
+          return;
+        } else {
+          _this6.chart.hideError();
+        }
+
         console.log('layout', layout);
 
         _this6.checkForData().then(function () {
@@ -759,6 +780,28 @@ var Chart = /*#__PURE__*/function () {
             });
           }
 
+          layout.qHyperCube.qMeasureInfo.forEach(function (m) {
+            if (m.qTrendLines && m.qTrendLines.length > 0) {
+              // currently only support straight lines
+              if (!options.refLines) {
+                options.refLines = [];
+              }
+
+              m.qTrendLines.forEach(function (t) {
+                options.refLines.push({
+                  value: t.qCoeff[0],
+                  displayValue: t.label,
+                  label: t.label,
+                  color: (t.style.paletteColor || {
+                    color: '#000000'
+                  }).color || '#000000',
+                  lineWidth: 1,
+                  lineStyle: t.style.lineDash.replace(',', '')
+                });
+              });
+            }
+          });
+
           _this6.chart.render(options);
         });
       });
@@ -794,10 +837,10 @@ var Chart = /*#__PURE__*/function () {
       series.data = [];
       series.key = this.createSeriesKey(this.layout.qHyperCube.qMeasureInfo[0].qFallbackTitle);
       this.layout.qHyperCube.qDataPages[0].qMatrix.forEach(function (r) {
-        r[0].value = r[0].qText;
+        r[0].value = r[0].qText || '-';
         r[1].value = isNaN(r[1].qNum) ? 0 : r[1].qNum;
         r[1].tooltipValue = r[1].qText;
-        r[1].label = r[1].qText;
+        r[1].label = r[1].qText || '-';
         options.data.bottom.data.push(r[0]);
         series.data.push({
           x: r[0],
@@ -846,9 +889,9 @@ var Chart = /*#__PURE__*/function () {
       var bottomAcc = [];
       var bottomTotals = [];
       this.layout.qHyperCube.qDataPages[0].qMatrix.forEach(function (r) {
-        var seriesIndex = seriesKeys.indexOf(r[0].qText);
-        var bottomIndex = bottomKeys.indexOf(r[1].qText);
-        var v = r[1].qText;
+        var seriesIndex = seriesKeys.indexOf(r[0].qText || '-');
+        var bottomIndex = bottomKeys.indexOf(r[1].qText || '-');
+        var v = r[1].qText || '-';
 
         if ((_this8.layout.qHyperCube.qDimensionInfo[1].options || {}).scale === 'Time') {
           v = _this8.fromQlikDate(r[1].qNum);
@@ -864,25 +907,25 @@ var Chart = /*#__PURE__*/function () {
         }
 
         if (seriesIndex === -1) {
-          seriesKeys.push(r[0].qText);
+          seriesKeys.push(r[0].qText || '-');
           seriesIndex = seriesKeys.length - 1;
-          series.push({
+          series.push(_extends({}, _this8.layout.qHyperCube.qMeasureInfo[0].options, {
             key: "series_".concat(seriesIndex),
             type: options.type || 'bar',
             accumulative: 0,
-            label: r[0].qText,
+            label: r[0].qText || '-',
             // color: this.layout.options.color,
             data: []
-          });
+          }));
         }
 
         var c = r[2]; // c.value = isNaN(c.qNum) ? 0 : c.qNum
 
         c.value = c.qNum;
-        c.label = c.qText;
+        c.label = c.qText || '-';
         c.color = _this8.getColor(c, _this8.layout.qHyperCube.qMeasureInfo[0], _this8.layout.qHyperCube.color);
         c.tooltipLabel = r[0].qText;
-        c.tooltipValue = c.qText;
+        c.tooltipValue = c.qText || '-';
         c.accumulative = bottomAcc[bottomIndex];
 
         if (c.value !== 'NaN') {
@@ -995,6 +1038,8 @@ var Chart = /*#__PURE__*/function () {
       var x2Scale = 'Band';
       var yScale = 'Linear';
       var y2Scale = 'Linear';
+      var hasyAxis = false;
+      var hasy2Axis = false;
 
       if (options.orientation === 'horizontal') {
         xAxis = 'left';
@@ -1018,6 +1063,8 @@ var Chart = /*#__PURE__*/function () {
 
         if (m.axis === 'secondary') {
           // right hand axis
+          hasy2Axis = true;
+
           _this10.addOptions(options.data[y2Axis], m.options || {}); // options.data[y2Axis] = Object.assign({}, options.data[y2Axis], m.options)        
 
 
@@ -1033,6 +1080,8 @@ var Chart = /*#__PURE__*/function () {
             return _this10.formatValue(d, _extends({}, m.options, options.data[y2Axis]), m);
           };
         } else {
+          hasyAxis = true;
+
           _this10.addOptions(options.data[yAxis], m.options || {}); // options.data[yAxis] = Object.assign({}, options.data[yAxis], m.options)
 
 
@@ -1081,15 +1130,15 @@ var Chart = /*#__PURE__*/function () {
         r.forEach(function (c, cIndex) {
           if (cIndex === 0) {
             if (options.data[xAxis].scale !== 'Time') {
-              options.data[xAxis].min = options.data[xAxis].min.length < c.qText.length ? options.data[xAxis].min : c.qText;
-              options.data[xAxis].max = options.data[xAxis].max.length > c.qText.length ? options.data[xAxis].max : c.qText;
+              options.data[xAxis].min = (options.data[xAxis].min || '').length < (c.qText || '').length ? options.data[xAxis].min || '' : c.qText || '';
+              options.data[xAxis].max = (options.data[xAxis].max || '').length > (c.qText || '').length ? options.data[xAxis].max || '' : c.qText || '';
             }
 
             return;
           }
 
           var x = r[0];
-          x.value = x.qText;
+          x.value = x.qText || '-';
 
           if ((_this10.layout.qHyperCube.qDimensionInfo[0].options || {}).scale === 'Time') {
             x.value = _this10.fromQlikDate(x.qNum);
@@ -1111,8 +1160,8 @@ var Chart = /*#__PURE__*/function () {
           c.value = isNaN(c.qNum) ? 0 : c.qNum;
           xTotals[xKeys.indexOf(x.qElemNumber)] += c.value;
           c.tooltipLabel = _this10.layout.qHyperCube.qMeasureInfo[cIndex - 1].qFallbackTitle;
-          c.tooltipValue = c.qText;
-          c.label = c.qText; // if (this.layout.qHyperCube.qMeasureInfo[cIndex - 1].options) {
+          c.tooltipValue = c.qText || '-';
+          c.label = c.qText || '-'; // if (this.layout.qHyperCube.qMeasureInfo[cIndex - 1].options) {
           // c.color = this.layout.qHyperCube.qMeasureInfo[cIndex - 1].options.color 
           // }        
 
@@ -1130,12 +1179,17 @@ var Chart = /*#__PURE__*/function () {
       });
 
       if (options.grouping === 'stacked') {
-        options.data[yAxis].min = 0; // may need to revisit this to think about negative numbers
+        if (hasyAxis) {
+          options.data[yAxis].min = 0; // may need to revisit this to think about negative numbers
 
-        options.data[yAxis].max = Math.max.apply(Math, xTotals);
-        options.data[y2Axis].min = 0; // may need to revisit this to think about negative numbers
+          options.data[yAxis].max = Math.max.apply(Math, xTotals);
+        }
 
-        options.data[y2Axis].max = Math.max.apply(Math, xTotals);
+        if (hasy2Axis) {
+          options.data[y2Axis].min = 0; // may need to revisit this to think about negative numbers
+
+          options.data[y2Axis].max = Math.max.apply(Math, xTotals);
+        }
       }
 
       console.log('multi measure options', options, xTotals);
@@ -1149,11 +1203,11 @@ var Chart = /*#__PURE__*/function () {
         if (node.qSubNodes.length > 0) {
           node.qSubNodes.forEach(function (s) {
             var row = [{
-              qText: node.qText,
+              qText: node.qText || '-',
               qElemNumber: node.qElemNo
             }];
             var dimCell2 = {
-              qText: s.qText,
+              qText: s.qText || '-',
               qElemNumber: s.qElemNo
             };
 
@@ -1165,7 +1219,7 @@ var Chart = /*#__PURE__*/function () {
 
             if (s.qSubNodes && s.qSubNodes.length > 0) {
               var expCell = {
-                qText: s.qSubNodes[0].qText,
+                qText: s.qSubNodes[0].qText || '-',
                 qNum: s.qSubNodes[0].qValue
               };
 
@@ -4477,7 +4531,7 @@ var Table3 = /*#__PURE__*/function () {
 
       this.tableSizes = this.table.calculateSizes(this.columnParamValues, this.layout.qHyperCube.qSize.qcy, this.layout.qHyperCube.qSize.qcx, this.pinnedColumns);
       this.columns.forEach(function (c, i) {
-        if (c.searchable) {
+        if (c.searchable !== false) {
           if (c.isExternalSearch === true) {
             if (!_this43.dropdowns[c.dimId]) {
               var ddDef = {
@@ -4522,6 +4576,10 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "buildEmptyRows",
     value: function buildEmptyRows(start) {
+      if (!this.layout) {
+        return;
+      }
+
       if (this.layout.qHyperCube.qMode === 'S' || this.layout.qHyperCube.qIndentMode === true) {
         for (var r = start; r < Math.min(this.layout.qHyperCube.qSize.qcy, start + this.options.maxPlaceholderRows); r++) {
           if (!this.fullData[r]) {
@@ -5157,10 +5215,7 @@ var Table3 = /*#__PURE__*/function () {
         c.searchable = true;
 
         if (_this50.options.columnOverrides[i]) {
-          c = _objectSpread(_objectSpread({}, c), {}, {
-            onSearch: _this50.handleSearch.bind(_this50),
-            onCloseSearch: _this50.handleCloseSearch.bind(_this50)
-          }, _this50.options.columnOverrides[i]);
+          c = _objectSpread(_objectSpread({}, c), _this50.options.columnOverrides[i]);
         }
 
         c.searchField = "dim".concat(i);

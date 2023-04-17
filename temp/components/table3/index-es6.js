@@ -394,7 +394,7 @@ class Table3 {
     }
     this.tableSizes = this.table.calculateSizes(this.columnParamValues, this.layout.qHyperCube.qSize.qcy, this.layout.qHyperCube.qSize.qcx, this.pinnedColumns)     
     this.columns.forEach((c, i) => {
-      if (c.searchable) {
+      if (c.searchable !== false) {
         if (c.isExternalSearch === true) {                 
           if (!this.dropdowns[c.dimId]) {
             let ddDef = {
@@ -436,6 +436,9 @@ class Table3 {
     this.buildEmptyRows(0)
   }
   buildEmptyRows (start) {
+    if (!this.layout) {
+      return
+    }
     if (this.layout.qHyperCube.qMode === 'S' || this.layout.qHyperCube.qIndentMode === true) {      
       for (let r = start; r < Math.min(this.layout.qHyperCube.qSize.qcy, (start + this.options.maxPlaceholderRows)); r++) {      
         if (!this.fullData[r]) {
@@ -960,8 +963,8 @@ class Table3 {
       if (this.options.columnOverrides[i]) {
         c = {
           ...c,             
-          onSearch: this.handleSearch.bind(this),
-          onCloseSearch: this.handleCloseSearch.bind(this),
+          // onSearch: this.handleSearch.bind(this),
+          // onCloseSearch: this.handleCloseSearch.bind(this),
           ...this.options.columnOverrides[i]
         }
       }        

@@ -126,6 +126,18 @@ class Chart {
   render () {
     this.options.model.getLayout().then(layout => {
       this.layout = layout
+      if (layout.qHyperCube.qError && layout.qHyperCube.qCalcCondMsg) {
+        this.chart.hideLoading()
+        this.chart.showError({message: this.options.customError || layout.qHyperCube.qCalcCondMsg})
+        return
+      }
+      if (layout.qHyperCube.qSize.qcy === 0 || layout.qHyperCube.qSize.qcx === 0) {
+        this.chart.showError({message: 'No data to display'})
+        return
+      }
+      else {
+        this.chart.hideError()
+      }
       console.log('layout', layout)
       this.checkForData().then(() => {
         let options = {}
@@ -140,7 +152,7 @@ class Chart {
         }
         else if (layout.qHyperCube.qDimensionInfo.length === 0 && layout.qHyperCube.qMeasureInfo.length > 0) {
           options = this.transformNoDimensions()
-        }
+        }        
         if (layout.refLine && layout.refLine.refLines && layout.refLine.refLines.length > 0) {
           options.refLines = layout.refLine.refLines.filter(r => r.show !== false).map(r => ({
             value: r.refLineExpr.value,
@@ -151,6 +163,24 @@ class Chart {
             lineStyle: (r.style || { lineType: '' }).lineType || ''
           }))
         }
+        layout.qHyperCube.qMeasureInfo.forEach(m => {
+          if (m.qTrendLines && m.qTrendLines.length > 0) {
+            // currently only support straight lines
+            if (!options.refLines) {
+              options.refLines = []
+            }
+            m.qTrendLines.forEach(t => {
+              options.refLines.push({
+                value: t.qCoeff[0],
+                displayValue: t.label,
+                label: t.label,
+                color: (t.style.paletteColor || { color: '#000000' }).color || '#000000',
+                lineWidth: 1,
+                lineStyle: t.style.lineDash.replace(',', '')
+              })
+            })
+          }
+        })
         this.chart.render(options)
       })      
     })
@@ -177,10 +207,10 @@ class Chart {
     series.data = []
     series.key = this.createSeriesKey(this.layout.qHyperCube.qMeasureInfo[0].qFallbackTitle)
     this.layout.qHyperCube.qDataPages[0].qMatrix.forEach(r => {
-      r[0].value = r[0].qText
+      r[0].value = r[0].qText || '-'
       r[1].value = isNaN(r[1].qNum) ? 0 : r[1].qNum
       r[1].tooltipValue = r[1].qText
-      r[1].label = r[1].qText
+      r[1].label = r[1].qText || '-'
       options.data.bottom.data.push(r[0])
       series.data.push({
         x: r[0],
@@ -221,9 +251,9 @@ class Chart {
     const bottomAcc = []
     const bottomTotals = []
     this.layout.qHyperCube.qDataPages[0].qMatrix.forEach(r => {
-      let seriesIndex = seriesKeys.indexOf(r[0].qText)
-      let bottomIndex = bottomKeys.indexOf(r[1].qText)
-      let v = r[1].qText
+      let seriesIndex = seriesKeys.indexOf(r[0].qText || '-')
+      let bottomIndex = bottomKeys.indexOf(r[1].qText || '-')
+      let v = r[1].qText || '-'
       if ((this.layout.qHyperCube.qDimensionInfo[1].options || {}).scale === 'Time') {
         v = this.fromQlikDate(r[1].qNum)
       }
@@ -236,24 +266,24 @@ class Chart {
         bottomIndex = bottomKeys.length - 1
       }
       if (seriesIndex === -1) {
-        seriesKeys.push(r[0].qText)
+        seriesKeys.push(r[0].qText || '-')
         seriesIndex = seriesKeys.length - 1
-        series.push({
+        series.push(Object.assign({}, this.layout.qHyperCube.qMeasureInfo[0].options, {
           key: `series_${seriesIndex}`,
           type: options.type || 'bar',
           accumulative: 0,   
-          label: r[0].qText,
+          label: r[0].qText || '-',
           // color: this.layout.options.color,
           data: []
-        })
+        }))
       }
       let c = r[2]
       // c.value = isNaN(c.qNum) ? 0 : c.qNum
       c.value = c.qNum
-      c.label = c.qText
+      c.label = c.qText || '-'
       c.color = this.getColor(c, this.layout.qHyperCube.qMeasureInfo[0], this.layout.qHyperCube.color)
       c.tooltipLabel = r[0].qText
-      c.tooltipValue = c.qText
+      c.tooltipValue = c.qText || '-'
       c.accumulative = bottomAcc[bottomIndex]
       if (c.value !== 'NaN') {
         bottomTotals[bottomIndex] += c.value
@@ -336,6 +366,8 @@ class Chart {
     let x2Scale = 'Band'
     let yScale = 'Linear'
     let y2Scale = 'Linear'
+    let hasyAxis = false
+    let hasy2Axis = false
     if (options.orientation === 'horizontal') {
       xAxis = 'left'
       x2Axis = 'right'
@@ -354,6 +386,7 @@ class Chart {
       series.type = (m.options || {}).type || options.type || 'bar'      
       series.accumulative = 0
       if (m.axis === 'secondary') { // right hand axis
+        hasy2Axis = true
         this.addOptions(options.data[y2Axis], m.options || {})
         // options.data[y2Axis] = Object.assign({}, options.data[y2Axis], m.options)        
         if (options.grouping !== 'stacked') {          
@@ -367,6 +400,7 @@ class Chart {
         }
       }
       else {
+        hasyAxis = true
         this.addOptions(options.data[yAxis], m.options || {})
         // options.data[yAxis] = Object.assign({}, options.data[yAxis], m.options)
         if (options.grouping !== 'stacked') {
@@ -409,13 +443,13 @@ class Chart {
       r.forEach((c, cIndex) => {
         if (cIndex === 0) {
           if (options.data[xAxis].scale !== 'Time') {
-            options.data[xAxis].min = options.data[xAxis].min.length < c.qText.length ? options.data[xAxis].min : c.qText
-            options.data[xAxis].max = options.data[xAxis].max.length > c.qText.length ? options.data[xAxis].max : c.qText
+            options.data[xAxis].min = (options.data[xAxis].min || '').length < (c.qText || '').length ? (options.data[xAxis].min || '') : (c.qText || '')
+            options.data[xAxis].max = (options.data[xAxis].max || '').length > (c.qText || '').length ? (options.data[xAxis].max || '') : (c.qText || '')
           }
           return
         }        
         let x = r[0]
-        x.value = x.qText        
+        x.value = x.qText || '-'       
         if ((this.layout.qHyperCube.qDimensionInfo[0].options || {}).scale === 'Time') {
           x.value = this.fromQlikDate(x.qNum)
         }
@@ -434,8 +468,8 @@ class Chart {
         c.value = isNaN(c.qNum) ? 0 : c.qNum            
         xTotals[xKeys.indexOf(x.qElemNumber)] += c.value
         c.tooltipLabel = this.layout.qHyperCube.qMeasureInfo[cIndex - 1].qFallbackTitle   
-        c.tooltipValue = c.qText        
-        c.label = c.qText   
+        c.tooltipValue = c.qText || '-'    
+        c.label = c.qText || '-'
         // if (this.layout.qHyperCube.qMeasureInfo[cIndex - 1].options) {
         // c.color = this.layout.qHyperCube.qMeasureInfo[cIndex - 1].options.color 
         // }        
@@ -452,10 +486,14 @@ class Chart {
       })
     })
     if (options.grouping === 'stacked') {
-      options.data[yAxis].min = 0 // may need to revisit this to think about negative numbers
-      options.data[yAxis].max = Math.max(...xTotals)
-      options.data[y2Axis].min = 0 // may need to revisit this to think about negative numbers
-      options.data[y2Axis].max = Math.max(...xTotals)
+      if (hasyAxis) {
+        options.data[yAxis].min = 0 // may need to revisit this to think about negative numbers
+        options.data[yAxis].max = Math.max(...xTotals)
+      }      
+      if (hasy2Axis) {
+        options.data[y2Axis].min = 0 // may need to revisit this to think about negative numbers
+        options.data[y2Axis].max = Math.max(...xTotals)
+      }
     }
     console.log('multi measure options', options, xTotals)  
     return options
@@ -466,10 +504,10 @@ class Chart {
       if (node.qSubNodes.length > 0) {
         node.qSubNodes.forEach((s) => {
           const row = [
-            { qText: node.qText, qElemNumber: node.qElemNo }
+            { qText: node.qText || '-', qElemNumber: node.qElemNo }
           ]
           let dimCell2 = {
-            qText: s.qText,
+            qText: s.qText || '-',
             qElemNumber: s.qElemNo
           }
           if (s.qAttrExps) {
@@ -478,7 +516,7 @@ class Chart {
           row.push(dimCell2)
           if (s.qSubNodes && s.qSubNodes.length > 0) {
             let expCell = {
-              qText: s.qSubNodes[0].qText,
+              qText: s.qSubNodes[0].qText || '-',
               qNum: s.qSubNodes[0].qValue
             }
             if (s.qSubNodes[0].qAttrExps) {
