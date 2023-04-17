@@ -655,7 +655,6 @@ var Chart = /*#__PURE__*/function () {
     value: function formatValue(d) {
       var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
       var qlikSettings = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-      console.log('formatting', d, options);
       var decimals = 0;
       var isPercentage = false;
 
@@ -717,6 +716,10 @@ var Chart = /*#__PURE__*/function () {
 
       this.options.model.getLayout().then(function (layout) {
         _this6.layout = layout;
+        _this6.chart.brushBarsInitialized = {};
+        _this6.chart.brushLinesInitialized = {};
+        _this6.chart.brushInitialized = false;
+        _this6.chart.brushedDomain = [];
 
         if (layout.qHyperCube.qError && layout.qHyperCube.qCalcCondMsg) {
           _this6.chart.hideLoading();
@@ -1228,7 +1231,6 @@ var Chart = /*#__PURE__*/function () {
           });
         }
       });
-      console.log('stacked matrix', matrix);
       return matrix;
     }
   }]);

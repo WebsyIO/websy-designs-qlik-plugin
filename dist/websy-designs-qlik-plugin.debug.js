@@ -639,7 +639,6 @@ class Chart {
     return title.replace(rgx, '_').replace(/ /g, '_')
   }
   formatValue (d, options = {}, qlikSettings = {}) {
-    console.log('formatting', d, options)
     let decimals = 0
     let isPercentage = false
     if (typeof options.max === 'undefined' && qlikSettings.qMax) {
@@ -690,6 +689,11 @@ class Chart {
   render () {
     this.options.model.getLayout().then(layout => {
       this.layout = layout
+
+      this.chart.brushBarsInitialized = {}
+      this.chart.brushLinesInitialized = {}
+      this.chart.brushInitialized = false
+      this.chart.brushedDomain = []
       if (layout.qHyperCube.qError && layout.qHyperCube.qCalcCondMsg) {
         this.chart.hideLoading()
         this.chart.showError({message: this.options.customError || layout.qHyperCube.qCalcCondMsg})
@@ -1092,7 +1096,6 @@ class Chart {
         })
       }
     })      
-    console.log('stacked matrix', matrix)
     return matrix
   }
 }
