@@ -1700,7 +1700,10 @@ class DatePicker {
             else if (selectedRange.length === 0) {
               this.picker.selectRange(0, false)
             }
-          }          
+          }  
+          else if (selectedRange.length !== layout.qListObject.qDataPages[0].qMatrix.length && selectedRange.length > 0) {
+            this.picker.selectCustomRange(selectedRange)
+          }        
           this.picker.render(disabledDates)
           this.listening = true
         }
