@@ -1906,6 +1906,8 @@ var DatePicker = /*#__PURE__*/function () {
               }
             } else if (selectedRange.length !== layout.qListObject.qDataPages[0].qMatrix.length && selectedRange.length > 0) {
               _this16.picker.selectCustomRange(selectedRange);
+            } else if (_this16.selectedRangeIndex === 0 && selectedRange.length === 0) {
+              _this16.picker.selectRange(0, false);
             }
 
             _this16.picker.render(disabledDates);

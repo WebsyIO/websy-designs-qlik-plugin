@@ -1701,6 +1701,9 @@ class DatePicker {
           }  
           else if (selectedRange.length !== layout.qListObject.qDataPages[0].qMatrix.length && selectedRange.length > 0) {
             this.picker.selectCustomRange(selectedRange)
+          }
+          else if (this.selectedRangeIndex === 0 && selectedRange.length === 0) {
+            this.picker.selectRange(0, false)
           }        
           this.picker.render(disabledDates)
           this.listening = true
