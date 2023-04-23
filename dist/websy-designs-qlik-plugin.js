@@ -670,13 +670,13 @@ var Chart = /*#__PURE__*/function () {
 
       if (options.decimals) {
         decimals = options.decimals;
-      } else if (qlikSettings.qNumFormat.qnDec) {
+      } else if (qlikSettings.qNumFormat && qlikSettings.qNumFormat.qnDec) {
         decimals = qlikSettings.qNumFormat.qnDec;
       }
 
       if (options.showAsPercentage === true) {
         isPercentage = options.showAsPercentage;
-      } else if (qlikSettings.qNumFormat.qFmt) {
+      } else if (qlikSettings.qNumFormat && qlikSettings.qNumFormat.qFmt) {
         isPercentage = qlikSettings.qNumFormat.qFmt.indexOf('%') !== -1;
       }
 
@@ -973,6 +973,8 @@ var Chart = /*#__PURE__*/function () {
       options.data[yAxis].scale = yScale;
       options.data[xAxis].padding = options.padding || 0;
       options.data[xAxis].data = [];
+      options.data[yAxis].min = 0;
+      options.data[yAxis].max = 0;
 
       if (options.xTitle) {
         options.data[xAxis].title = options.xTitle;
@@ -988,8 +990,14 @@ var Chart = /*#__PURE__*/function () {
         options.data[xAxis].data.push({
           value: m.qFallbackTitle
         });
-        options.data[yAxis].min = Math.min(options.data[yAxis].min, m.qMin);
-        options.data[yAxis].max = Math.max(options.data[yAxis].max, m.qMax);
+
+        if (m.qMin !== 'NaN') {
+          options.data[yAxis].min = Math.min(options.data[yAxis].min, m.qMin);
+        }
+
+        if (m.qMax !== 'NaN') {
+          options.data[yAxis].max = Math.max(options.data[yAxis].max, m.qMax);
+        }
       });
 
       if (options.yMinOverride) {
@@ -1008,6 +1016,7 @@ var Chart = /*#__PURE__*/function () {
           data: this.layout.qHyperCube.qDataPages[0].qMatrix.map(function (r) {
             return r.map(function (c, i) {
               c.value = isNaN(c.qNum) ? 0 : c.qNum;
+              c.index = i;
 
               if (c.qAttrExps && c.qAttrExps.qValues[0] && c.qAttrExps.qValues[0].qText) {
                 c.label = c.qAttrExps.qValues[0].qText;
@@ -5285,6 +5294,8 @@ var Table3 = /*#__PURE__*/function () {
 
       return page.map(function (r) {
         return r.map(function (c, i) {
+          c.level = i;
+
           if (_this51.table.options.columns[_this51.table.options.columns.length - 1][i] && (_this51.table.options.columns[_this51.table.options.columns.length - 1][i].showAsLink === true || _this51.table.options.columns[_this51.table.options.columns.length - 1][i].showAsNavigatorLink === true)) {
             if (c.qAttrExps && c.qAttrExps.qValues && c.qAttrExps.qValues[0].qText) {
               c.value = c.qAttrExps.qValues[0].qText;

@@ -647,13 +647,13 @@ class Chart {
     if (options.decimals) {
       decimals = options.decimals
     }
-    else if (qlikSettings.qNumFormat.qnDec) {
+    else if (qlikSettings.qNumFormat && qlikSettings.qNumFormat.qnDec) {
       decimals = qlikSettings.qNumFormat.qnDec
     }
     if (options.showAsPercentage === true) {
       isPercentage = options.showAsPercentage
     }
-    else if (qlikSettings.qNumFormat.qFmt) {
+    else if (qlikSettings.qNumFormat && qlikSettings.qNumFormat.qFmt) {
       isPercentage = qlikSettings.qNumFormat.qFmt.indexOf('%') !== -1
     }
     if ((options || {}).scale === 'Time' && d.getDate) {
@@ -886,6 +886,8 @@ class Chart {
     options.data[yAxis].scale = yScale    
     options.data[xAxis].padding = options.padding || 0
     options.data[xAxis].data = []
+    options.data[yAxis].min = 0
+    options.data[yAxis].max = 0
     if (options.xTitle) {
       options.data[xAxis].title = options.xTitle
       options.data[xAxis].showTitle = true
@@ -896,8 +898,12 @@ class Chart {
     }
     this.layout.qHyperCube.qMeasureInfo.forEach(m => {
       options.data[xAxis].data.push({value: m.qFallbackTitle})
-      options.data[yAxis].min = Math.min(options.data[yAxis].min, m.qMin)      
-      options.data[yAxis].max = Math.max(options.data[yAxis].max, m.qMax)            
+      if (m.qMin !== 'NaN') {
+        options.data[yAxis].min = Math.min(options.data[yAxis].min, m.qMin)      
+      }      
+      if (m.qMax !== 'NaN') {
+        options.data[yAxis].max = Math.max(options.data[yAxis].max, m.qMax)            
+      }
     })    
     if (options.yMinOverride) {
       options.data[yAxis].min = options.yMinOverride
@@ -912,6 +918,7 @@ class Chart {
         color: options.color,
         data: this.layout.qHyperCube.qDataPages[0].qMatrix.map(r => r.map((c, i) => {
           c.value = isNaN(c.qNum) ? 0 : c.qNum
+          c.index = i
           if (c.qAttrExps && c.qAttrExps.qValues[0] && c.qAttrExps.qValues[0].qText) {
             c.label = c.qAttrExps.qValues[0].qText
           }
@@ -4436,6 +4443,7 @@ class Table3 {
   transformData (page) {    
     return page.map(r => {
       return r.map((c, i) => {
+        c.level = i
         if (this.table.options.columns[this.table.options.columns.length - 1][i] && (this.table.options.columns[this.table.options.columns.length - 1][i].showAsLink === true || this.table.options.columns[this.table.options.columns.length - 1][i].showAsNavigatorLink === true)) {
           if (c.qAttrExps && c.qAttrExps.qValues && c.qAttrExps.qValues[0].qText) {
             c.value = c.qAttrExps.qValues[0].qText

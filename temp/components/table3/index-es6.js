@@ -1018,6 +1018,7 @@ class Table3 {
   transformData (page) {    
     return page.map(r => {
       return r.map((c, i) => {
+        c.level = i
         if (this.table.options.columns[this.table.options.columns.length - 1][i] && (this.table.options.columns[this.table.options.columns.length - 1][i].showAsLink === true || this.table.options.columns[this.table.options.columns.length - 1][i].showAsNavigatorLink === true)) {
           if (c.qAttrExps && c.qAttrExps.qValues && c.qAttrExps.qValues[0].qText) {
             c.value = c.qAttrExps.qValues[0].qText
