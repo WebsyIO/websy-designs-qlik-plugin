@@ -704,10 +704,26 @@ var Chart = /*#__PURE__*/function () {
     }
   }, {
     key: "getColor",
-    value: function getColor(cell, measure, colorProps) {
+    value: function getColor(cell, dimCell, dimension, measure, colorProps) {
+      var colors = this.layout.options.colors || this.chart.options.colors;
+
       if (colorProps) {
         if (!colorProps.auto) {
-          if (measure.qAttrExprInfo && measure.qAttrExprInfo[0] && measure.qAttrExprInfo[0].id === 'colorByExpression') {
+          if (colorProps.mode === 'byDimension') {
+            if (dimension.qAttrDimInfo && dimension.qAttrDimInfo[0] && dimension.qAttrDimInfo[0].id === 'colorByAlternative') {
+              if (this.options.legendKeys.indexOf(dimCell.qAttrDims.qValues[0].qText) === -1) {
+                this.options.legendKeys.push(dimCell.qAttrDims.qValues[0].qText);
+                this.options.legendData.push({
+                  value: dimCell.qAttrDims.qValues[0].qText,
+                  color: colors[dimCell.qAttrDims.qValues[0].qElemNo % colors.length]
+                });
+              }
+
+              return colors[dimCell.qAttrDims.qValues[0].qElemNo % colors.length];
+            } else {
+              return colors[dimCell.qElemNumber % colors.length];
+            }
+          } else if (measure.qAttrExprInfo && measure.qAttrExprInfo[0] && measure.qAttrExprInfo[0].id === 'colorByExpression') {
             if (cell.qAttrExps && cell.qAttrExps.qValues && cell.qAttrExps.qValues[0] && cell.qAttrExps.qValues[0].qText) {
               return cell.qAttrExps.qValues[0].qText;
             }
@@ -720,6 +736,8 @@ var Chart = /*#__PURE__*/function () {
     value: function render() {
       var _this6 = this;
 
+      this.options.legendData = [];
+      this.options.legendKeys = [];
       this.options.model.getLayout().then(function (layout) {
         _this6.layout = layout;
         _this6.chart.brushBarsInitialized = {};
@@ -760,6 +778,10 @@ var Chart = /*#__PURE__*/function () {
             options = _this6.transformMultiDimensions();
           } else if (layout.qHyperCube.qDimensionInfo.length === 0 && layout.qHyperCube.qMeasureInfo.length > 0) {
             options = _this6.transformNoDimensions();
+          }
+
+          if (_this6.options.legendData.length > 0) {
+            options.legendData = _this6.options.legendData;
           }
 
           if (layout.refLine && layout.refLine.refLines && layout.refLine.refLines.length > 0) {
@@ -891,6 +913,7 @@ var Chart = /*#__PURE__*/function () {
       var bottomKeys = [];
       var bottomAcc = [];
       var bottomTotals = [];
+      var groupCounts = {};
       this.layout.qHyperCube.qDataPages[0].qMatrix.forEach(function (r) {
         var seriesIndex = seriesKeys.indexOf(r[0].qText || '-');
         var bottomIndex = bottomKeys.indexOf(r[1].qText || '-');
@@ -905,16 +928,20 @@ var Chart = /*#__PURE__*/function () {
           bottomAcc.push(0);
           bottomTotals.push(0);
           r[1].value = v;
+          r[1].valueCount = 0;
+          groupCounts[v] = r[1];
           options.data[xAxis].data.push(r[1]);
           bottomIndex = bottomKeys.length - 1;
         }
+
+        groupCounts[v].valueCount++;
 
         if (seriesIndex === -1) {
           seriesKeys.push(r[0].qText || '-');
           seriesIndex = seriesKeys.length - 1;
           series.push(_extends({}, _this8.layout.qHyperCube.qMeasureInfo[0].options, {
             key: "series_".concat(seriesIndex),
-            type: options.type || 'bar',
+            type: (_this8.layout.qHyperCube.qMeasureInfo[0].options || {}).type || options.type || 'bar',
             accumulative: 0,
             label: r[0].qText || '-',
             // color: this.layout.options.color,
@@ -926,7 +953,12 @@ var Chart = /*#__PURE__*/function () {
 
         c.value = c.qNum;
         c.label = c.qText || '-';
-        c.color = _this8.getColor(c, _this8.layout.qHyperCube.qMeasureInfo[0], _this8.layout.qHyperCube.color);
+
+        if (c.qAttrExps && c.qAttrExps.qValues[0] && c.qAttrExps.qValues[0].qText) {
+          c.label = c.qAttrExps.qValues[0].qText;
+        }
+
+        c.color = _this8.getColor(c, r[1], _this8.layout.qHyperCube.qDimensionInfo[1], _this8.layout.qHyperCube.qMeasureInfo[0], _this8.layout.qHyperCube.color);
         c.tooltipLabel = r[0].qText;
         c.tooltipValue = c.qText || '-';
         c.accumulative = bottomAcc[bottomIndex];
@@ -946,8 +978,13 @@ var Chart = /*#__PURE__*/function () {
       options.data.series = series;
       options.data[yAxis].min = this.layout.qHyperCube.qMeasureInfo[0].qMin; // options.data[yAxis].max = this.layout.qHyperCube.qMeasureInfo[0].qMax    
 
-      options.data[yAxis].max = Math.max.apply(Math, bottomTotals); // options.data[xAxis].min = options.data[xAxis].data[0].value
+      if (this.options.grouping === 'stacked') {
+        options.data[yAxis].max = Math.max.apply(Math, bottomTotals);
+      } else {
+        options.data[yAxis].max = this.layout.qHyperCube.qMeasureInfo[0].qMax;
+      } // options.data[xAxis].min = options.data[xAxis].data[0].value
       // options.data[xAxis].max = options.data[xAxis].data[options.data[xAxis].data.length - 1].value
+
 
       return options;
     }
@@ -1173,7 +1210,8 @@ var Chart = /*#__PURE__*/function () {
           xTotals[xKeys.indexOf(x.qElemNumber)] += c.value;
           c.tooltipLabel = _this10.layout.qHyperCube.qMeasureInfo[cIndex - 1].qFallbackTitle;
           c.tooltipValue = c.qText || '-';
-          c.label = c.qText || '-'; // if (this.layout.qHyperCube.qMeasureInfo[cIndex - 1].options) {
+          c.label = c.qText || '-';
+          c.color = _this10.getColor(c, r[0], _this10.layout.qHyperCube.qDimensionInfo[0], _this10.layout.qHyperCube.qMeasureInfo[cIndex - 1], _this10.layout.qHyperCube.color); // if (this.layout.qHyperCube.qMeasureInfo[cIndex - 1].options) {
           // c.color = this.layout.qHyperCube.qMeasureInfo[cIndex - 1].options.color 
           // }        
 
@@ -4251,11 +4289,14 @@ var Table3 = /*#__PURE__*/function () {
       var maxMLabel = this.layout.qHyperCube.qMeasureInfo.filter(function (m) {
         return !m.qError;
       }).reduce(function (a, b) {
-        return a.qFallbackTitle > b.qFallbackTitle ? a : b;
+        return a.qFallbackTitle.length > b.qFallbackTitle.length ? a : b;
       }).qFallbackTitle;
       var maxMLength = maxMLabel.length > maxMValue ? maxMLabel : new Array(maxMValue).fill('X').join('');
       var effectiveOrder = this.layout.qHyperCube.qEffectiveInterColumnSortOrder;
       var possibleExpandCollapse = this.layout.qHyperCube.qMode === 'P' && this.layout.qHyperCube.qAlwaysFullyExpanded !== true;
+      var measureLengths = this.layout.qHyperCube.qMeasureInfo.reduce(function (a, b) {
+        return Math.max(a, b.qApprMaxGlyphCount);
+      }, 0);
       var dimensionLengths = this.layout.qHyperCube.qDimensionInfo.filter(function (d) {
         return !d.qError;
       }).map(function (d) {
@@ -4269,6 +4310,15 @@ var Table3 = /*#__PURE__*/function () {
 
         return out;
       });
+
+      if (dimensionLengths.length > this.pinnedColumns) {
+        // we have a top column
+        measureLengths = Math.max(measureLengths, dimensionLengths.reduce(function (a, b) {
+          return Math.max(a, b.length);
+        }, 0));
+        maxMLength = measureLengths > maxMLength.length ? new Array(measureLengths).fill('X').join('') : maxMLength;
+      }
+
       var activeColumns = [];
       var rows = [];
       var columns = [];
@@ -4289,7 +4339,7 @@ var Table3 = /*#__PURE__*/function () {
         if (this.layout.qHyperCube.qIndentMode === true) {
           if (i < this.pinnedColumns) {
             if (effectiveOrder[i] === -1) {
-              activeColumns.push(maxMLength);
+              activeColumns.push(new Array(measureLengths).fill('X')); // activeColumns.push(maxMLength)
             }
 
             if (!activeColumns[0]) {
@@ -4305,6 +4355,7 @@ var Table3 = /*#__PURE__*/function () {
 
       if (effectiveOrder.indexOf(-1) >= (this.layout.qHyperCube.qIndentMode === true ? 1 : this.pinnedColumns)) {
         for (var _i17 = this.layout.qHyperCube.qIndentMode === true ? 1 : this.pinnedColumns; _i17 < this.columns[this.columns.length - 1].length; _i17++) {
+          // activeColumns.push(Math.max(maxMLength, maxMLabel))
           activeColumns.push(maxMLength);
         }
       } else if (effectiveOrder.indexOf(-1) === -1) {
@@ -4317,6 +4368,11 @@ var Table3 = /*#__PURE__*/function () {
         for (var _i18 = activeColumns.length; _i18 < this.columns[this.columns.length - 1].length; _i18++) {
           activeColumns.push(maxMLength);
         }
+      }
+
+      for (var _i19 = activeColumns.length; _i19 < this.columns[this.columns.length - 1].length; _i19++) {
+        // activeColumns.push(Math.max(maxMLength, maxMLabel))
+        activeColumns.push(maxMLength);
       }
 
       var columnParamValues = activeColumns.map(function (d) {
@@ -4332,8 +4388,8 @@ var Table3 = /*#__PURE__*/function () {
         var rEl = document.getElementById("".concat(this.elementId, "_pivotRows"));
         var count = this.layout.qHyperCube.qIndentMode === true ? 1 : this.pinnedColumns;
 
-        for (var _i19 = 0; _i19 < count; _i19++) {
-          rowsWidth += this.columns[this.columns.length - 1][_i19].actualWidth;
+        for (var _i20 = 0; _i20 < count; _i20++) {
+          rowsWidth += this.columns[this.columns.length - 1][_i20].actualWidth;
         }
 
         if (this.options.pivotPanel === 'docked') {
@@ -4993,13 +5049,21 @@ var Table3 = /*#__PURE__*/function () {
         var start = _this48.layout.qHyperCube.qMode === 'S' || _this48.layout.qHyperCube.qIndentMode === true ? startRow : 0;
         var end = _this48.layout.qHyperCube.qMode === 'S' || _this48.layout.qHyperCube.qIndentMode === true ? endRow : endRow - startRow;
 
-        _this48.appendRows(_this48.transformData(_this48.fullData.slice(start, end + 1).map(function (row) {
+        _this48.appendRows(_this48.transformData(_toConsumableArray(_this48.fullData).slice(start, end + 1).map(function (row) {
+          // console.log(row)
           return row.filter(function (c, i) {
             if (_this48.layout.qHyperCube.qMode === 'P' && _this48.layout.qHyperCube.qIndentMode !== true) {
-              return c.level < _this48.pinnedColumns || c.dataIndex >= startCol && c.dataIndex <= endCol;
+              return c.level < _this48.pinnedColumns || c.dataIndex >= startCol && c.dataIndex <= endCol; // return c.level < this.pinnedColumns || (c.level >= startCol && c.level <= endCol)
             } else {
               return i < _this48.pinnedColumns || i >= startCol + _this48.pinnedColumns && i <= endCol + _this48.pinnedColumns;
             }
+          }).map(function (c, i, arr) {
+            if (_this48.layout.qHyperCube.qMode === 'P') {
+              // && this.layout.qHyperCube.qIndentMode !== true) {            
+              c.level = c.level > _this48.pinnedColumns - 1 ? _this48.table.options.columns[_this48.table.options.columns.length - 1].length - (arr.length - i) : c.level;
+            }
+
+            return c;
           });
         })));
       });
@@ -5294,7 +5358,9 @@ var Table3 = /*#__PURE__*/function () {
 
       return page.map(function (r) {
         return r.map(function (c, i) {
-          c.level = i;
+          if (_this51.layout.qHyperCube.qMode === 'S') {
+            c.level = i;
+          }
 
           if (_this51.table.options.columns[_this51.table.options.columns.length - 1][i] && (_this51.table.options.columns[_this51.table.options.columns.length - 1][i].showAsLink === true || _this51.table.options.columns[_this51.table.options.columns.length - 1][i].showAsNavigatorLink === true)) {
             if (c.qAttrExps && c.qAttrExps.qValues && c.qAttrExps.qValues[0].qText) {
@@ -5423,8 +5489,8 @@ var Table3 = /*#__PURE__*/function () {
         expandLeft.call(this, page.qLeft[i], 0, 0, null, []);
       }
 
-      for (var _i20 = 0; _i20 < page.qTop.length; _i20++) {
-        expandTop.call(this, page.qTop[_i20], 0, _i20);
+      for (var _i21 = 0; _i21 < page.qTop.length; _i21++) {
+        expandTop.call(this, page.qTop[_i21], 0, _i21);
       }
 
       this.pinnedColumns = visibleLeftCount;
@@ -5483,7 +5549,7 @@ var Table3 = /*#__PURE__*/function () {
         additionalCellCount = 1;
       }
 
-      for (var _i21 = 0; _i21 < additionalCellCount; _i21++) {
+      for (var _i22 = 0; _i22 < additionalCellCount; _i22++) {
         additionalTopCells.push({
           rowspan: 1,
           colspan: 1,
@@ -5495,8 +5561,8 @@ var Table3 = /*#__PURE__*/function () {
       }
 
       if (visibleLeftCount !== 0) {
-        for (var _i22 = 0; _i22 < topNodesTransposed.length; _i22++) {
-          if (_i22 === topNodesTransposed.length - 1 && this.layout.qHyperCube.qMode === 'P' && this.layout.qHyperCube.qIndentMode !== true) {
+        for (var _i23 = 0; _i23 < topNodesTransposed.length; _i23++) {
+          if (_i23 === topNodesTransposed.length - 1 && this.layout.qHyperCube.qMode === 'P' && this.layout.qHyperCube.qIndentMode !== true) {
             (function () {
               var columns = _this52.layout.qHyperCube.qDimensionInfo.filter(function (d) {
                 return !d.qError;
@@ -5506,7 +5572,7 @@ var Table3 = /*#__PURE__*/function () {
                 d.name = (columns[i] || {}).qFallbackTitle || '';
                 return d;
               });
-              topNodesTransposed[_i22] = labelledTopCells.concat(topNodesTransposed[_i22]);
+              topNodesTransposed[_i23] = labelledTopCells.concat(topNodesTransposed[_i23]);
             })();
           } else {
             // if (i === topNodesTransposed.length - 1) {          
@@ -5526,7 +5592,7 @@ var Table3 = /*#__PURE__*/function () {
             // })).concat(topNodesTransposed[i])
             // } 
             // else {
-            topNodesTransposed[_i22] = additionalTopCells.concat(topNodesTransposed[_i22]);
+            topNodesTransposed[_i23] = additionalTopCells.concat(topNodesTransposed[_i23]);
           }
         }
       }
@@ -5601,8 +5667,8 @@ var Table3 = /*#__PURE__*/function () {
 
           tempNode = [];
 
-          for (var _i23 = 0; _i23 < input.qSubNodes.length; _i23++) {
-            expandLeft.call(this, input.qSubNodes[_i23], level + 1, _i23, input, [].concat(_toConsumableArray(chain), [o]));
+          for (var _i24 = 0; _i24 < input.qSubNodes.length; _i24++) {
+            expandLeft.call(this, input.qSubNodes[_i24], level + 1, _i24, input, [].concat(_toConsumableArray(chain), [o]));
           }
         } else if (input.qSubNodes.length === 0) {
           leftNodes.push(tempNode.concat([o]));
@@ -5610,14 +5676,14 @@ var Table3 = /*#__PURE__*/function () {
         } else {
           tempNode.push(o);
 
-          for (var _i24 = 0; _i24 < input.qSubNodes.length; _i24++) {
-            expandLeft.call(this, input.qSubNodes[_i24], level + 1, _i24, input, [].concat(_toConsumableArray(chain), [o]));
+          for (var _i25 = 0; _i25 < input.qSubNodes.length; _i25++) {
+            expandLeft.call(this, input.qSubNodes[_i25], level + 1, _i25, input, [].concat(_toConsumableArray(chain), [o]));
           }
 
           var s = 0;
 
-          for (var _i25 = 0; _i25 < input.qSubNodes.length; _i25++) {
-            s += input.qSubNodes[_i25].rowspan;
+          for (var _i26 = 0; _i26 < input.qSubNodes.length; _i26++) {
+            s += input.qSubNodes[_i26].rowspan;
           }
 
           input.rowspan = s;
@@ -5704,17 +5770,17 @@ var Table3 = /*#__PURE__*/function () {
           } // }
 
         } else {
-          for (var _i26 = 0; _i26 < input.qSubNodes.length; _i26++) {
-            expandTop.call(this, input.qSubNodes[_i26], level + 1, _i26, input);
+          for (var _i27 = 0; _i27 < input.qSubNodes.length; _i27++) {
+            expandTop.call(this, input.qSubNodes[_i27], level + 1, _i27, input);
           }
 
           var s = 0;
           var inView = false;
 
-          for (var _i27 = 0; _i27 < input.qSubNodes.length; _i27++) {
+          for (var _i28 = 0; _i28 < input.qSubNodes.length; _i28++) {
             // if (input.qSubNodes[i].inView === true) {
             // inView = true
-            s += input.qSubNodes[_i27].colspan; // }
+            s += input.qSubNodes[_i28].colspan; // }
           } // o.inView = inView
           // input.inView = inView
 
@@ -5819,7 +5885,7 @@ if (typeof WebsyDesigns !== 'undefined') {
   XMLHttpRequest
   WebsyDesigns
   Chart
-  Table
+  Table3
   GeoMap
   Dropdown
   DatePicker
@@ -5844,7 +5910,7 @@ if (typeof WebsyDesigns !== 'undefined') {
         definition: KPI
       }, {
         id: 'table',
-        definition: Table
+        definition: Table3
       }, {
         id: 'chart',
         definition: Chart

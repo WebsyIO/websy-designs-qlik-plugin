@@ -111,10 +111,26 @@ class Chart {
     output.setTime(output.getTime() + output.getTimezoneOffset() * 60000)
     return output
   }
-  getColor (cell, measure, colorProps) {
+  getColor (cell, dimCell, dimension, measure, colorProps) {
+    let colors = this.layout.options.colors || this.chart.options.colors
     if (colorProps) {
       if (!colorProps.auto) {
-        if (measure.qAttrExprInfo && measure.qAttrExprInfo[0] && measure.qAttrExprInfo[0].id === 'colorByExpression') {
+        if (colorProps.mode === 'byDimension') {
+          if (dimension.qAttrDimInfo && dimension.qAttrDimInfo[0] && dimension.qAttrDimInfo[0].id === 'colorByAlternative') {
+            if (this.options.legendKeys.indexOf(dimCell.qAttrDims.qValues[0].qText) === -1) {
+              this.options.legendKeys.push(dimCell.qAttrDims.qValues[0].qText)
+              this.options.legendData.push({
+                value: dimCell.qAttrDims.qValues[0].qText,
+                color: colors[dimCell.qAttrDims.qValues[0].qElemNo % colors.length]
+              })
+            }            
+            return colors[dimCell.qAttrDims.qValues[0].qElemNo % colors.length]
+          }
+          else {
+            return colors[dimCell.qElemNumber % colors.length]
+          }          
+        }
+        else if (measure.qAttrExprInfo && measure.qAttrExprInfo[0] && measure.qAttrExprInfo[0].id === 'colorByExpression') {
           if (cell.qAttrExps && cell.qAttrExps.qValues && cell.qAttrExps.qValues[0] && cell.qAttrExps.qValues[0].qText) {
             return cell.qAttrExps.qValues[0].qText
           }
@@ -123,6 +139,8 @@ class Chart {
     }    
   }
   render () {
+    this.options.legendData = []
+    this.options.legendKeys = []
     this.options.model.getLayout().then(layout => {
       this.layout = layout
 
@@ -156,7 +174,10 @@ class Chart {
         }
         else if (layout.qHyperCube.qDimensionInfo.length === 0 && layout.qHyperCube.qMeasureInfo.length > 0) {
           options = this.transformNoDimensions()
-        }        
+        }    
+        if (this.options.legendData.length > 0) {
+          options.legendData = this.options.legendData
+        }    
         if (layout.refLine && layout.refLine.refLines && layout.refLine.refLines.length > 0) {
           options.refLines = layout.refLine.refLines.filter(r => r.show !== false).map(r => ({
             value: r.refLineExpr.value,
@@ -254,6 +275,7 @@ class Chart {
     const bottomKeys = []
     const bottomAcc = []
     const bottomTotals = []
+    const groupCounts = {}
     this.layout.qHyperCube.qDataPages[0].qMatrix.forEach(r => {
       let seriesIndex = seriesKeys.indexOf(r[0].qText || '-')
       let bottomIndex = bottomKeys.indexOf(r[1].qText || '-')
@@ -266,15 +288,18 @@ class Chart {
         bottomAcc.push(0)
         bottomTotals.push(0)
         r[1].value = v
+        r[1].valueCount = 0
+        groupCounts[v] = r[1]
         options.data[xAxis].data.push(r[1])
         bottomIndex = bottomKeys.length - 1
       }
+      groupCounts[v].valueCount++
       if (seriesIndex === -1) {
         seriesKeys.push(r[0].qText || '-')
         seriesIndex = seriesKeys.length - 1
         series.push(Object.assign({}, this.layout.qHyperCube.qMeasureInfo[0].options, {
           key: `series_${seriesIndex}`,
-          type: options.type || 'bar',
+          type: (this.layout.qHyperCube.qMeasureInfo[0].options || {}).type || options.type || 'bar',
           accumulative: 0,   
           label: r[0].qText || '-',
           // color: this.layout.options.color,
@@ -285,7 +310,10 @@ class Chart {
       // c.value = isNaN(c.qNum) ? 0 : c.qNum
       c.value = c.qNum
       c.label = c.qText || '-'
-      c.color = this.getColor(c, this.layout.qHyperCube.qMeasureInfo[0], this.layout.qHyperCube.color)
+      if (c.qAttrExps && c.qAttrExps.qValues[0] && c.qAttrExps.qValues[0].qText) {
+        c.label = c.qAttrExps.qValues[0].qText
+      }
+      c.color = this.getColor(c, r[1], this.layout.qHyperCube.qDimensionInfo[1], this.layout.qHyperCube.qMeasureInfo[0], this.layout.qHyperCube.color)
       c.tooltipLabel = r[0].qText
       c.tooltipValue = c.qText || '-'
       c.accumulative = bottomAcc[bottomIndex]
@@ -301,7 +329,12 @@ class Chart {
     options.data.series = series
     options.data[yAxis].min = this.layout.qHyperCube.qMeasureInfo[0].qMin 
     // options.data[yAxis].max = this.layout.qHyperCube.qMeasureInfo[0].qMax    
-    options.data[yAxis].max = Math.max(...bottomTotals)
+    if (this.options.grouping === 'stacked') {
+      options.data[yAxis].max = Math.max(...bottomTotals)
+    }    
+    else {
+      options.data[yAxis].max = this.layout.qHyperCube.qMeasureInfo[0].qMax    
+    }
     // options.data[xAxis].min = options.data[xAxis].data[0].value
     // options.data[xAxis].max = options.data[xAxis].data[options.data[xAxis].data.length - 1].value
     return options   
@@ -481,6 +514,7 @@ class Chart {
         c.tooltipLabel = this.layout.qHyperCube.qMeasureInfo[cIndex - 1].qFallbackTitle   
         c.tooltipValue = c.qText || '-'    
         c.label = c.qText || '-'
+        c.color = this.getColor(c, r[0], this.layout.qHyperCube.qDimensionInfo[0], this.layout.qHyperCube.qMeasureInfo[cIndex - 1], this.layout.qHyperCube.color)
         // if (this.layout.qHyperCube.qMeasureInfo[cIndex - 1].options) {
         // c.color = this.layout.qHyperCube.qMeasureInfo[cIndex - 1].options.color 
         // }        

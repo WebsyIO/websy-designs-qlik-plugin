@@ -6,7 +6,7 @@
   XMLHttpRequest
   WebsyDesigns
   Chart
-  Table
+  Table3
   GeoMap
   Dropdown
   DatePicker
@@ -28,7 +28,7 @@ class ObjectManager {
       },
       {
         id: 'table',
-        definition: Table
+        definition: Table3
       },
       {
         id: 'chart',

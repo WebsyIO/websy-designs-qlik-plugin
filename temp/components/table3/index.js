@@ -162,10 +162,11 @@ class Table3 {
     this.endCol = this.columns[this.columns.length - 1].length
     this.table.options.columns = this.columns
     const maxMValue = this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError).reduce((a, b) => a.qApprMaxGlyphCount > b.qApprMaxGlyphCount ? a : b).qApprMaxGlyphCount
-    const maxMLabel = this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError).reduce((a, b) => a.qFallbackTitle > b.qFallbackTitle ? a : b).qFallbackTitle
-    const maxMLength = maxMLabel.length > maxMValue ? maxMLabel : new Array(maxMValue).fill('X').join('')
+    const maxMLabel = this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError).reduce((a, b) => a.qFallbackTitle.length > b.qFallbackTitle.length ? a : b).qFallbackTitle
+    let maxMLength = maxMLabel.length > maxMValue ? maxMLabel : new Array(maxMValue).fill('X').join('')
     let effectiveOrder = this.layout.qHyperCube.qEffectiveInterColumnSortOrder
     let possibleExpandCollapse = this.layout.qHyperCube.qMode === 'P' && this.layout.qHyperCube.qAlwaysFullyExpanded !== true
+    let measureLengths = this.layout.qHyperCube.qMeasureInfo.reduce((a, b) => Math.max(a, b.qApprMaxGlyphCount), 0)    
     let dimensionLengths = this.layout.qHyperCube.qDimensionInfo.filter(d => !d.qError).map(d => {
       let out = possibleExpandCollapse ? 'xxx' : ''
       if (d.qApprMaxGlyphCount > d.qFallbackTitle.length) {
@@ -176,6 +177,11 @@ class Table3 {
       }
       return out
     })
+    if (dimensionLengths.length > this.pinnedColumns) {
+      // we have a top column
+      measureLengths = Math.max(measureLengths, dimensionLengths.reduce((a, b) => Math.max(a, b.length), 0))
+      maxMLength = measureLengths > maxMLength.length ? new Array(measureLengths).fill('X').join('') : maxMLength
+    }
     let activeColumns = []
     let rows = []
     let columns = []
@@ -194,7 +200,8 @@ class Table3 {
       if (this.layout.qHyperCube.qIndentMode === true) {
         if (i < this.pinnedColumns) {
           if (effectiveOrder[i] === -1) {
-            activeColumns.push(maxMLength)
+            activeColumns.push(new Array(measureLengths).fill('X'))
+            // activeColumns.push(maxMLength)
           }          
           if (!activeColumns[0]) {
             activeColumns.push(dimensionLengths[i])
@@ -210,6 +217,7 @@ class Table3 {
     }       
     if (effectiveOrder.indexOf(-1) >= (this.layout.qHyperCube.qIndentMode === true ? 1 : this.pinnedColumns)) {
       for (let i = (this.layout.qHyperCube.qIndentMode === true ? 1 : this.pinnedColumns); i < this.columns[this.columns.length - 1].length; i++) {
+        // activeColumns.push(Math.max(maxMLength, maxMLabel))
         activeColumns.push(maxMLength)
       }
     }  
@@ -222,7 +230,11 @@ class Table3 {
       for (let i = activeColumns.length; i < this.columns[this.columns.length - 1].length; i++) {
         activeColumns.push(maxMLength)
       }
-    }                        
+    }
+    for (let i = activeColumns.length; i < this.columns[this.columns.length - 1].length; i++) {
+      // activeColumns.push(Math.max(maxMLength, maxMLabel))
+      activeColumns.push(maxMLength)
+    }
     let columnParamValues = activeColumns.map(d => ({value: d, width: null}))
     this.tableSizes = this.table.calculateSizes(columnParamValues, this.layout.qHyperCube.qSize.qcy, this.layout.qHyperCube.qSize.qcx, this.pinnedColumns)     
     let rowsWidth = 0
@@ -770,15 +782,22 @@ class Table3 {
         this.table.totals = totalsInView
       }      
       let start = this.layout.qHyperCube.qMode === 'S' || this.layout.qHyperCube.qIndentMode === true ? startRow : 0
-      let end = this.layout.qHyperCube.qMode === 'S' || this.layout.qHyperCube.qIndentMode === true ? endRow : endRow - startRow
-      this.appendRows(this.transformData(this.fullData.slice(start, end + 1).map(row => {
+      let end = this.layout.qHyperCube.qMode === 'S' || this.layout.qHyperCube.qIndentMode === true ? endRow : endRow - startRow            
+      this.appendRows(this.transformData([...this.fullData].slice(start, end + 1).map(row => {
+        // console.log(row)
         return row.filter((c, i) => {  
           if (this.layout.qHyperCube.qMode === 'P' && this.layout.qHyperCube.qIndentMode !== true) {
             return c.level < this.pinnedColumns || (c.dataIndex >= startCol && c.dataIndex <= endCol)
+            // return c.level < this.pinnedColumns || (c.level >= startCol && c.level <= endCol)
           }        
           else {
             return i < this.pinnedColumns || (i >= startCol + this.pinnedColumns && i <= endCol + this.pinnedColumns)
           }
+        }).map((c, i, arr) => {
+          if (this.layout.qHyperCube.qMode === 'P') { // && this.layout.qHyperCube.qIndentMode !== true) {            
+            c.level = c.level > this.pinnedColumns - 1 ? this.table.options.columns[this.table.options.columns.length - 1].length - (arr.length - i) : c.level
+          }
+          return c
         })
       })))
     })
@@ -1015,7 +1034,9 @@ class Table3 {
   transformData (page) {    
     return page.map(r => {
       return r.map((c, i) => {
-        c.level = i
+        if (this.layout.qHyperCube.qMode === 'S') {
+          c.level = i
+        }        
         if (this.table.options.columns[this.table.options.columns.length - 1][i] && (this.table.options.columns[this.table.options.columns.length - 1][i].showAsLink === true || this.table.options.columns[this.table.options.columns.length - 1][i].showAsNavigatorLink === true)) {
           if (c.qAttrExps && c.qAttrExps.qValues && c.qAttrExps.qValues[0].qText) {
             c.value = c.qAttrExps.qValues[0].qText

@@ -675,10 +675,26 @@ class Chart {
     output.setTime(output.getTime() + output.getTimezoneOffset() * 60000)
     return output
   }
-  getColor (cell, measure, colorProps) {
+  getColor (cell, dimCell, dimension, measure, colorProps) {
+    let colors = this.layout.options.colors || this.chart.options.colors
     if (colorProps) {
       if (!colorProps.auto) {
-        if (measure.qAttrExprInfo && measure.qAttrExprInfo[0] && measure.qAttrExprInfo[0].id === 'colorByExpression') {
+        if (colorProps.mode === 'byDimension') {
+          if (dimension.qAttrDimInfo && dimension.qAttrDimInfo[0] && dimension.qAttrDimInfo[0].id === 'colorByAlternative') {
+            if (this.options.legendKeys.indexOf(dimCell.qAttrDims.qValues[0].qText) === -1) {
+              this.options.legendKeys.push(dimCell.qAttrDims.qValues[0].qText)
+              this.options.legendData.push({
+                value: dimCell.qAttrDims.qValues[0].qText,
+                color: colors[dimCell.qAttrDims.qValues[0].qElemNo % colors.length]
+              })
+            }            
+            return colors[dimCell.qAttrDims.qValues[0].qElemNo % colors.length]
+          }
+          else {
+            return colors[dimCell.qElemNumber % colors.length]
+          }          
+        }
+        else if (measure.qAttrExprInfo && measure.qAttrExprInfo[0] && measure.qAttrExprInfo[0].id === 'colorByExpression') {
           if (cell.qAttrExps && cell.qAttrExps.qValues && cell.qAttrExps.qValues[0] && cell.qAttrExps.qValues[0].qText) {
             return cell.qAttrExps.qValues[0].qText
           }
@@ -687,6 +703,8 @@ class Chart {
     }    
   }
   render () {
+    this.options.legendData = []
+    this.options.legendKeys = []
     this.options.model.getLayout().then(layout => {
       this.layout = layout
 
@@ -720,7 +738,10 @@ class Chart {
         }
         else if (layout.qHyperCube.qDimensionInfo.length === 0 && layout.qHyperCube.qMeasureInfo.length > 0) {
           options = this.transformNoDimensions()
-        }        
+        }    
+        if (this.options.legendData.length > 0) {
+          options.legendData = this.options.legendData
+        }    
         if (layout.refLine && layout.refLine.refLines && layout.refLine.refLines.length > 0) {
           options.refLines = layout.refLine.refLines.filter(r => r.show !== false).map(r => ({
             value: r.refLineExpr.value,
@@ -818,6 +839,7 @@ class Chart {
     const bottomKeys = []
     const bottomAcc = []
     const bottomTotals = []
+    const groupCounts = {}
     this.layout.qHyperCube.qDataPages[0].qMatrix.forEach(r => {
       let seriesIndex = seriesKeys.indexOf(r[0].qText || '-')
       let bottomIndex = bottomKeys.indexOf(r[1].qText || '-')
@@ -830,15 +852,18 @@ class Chart {
         bottomAcc.push(0)
         bottomTotals.push(0)
         r[1].value = v
+        r[1].valueCount = 0
+        groupCounts[v] = r[1]
         options.data[xAxis].data.push(r[1])
         bottomIndex = bottomKeys.length - 1
       }
+      groupCounts[v].valueCount++
       if (seriesIndex === -1) {
         seriesKeys.push(r[0].qText || '-')
         seriesIndex = seriesKeys.length - 1
         series.push(Object.assign({}, this.layout.qHyperCube.qMeasureInfo[0].options, {
           key: `series_${seriesIndex}`,
-          type: options.type || 'bar',
+          type: (this.layout.qHyperCube.qMeasureInfo[0].options || {}).type || options.type || 'bar',
           accumulative: 0,   
           label: r[0].qText || '-',
           // color: this.layout.options.color,
@@ -849,7 +874,10 @@ class Chart {
       // c.value = isNaN(c.qNum) ? 0 : c.qNum
       c.value = c.qNum
       c.label = c.qText || '-'
-      c.color = this.getColor(c, this.layout.qHyperCube.qMeasureInfo[0], this.layout.qHyperCube.color)
+      if (c.qAttrExps && c.qAttrExps.qValues[0] && c.qAttrExps.qValues[0].qText) {
+        c.label = c.qAttrExps.qValues[0].qText
+      }
+      c.color = this.getColor(c, r[1], this.layout.qHyperCube.qDimensionInfo[1], this.layout.qHyperCube.qMeasureInfo[0], this.layout.qHyperCube.color)
       c.tooltipLabel = r[0].qText
       c.tooltipValue = c.qText || '-'
       c.accumulative = bottomAcc[bottomIndex]
@@ -865,7 +893,12 @@ class Chart {
     options.data.series = series
     options.data[yAxis].min = this.layout.qHyperCube.qMeasureInfo[0].qMin 
     // options.data[yAxis].max = this.layout.qHyperCube.qMeasureInfo[0].qMax    
-    options.data[yAxis].max = Math.max(...bottomTotals)
+    if (this.options.grouping === 'stacked') {
+      options.data[yAxis].max = Math.max(...bottomTotals)
+    }    
+    else {
+      options.data[yAxis].max = this.layout.qHyperCube.qMeasureInfo[0].qMax    
+    }
     // options.data[xAxis].min = options.data[xAxis].data[0].value
     // options.data[xAxis].max = options.data[xAxis].data[options.data[xAxis].data.length - 1].value
     return options   
@@ -1045,6 +1078,7 @@ class Chart {
         c.tooltipLabel = this.layout.qHyperCube.qMeasureInfo[cIndex - 1].qFallbackTitle   
         c.tooltipValue = c.qText || '-'    
         c.label = c.qText || '-'
+        c.color = this.getColor(c, r[0], this.layout.qHyperCube.qDimensionInfo[0], this.layout.qHyperCube.qMeasureInfo[cIndex - 1], this.layout.qHyperCube.color)
         // if (this.layout.qHyperCube.qMeasureInfo[cIndex - 1].options) {
         // c.color = this.layout.qHyperCube.qMeasureInfo[cIndex - 1].options.color 
         // }        
@@ -3590,10 +3624,11 @@ class Table3 {
     this.endCol = this.columns[this.columns.length - 1].length
     this.table.options.columns = this.columns
     const maxMValue = this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError).reduce((a, b) => a.qApprMaxGlyphCount > b.qApprMaxGlyphCount ? a : b).qApprMaxGlyphCount
-    const maxMLabel = this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError).reduce((a, b) => a.qFallbackTitle > b.qFallbackTitle ? a : b).qFallbackTitle
-    const maxMLength = maxMLabel.length > maxMValue ? maxMLabel : new Array(maxMValue).fill('X').join('')
+    const maxMLabel = this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError).reduce((a, b) => a.qFallbackTitle.length > b.qFallbackTitle.length ? a : b).qFallbackTitle
+    let maxMLength = maxMLabel.length > maxMValue ? maxMLabel : new Array(maxMValue).fill('X').join('')
     let effectiveOrder = this.layout.qHyperCube.qEffectiveInterColumnSortOrder
     let possibleExpandCollapse = this.layout.qHyperCube.qMode === 'P' && this.layout.qHyperCube.qAlwaysFullyExpanded !== true
+    let measureLengths = this.layout.qHyperCube.qMeasureInfo.reduce((a, b) => Math.max(a, b.qApprMaxGlyphCount), 0)    
     let dimensionLengths = this.layout.qHyperCube.qDimensionInfo.filter(d => !d.qError).map(d => {
       let out = possibleExpandCollapse ? 'xxx' : ''
       if (d.qApprMaxGlyphCount > d.qFallbackTitle.length) {
@@ -3604,6 +3639,11 @@ class Table3 {
       }
       return out
     })
+    if (dimensionLengths.length > this.pinnedColumns) {
+      // we have a top column
+      measureLengths = Math.max(measureLengths, dimensionLengths.reduce((a, b) => Math.max(a, b.length), 0))
+      maxMLength = measureLengths > maxMLength.length ? new Array(measureLengths).fill('X').join('') : maxMLength
+    }
     let activeColumns = []
     let rows = []
     let columns = []
@@ -3622,7 +3662,8 @@ class Table3 {
       if (this.layout.qHyperCube.qIndentMode === true) {
         if (i < this.pinnedColumns) {
           if (effectiveOrder[i] === -1) {
-            activeColumns.push(maxMLength)
+            activeColumns.push(new Array(measureLengths).fill('X'))
+            // activeColumns.push(maxMLength)
           }          
           if (!activeColumns[0]) {
             activeColumns.push(dimensionLengths[i])
@@ -3638,6 +3679,7 @@ class Table3 {
     }       
     if (effectiveOrder.indexOf(-1) >= (this.layout.qHyperCube.qIndentMode === true ? 1 : this.pinnedColumns)) {
       for (let i = (this.layout.qHyperCube.qIndentMode === true ? 1 : this.pinnedColumns); i < this.columns[this.columns.length - 1].length; i++) {
+        // activeColumns.push(Math.max(maxMLength, maxMLabel))
         activeColumns.push(maxMLength)
       }
     }  
@@ -3650,7 +3692,11 @@ class Table3 {
       for (let i = activeColumns.length; i < this.columns[this.columns.length - 1].length; i++) {
         activeColumns.push(maxMLength)
       }
-    }                        
+    }
+    for (let i = activeColumns.length; i < this.columns[this.columns.length - 1].length; i++) {
+      // activeColumns.push(Math.max(maxMLength, maxMLabel))
+      activeColumns.push(maxMLength)
+    }
     let columnParamValues = activeColumns.map(d => ({value: d, width: null}))
     this.tableSizes = this.table.calculateSizes(columnParamValues, this.layout.qHyperCube.qSize.qcy, this.layout.qHyperCube.qSize.qcx, this.pinnedColumns)     
     let rowsWidth = 0
@@ -4198,15 +4244,22 @@ class Table3 {
         this.table.totals = totalsInView
       }      
       let start = this.layout.qHyperCube.qMode === 'S' || this.layout.qHyperCube.qIndentMode === true ? startRow : 0
-      let end = this.layout.qHyperCube.qMode === 'S' || this.layout.qHyperCube.qIndentMode === true ? endRow : endRow - startRow
-      this.appendRows(this.transformData(this.fullData.slice(start, end + 1).map(row => {
+      let end = this.layout.qHyperCube.qMode === 'S' || this.layout.qHyperCube.qIndentMode === true ? endRow : endRow - startRow            
+      this.appendRows(this.transformData([...this.fullData].slice(start, end + 1).map(row => {
+        // console.log(row)
         return row.filter((c, i) => {  
           if (this.layout.qHyperCube.qMode === 'P' && this.layout.qHyperCube.qIndentMode !== true) {
             return c.level < this.pinnedColumns || (c.dataIndex >= startCol && c.dataIndex <= endCol)
+            // return c.level < this.pinnedColumns || (c.level >= startCol && c.level <= endCol)
           }        
           else {
             return i < this.pinnedColumns || (i >= startCol + this.pinnedColumns && i <= endCol + this.pinnedColumns)
           }
+        }).map((c, i, arr) => {
+          if (this.layout.qHyperCube.qMode === 'P') { // && this.layout.qHyperCube.qIndentMode !== true) {            
+            c.level = c.level > this.pinnedColumns - 1 ? this.table.options.columns[this.table.options.columns.length - 1].length - (arr.length - i) : c.level
+          }
+          return c
         })
       })))
     })
@@ -4443,7 +4496,9 @@ class Table3 {
   transformData (page) {    
     return page.map(r => {
       return r.map((c, i) => {
-        c.level = i
+        if (this.layout.qHyperCube.qMode === 'S') {
+          c.level = i
+        }        
         if (this.table.options.columns[this.table.options.columns.length - 1][i] && (this.table.options.columns[this.table.options.columns.length - 1][i].showAsLink === true || this.table.options.columns[this.table.options.columns.length - 1][i].showAsNavigatorLink === true)) {
           if (c.qAttrExps && c.qAttrExps.qValues && c.qAttrExps.qValues[0].qText) {
             c.value = c.qAttrExps.qValues[0].qText
@@ -4902,7 +4957,7 @@ if (typeof WebsyDesigns !== 'undefined') {
   XMLHttpRequest
   WebsyDesigns
   Chart
-  Table
+  Table3
   GeoMap
   Dropdown
   DatePicker
@@ -4924,7 +4979,7 @@ class ObjectManager {
       },
       {
         id: 'table',
-        definition: Table
+        definition: Table3
       },
       {
         id: 'chart',
