@@ -4501,6 +4501,7 @@ var Table3 = /*#__PURE__*/function () {
       var activeSort = this.layout.qHyperCube.qEffectiveInterColumnSortOrder[0];
       this.columns = this.columns.map(function (c, i) {
         c.colIndex = _this43.columnOrder.indexOf(i);
+        c.classes = ["".concat(c.isMeasure ? 'measure' : 'dimension')];
         c.name = c.qFallbackTitle;
 
         if (c.tooltip) {
@@ -4551,11 +4552,13 @@ var Table3 = /*#__PURE__*/function () {
             return !d.qError;
           }).map(function (d) {
             return {
-              value: ''
+              value: '',
+              classes: ['dimension']
             };
           }).concat(this.layout.qHyperCube.qGrandTotalRow.map(function (t) {
             return _extends({}, t, {
-              value: t.qText
+              value: t.qText,
+              classes: ['measure']
             });
           }));
           this.totals.splice(0, 1, {
@@ -5393,12 +5396,20 @@ var Table3 = /*#__PURE__*/function () {
                 // else if (sourceColumns[tIndex] && sourceColumns[tIndex].qAttrExprInfo && sourceColumns[tIndex].qAttrExprInfo[aI] && sourceColumns[tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                 //   c.backgroundColor = a.qText
                 // }
-                var measureIndex = (c.level - _this51.layout.qHyperCube.qDimensionInfo.length) % _this51.layout.qHyperCube.qMeasureInfo.length;
+                if (c.level < _this51.layout.qHyperCube.qDimensionInfo.length) {
+                  if (_this51.layout.qHyperCube.qDimensionInfo[c.level] && _this51.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo && _this51.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI] && _this51.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                    c.color = a.qText;
+                  } else if (_this51.layout.qHyperCube.qDimensionInfo[c.level] && _this51.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo && _this51.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI] && _this51.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                    c.backgroundColor = a.qText;
+                  }
+                } else {
+                  var measureIndex = (c.level - _this51.layout.qHyperCube.qDimensionInfo.length) % _this51.layout.qHyperCube.qMeasureInfo.length;
 
-                if (_this51.layout.qHyperCube.qMeasureInfo[measureIndex] && _this51.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && _this51.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && _this51.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
-                  c.color = a.qText;
-                } else if (_this51.layout.qHyperCube.qMeasureInfo[measureIndex] && _this51.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && _this51.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && _this51.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
-                  c.backgroundColor = a.qText;
+                  if (_this51.layout.qHyperCube.qMeasureInfo[measureIndex] && _this51.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && _this51.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && _this51.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                    c.color = a.qText;
+                  } else if (_this51.layout.qHyperCube.qMeasureInfo[measureIndex] && _this51.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && _this51.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && _this51.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                    c.backgroundColor = a.qText;
+                  }
                 }
               }
             });

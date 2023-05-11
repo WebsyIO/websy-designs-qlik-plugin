@@ -3801,6 +3801,7 @@ class Table3 {
     let activeSort = this.layout.qHyperCube.qEffectiveInterColumnSortOrder[0]      
     this.columns = this.columns.map((c, i) => {
       c.colIndex = this.columnOrder.indexOf(i)
+      c.classes = [`${c.isMeasure ? 'measure' : 'dimension'}`]
       c.name = c.qFallbackTitle
       if (c.tooltip) {
         c.name += `
@@ -3843,7 +3844,7 @@ class Table3 {
     this.totals = []
     if (this.layout.qHyperCube.qGrandTotalRow && this.layout.totals && this.layout.totals.show === true) {
       if (this.layout.qHyperCube.qMode === 'S') {
-        this.totals = this.layout.qHyperCube.qDimensionInfo.filter(d => !d.qError).map(d => ({ value: '' })).concat(this.layout.qHyperCube.qGrandTotalRow.map(t => Object.assign({}, t, { value: t.qText })))
+        this.totals = this.layout.qHyperCube.qDimensionInfo.filter(d => !d.qError).map(d => ({ value: '', classes: ['dimension'] })).concat(this.layout.qHyperCube.qGrandTotalRow.map(t => Object.assign({}, t, { value: t.qText, classes: ['measure'] })))
         this.totals.splice(0, 1, { value: this.layout.totals.label || this.totals })
       }
     }
@@ -4529,13 +4530,23 @@ class Table3 {
               // else if (sourceColumns[tIndex] && sourceColumns[tIndex].qAttrExprInfo && sourceColumns[tIndex].qAttrExprInfo[aI] && sourceColumns[tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
               //   c.backgroundColor = a.qText
               // }
-              let measureIndex = (c.level - this.layout.qHyperCube.qDimensionInfo.length) % this.layout.qHyperCube.qMeasureInfo.length
-              if (this.layout.qHyperCube.qMeasureInfo[measureIndex] && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
-                c.color = a.qText
+              if (c.level < this.layout.qHyperCube.qDimensionInfo.length) {              
+                if (this.layout.qHyperCube.qDimensionInfo[c.level] && this.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo && this.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI] && this.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                  c.color = a.qText
+                }
+                else if (this.layout.qHyperCube.qDimensionInfo[c.level] && this.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo && this.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI] && this.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                  c.backgroundColor = a.qText
+                }
               }
-              else if (this.layout.qHyperCube.qMeasureInfo[measureIndex] && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
-                c.backgroundColor = a.qText
-              }
+              else {
+                let measureIndex = (c.level - this.layout.qHyperCube.qDimensionInfo.length) % this.layout.qHyperCube.qMeasureInfo.length
+                if (this.layout.qHyperCube.qMeasureInfo[measureIndex] && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                  c.color = a.qText
+                }
+                else if (this.layout.qHyperCube.qMeasureInfo[measureIndex] && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                  c.backgroundColor = a.qText
+                }
+              }              
             }
           })
         }        
