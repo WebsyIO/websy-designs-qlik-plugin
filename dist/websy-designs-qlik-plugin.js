@@ -720,12 +720,34 @@ var Chart = /*#__PURE__*/function () {
               }
 
               return colors[dimCell.qAttrDims.qValues[0].qElemNo % colors.length];
+            } else if (measure.qAttrDimInfo && measure.qAttrDimInfo[0] && measure.qAttrDimInfo[0].id === 'colorByAlternative') {
+              if (this.options.legendKeys.indexOf(cell.qAttrDims.qValues[0].qText) === -1) {
+                this.options.legendKeys.push(cell.qAttrDims.qValues[0].qText);
+                this.options.legendData.push({
+                  value: cell.qAttrDims.qValues[0].qText,
+                  color: colors[cell.qAttrDims.qValues[0].qElemNo % colors.length]
+                });
+              }
+
+              return colors[cell.qAttrDims.qValues[0].qElemNo % colors.length];
             } else {
               return colors[dimCell.qElemNumber % colors.length];
             }
           } else if (measure.qAttrExprInfo && measure.qAttrExprInfo[0] && measure.qAttrExprInfo[0].id === 'colorByExpression') {
             if (cell.qAttrExps && cell.qAttrExps.qValues && cell.qAttrExps.qValues[0] && cell.qAttrExps.qValues[0].qText) {
               return cell.qAttrExps.qValues[0].qText;
+            }
+          } else if (measure.qAttrExprInfo && measure.qAttrExprInfo[0] && measure.qAttrExprInfo[0].id === 'colorByAlternative') {
+            if (this.options.legendKeys.indexOf(cell.qAttrExps.qValues[0].qText) === -1) {
+              this.options.legendKeys.push(cell.qAttrExps.qValues[0].qText);
+              this.options.legendData.push({
+                value: cell.qAttrExps.qValues[0].qText,
+                color: colors[cell.qAttrExps.qValues[0].qNum % colors.length]
+              });
+            }
+
+            if (cell.qAttrExps && cell.qAttrExps.qValues && cell.qAttrExps.qValues[0] && !isNaN(cell.qAttrExps.qValues[0].qNum)) {
+              return colors[cell.qAttrExps.qValues[0].qNum % colors.length];
             }
           }
         }
@@ -884,7 +906,7 @@ var Chart = /*#__PURE__*/function () {
 
       var xAxis = 'bottom';
       var yAxis = 'left';
-      var xScale = 'Band';
+      var xScale = 'Ordinal';
       var yScale = 'Linear';
 
       if (options.orientation === 'horizontal') {
@@ -978,7 +1000,7 @@ var Chart = /*#__PURE__*/function () {
       options.data.series = series;
       options.data[yAxis].min = this.layout.qHyperCube.qMeasureInfo[0].qMin; // options.data[yAxis].max = this.layout.qHyperCube.qMeasureInfo[0].qMax    
 
-      if (this.options.grouping === 'stacked') {
+      if (this.options.grouping === 'stacked' || this.options.def.options.grouping && this.options.def.options.grouping === 'stacked') {
         options.data[yAxis].max = Math.max.apply(Math, bottomTotals);
       } else {
         options.data[yAxis].max = this.layout.qHyperCube.qMeasureInfo[0].qMax;
@@ -997,7 +1019,7 @@ var Chart = /*#__PURE__*/function () {
 
       var xAxis = 'bottom';
       var yAxis = 'left';
-      var xScale = 'Band';
+      var xScale = 'Ordinal';
       var yScale = 'Linear';
 
       if (options.orientation === 'horizontal') {
@@ -1083,8 +1105,8 @@ var Chart = /*#__PURE__*/function () {
       var x2Axis = 'bottom';
       var yAxis = 'left';
       var y2Axis = 'right';
-      var xScale = 'Band';
-      var x2Scale = 'Band';
+      var xScale = 'Ordinal';
+      var x2Scale = 'Ordinal';
       var yScale = 'Linear';
       var y2Scale = 'Linear';
       var hasyAxis = false;
@@ -1203,6 +1225,7 @@ var Chart = /*#__PURE__*/function () {
             xKeys.push(x.qElemNumber);
             xAcc.push(0);
             xTotals.push(0);
+            r[0].valueCount = 0;
             options.data[xAxis].data.push(x);
           }
 
@@ -1211,6 +1234,7 @@ var Chart = /*#__PURE__*/function () {
           c.tooltipLabel = _this10.layout.qHyperCube.qMeasureInfo[cIndex - 1].qFallbackTitle;
           c.tooltipValue = c.qText || '-';
           c.label = c.qText || '-';
+          r[0].valueCount++;
           c.color = _this10.getColor(c, r[0], _this10.layout.qHyperCube.qDimensionInfo[0], _this10.layout.qHyperCube.qMeasureInfo[cIndex - 1], _this10.layout.qHyperCube.color); // if (this.layout.qHyperCube.qMeasureInfo[cIndex - 1].options) {
           // c.color = this.layout.qHyperCube.qMeasureInfo[cIndex - 1].options.color 
           // }        

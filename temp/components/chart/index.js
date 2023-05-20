@@ -126,13 +126,35 @@ class Chart {
             }            
             return colors[dimCell.qAttrDims.qValues[0].qElemNo % colors.length]
           }
+          else if (measure.qAttrDimInfo && measure.qAttrDimInfo[0] && measure.qAttrDimInfo[0].id === 'colorByAlternative') {
+            if (this.options.legendKeys.indexOf(cell.qAttrDims.qValues[0].qText) === -1) {
+              this.options.legendKeys.push(cell.qAttrDims.qValues[0].qText)
+              this.options.legendData.push({
+                value: cell.qAttrDims.qValues[0].qText,
+                color: colors[cell.qAttrDims.qValues[0].qElemNo % colors.length]
+              })
+            }            
+            return colors[cell.qAttrDims.qValues[0].qElemNo % colors.length]
+          }
           else {
             return colors[dimCell.qElemNumber % colors.length]
           }          
-        }
+        }        
         else if (measure.qAttrExprInfo && measure.qAttrExprInfo[0] && measure.qAttrExprInfo[0].id === 'colorByExpression') {
           if (cell.qAttrExps && cell.qAttrExps.qValues && cell.qAttrExps.qValues[0] && cell.qAttrExps.qValues[0].qText) {
             return cell.qAttrExps.qValues[0].qText
+          }
+        }
+        else if (measure.qAttrExprInfo && measure.qAttrExprInfo[0] && measure.qAttrExprInfo[0].id === 'colorByAlternative') {
+          if (this.options.legendKeys.indexOf(cell.qAttrExps.qValues[0].qText) === -1) {
+            this.options.legendKeys.push(cell.qAttrExps.qValues[0].qText)
+            this.options.legendData.push({
+              value: cell.qAttrExps.qValues[0].qText,
+              color: colors[cell.qAttrExps.qValues[0].qNum % colors.length]
+            })
+          }
+          if (cell.qAttrExps && cell.qAttrExps.qValues && cell.qAttrExps.qValues[0] && !isNaN(cell.qAttrExps.qValues[0].qNum)) {
+            return colors[cell.qAttrExps.qValues[0].qNum % colors.length]
           }
         }
       }       
@@ -249,7 +271,7 @@ class Chart {
     const options = Object.assign({}, this.optionDefaults, this.layout.options, this.options.chartOptions)
     let xAxis = 'bottom'
     let yAxis = 'left'
-    let xScale = 'Band'
+    let xScale = 'Ordinal'
     let yScale = 'Linear'
     if (options.orientation === 'horizontal') {
       xAxis = 'left'
@@ -329,7 +351,7 @@ class Chart {
     options.data.series = series
     options.data[yAxis].min = this.layout.qHyperCube.qMeasureInfo[0].qMin 
     // options.data[yAxis].max = this.layout.qHyperCube.qMeasureInfo[0].qMax    
-    if (this.options.grouping === 'stacked') {
+    if (this.options.grouping === 'stacked' || (this.options.def.options.grouping && this.options.def.options.grouping === 'stacked')) {
       options.data[yAxis].max = Math.max(...bottomTotals)
     }    
     else {
@@ -343,7 +365,7 @@ class Chart {
     const options = Object.assign({}, this.optionDefaults, this.layout.options, this.options.chartOptions)
     let xAxis = 'bottom'
     let yAxis = 'left'
-    let xScale = 'Band'
+    let xScale = 'Ordinal'
     let yScale = 'Linear'
     if (options.orientation === 'horizontal') {
       xAxis = 'left'
@@ -406,8 +428,8 @@ class Chart {
     let x2Axis = 'bottom'
     let yAxis = 'left'
     let y2Axis = 'right'
-    let xScale = 'Band'
-    let x2Scale = 'Band'
+    let xScale = 'Ordinal'
+    let x2Scale = 'Ordinal'
     let yScale = 'Linear'
     let y2Scale = 'Linear'
     let hasyAxis = false
@@ -507,6 +529,7 @@ class Chart {
           xKeys.push(x.qElemNumber)
           xAcc.push(0)
           xTotals.push(0)
+          r[0].valueCount = 0
           options.data[xAxis].data.push(x)  
         }
         c.value = isNaN(c.qNum) ? 0 : c.qNum            
@@ -514,6 +537,7 @@ class Chart {
         c.tooltipLabel = this.layout.qHyperCube.qMeasureInfo[cIndex - 1].qFallbackTitle   
         c.tooltipValue = c.qText || '-'    
         c.label = c.qText || '-'
+        r[0].valueCount++
         c.color = this.getColor(c, r[0], this.layout.qHyperCube.qDimensionInfo[0], this.layout.qHyperCube.qMeasureInfo[cIndex - 1], this.layout.qHyperCube.color)
         // if (this.layout.qHyperCube.qMeasureInfo[cIndex - 1].options) {
         // c.color = this.layout.qHyperCube.qMeasureInfo[cIndex - 1].options.color 
