@@ -332,9 +332,16 @@ class Chart {
       // c.value = isNaN(c.qNum) ? 0 : c.qNum
       c.value = c.qNum
       c.label = c.qText || '-'
-      if (c.qAttrExps && c.qAttrExps.qValues[0] && c.qAttrExps.qValues[0].qText) {
-        c.label = c.qAttrExps.qValues[0].qText
-      }
+      if (this.layout.qHyperCube.qMeasureInfo[0].qAttrExprInfo && this.layout.qHyperCube.qMeasureInfo[0].qAttrExprInfo[0] && this.layout.qHyperCube.qMeasureInfo[0].qAttrExprInfo[0].id === 'customLabel') {
+        if (c.qAttrExps && c.qAttrExps.qValues[0] && c.qAttrExps.qValues[0].qText) {
+          if (this.layout.qHyperCube.qMeasureInfo[0].qAttrExprInfo[0].addTo === true) {
+            c.label += c.qAttrExps.qValues[0].qText
+          }
+          else {
+            c.label = c.qAttrExps.qValues[0].qText
+          }          
+        } 
+      }      
       c.color = this.getColor(c, r[1], this.layout.qHyperCube.qDimensionInfo[1], this.layout.qHyperCube.qMeasureInfo[0], this.layout.qHyperCube.color)
       c.tooltipLabel = r[0].qText
       c.tooltipValue = c.qText || '-'

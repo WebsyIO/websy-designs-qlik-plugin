@@ -379,7 +379,7 @@ class Table3 {
     this.columns.sort((a, b) => {
       return a.colIndex - b.colIndex
     })         
-    this.columns = this.columns.filter(c => !c.qError)
+    this.columns = this.columns.filter(c => !c.qError && c.show !== false)
     this.table.options.columns = [this.columns]
     // set up the Totals
     this.totals = []

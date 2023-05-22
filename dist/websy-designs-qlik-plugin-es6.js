@@ -970,8 +970,14 @@ var Chart = /*#__PURE__*/function () {
         c.value = c.qNum;
         c.label = c.qText || '-';
 
-        if (c.qAttrExps && c.qAttrExps.qValues[0] && c.qAttrExps.qValues[0].qText) {
-          c.label = c.qAttrExps.qValues[0].qText;
+        if (_this8.layout.qHyperCube.qMeasureInfo[0].qAttrExprInfo && _this8.layout.qHyperCube.qMeasureInfo[0].qAttrExprInfo[0] && _this8.layout.qHyperCube.qMeasureInfo[0].qAttrExprInfo[0].id === 'customLabel') {
+          if (c.qAttrExps && c.qAttrExps.qValues[0] && c.qAttrExps.qValues[0].qText) {
+            if (_this8.layout.qHyperCube.qMeasureInfo[0].qAttrExprInfo[0].addTo === true) {
+              c.label += c.qAttrExps.qValues[0].qText;
+            } else {
+              c.label = c.qAttrExps.qValues[0].qText;
+            }
+          }
         }
 
         c.color = _this8.getColor(c, r[1], _this8.layout.qHyperCube.qDimensionInfo[1], _this8.layout.qHyperCube.qMeasureInfo[0], _this8.layout.qHyperCube.color);
@@ -4558,7 +4564,7 @@ var Table3 = /*#__PURE__*/function () {
         return a.colIndex - b.colIndex;
       });
       this.columns = this.columns.filter(function (c) {
-        return !c.qError;
+        return !c.qError && c.show !== false;
       });
       this.table.options.columns = [this.columns]; // set up the Totals
 
