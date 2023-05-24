@@ -907,6 +907,17 @@ class Chart {
         } 
       }      
       c.color = this.getColor(c, r[1], this.layout.qHyperCube.qDimensionInfo[1], this.layout.qHyperCube.qMeasureInfo[0], this.layout.qHyperCube.color)
+      if (!c.color) {
+        let colors = this.layout.options.colors || this.chart.options.colors
+        if (this.options.legendKeys.indexOf(r[0].qText) === -1) {
+          this.options.legendKeys.push(r[0].qText)
+          this.options.legendData.push({
+            value: r[0].qText,
+            color: colors[r[0].qElemNumber % colors.length]
+          })
+        }
+        c.color = colors[r[0].qElemNumber % colors.length]
+      }
       c.tooltipLabel = r[0].qText
       c.tooltipValue = c.qText || '-'
       c.accumulative = bottomAcc[bottomIndex]

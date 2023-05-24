@@ -987,6 +987,22 @@ var Chart = /*#__PURE__*/function () {
         }
 
         c.color = _this8.getColor(c, r[1], _this8.layout.qHyperCube.qDimensionInfo[1], _this8.layout.qHyperCube.qMeasureInfo[0], _this8.layout.qHyperCube.color);
+
+        if (!c.color) {
+          var colors = _this8.layout.options.colors || _this8.chart.options.colors;
+
+          if (_this8.options.legendKeys.indexOf(r[0].qText) === -1) {
+            _this8.options.legendKeys.push(r[0].qText);
+
+            _this8.options.legendData.push({
+              value: r[0].qText,
+              color: colors[r[0].qElemNumber % colors.length]
+            });
+          }
+
+          c.color = colors[r[0].qElemNumber % colors.length];
+        }
+
         c.tooltipLabel = r[0].qText;
         c.tooltipValue = c.qText || '-';
         c.accumulative = bottomAcc[bottomIndex];
