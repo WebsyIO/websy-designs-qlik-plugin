@@ -154,7 +154,7 @@ class Table3 {
     }
     let pData = this.transformPivotTable(this.layout.qHyperCube.qPivotDataPages[0])    
     // this.pinnedColumns = this.layout.qHyperCube.qIndentMode === true ? 1 : this.layout.qHyperCube.qNoOfLeftDims
-    this.columns = pData.columns
+    this.columns = pData.columns // .filter(c => c.show !== false) -- shift logic to underlying table
     this.startCol = 0
     // if (this.layout.qHyperCube.qIndentMode !== true) {
     //   this.startCol = this.pinnedColumns
@@ -181,8 +181,10 @@ class Table3 {
       return out
     })
     if (dimensionLengths.length > this.pinnedColumns) {
-      // we have a top column
-      measureLengths = Math.max(measureLengths, dimensionLengths.reduce((a, b) => Math.max(a, b.length), 0))
+      // we have a top column(s)
+      for (let i = this.layout.qHyperCube.qNoOfLeftDims; i < dimensionLengths.length; i++) {
+        measureLengths = Math.max(measureLengths, dimensionLengths[effectiveOrder[i]].length) 
+      }      
       maxMLength = measureLengths > maxMLength.length ? new Array(measureLengths).fill('X').join('') : maxMLength
     }
     let activeColumns = []
@@ -909,6 +911,7 @@ class Table3 {
     //   this.prepSearch()
     //   return 
     // }
+    this.validPivotLeft = 0
     if (this.inSelections === false) {
       this.table.showLoading({message: 'Loading...'})    
     }    
@@ -1166,6 +1169,7 @@ class Table3 {
     let visibleLeftCount = 0    
     let visibleTopCount = 0    
     let visibleColCount = 0
+    this.validPivotLeft = 0
     let tempNode = []
     let sourceColumns = this.layout.qHyperCube.qDimensionInfo.concat(this.layout.qHyperCube.qMeasureInfo)
     for (let i = 0; i < page.qLeft.length; i++) {
@@ -1174,7 +1178,15 @@ class Table3 {
     for (let i = 0; i < page.qTop.length; i++) {
       expandTop.call(this, page.qTop[i], 0, i)
     }
-    this.pinnedColumns = visibleLeftCount
+    this.pinnedColumns = Math.min(this.validPivotLeft + 1, visibleLeftCount)
+    leftNodes = leftNodes.map(n => {
+      return n.map((c, i) => {
+        if (c.level >= this.pinnedColumns && c.qElemNo === -4) {
+          c.level = -1
+        }
+        return c
+      })
+    })
     for (let r = 0; r < page.qData.length; r++) {
       let row = page.qData[r]      
       for (let c = 0; c < row.length; c++) {
@@ -1234,6 +1246,7 @@ class Table3 {
           let columns = this.layout.qHyperCube.qDimensionInfo.filter(d => !d.qError)
           let labelledTopCells = additionalTopCells.map((d, i) => {
             d.name = (columns[i] || {}).qFallbackTitle || ''
+            d.show = i <= this.validPivotLeft
             return d
           })
           topNodesTransposed[i] = labelledTopCells.concat(topNodesTransposed[i])
@@ -1320,25 +1333,37 @@ class Table3 {
           leftNodes.push([o])
         }        
         tempNode = []
+        // if (o.qElemNo > -4) {
+
+        // }
         for (let i = 0; i < input.qSubNodes.length; i++) {
           expandLeft.call(this, input.qSubNodes[i], level + 1, i, input, [...chain, o])
-        }
+        }      
       } 
-      else if (input.qSubNodes.length === 0) {        
+      else if (input.qSubNodes.length === 0) {     
+        if (o.qElemNo > -4) {
+          this.validPivotLeft = Math.max(this.validPivotLeft, level)
+        }
         leftNodes.push(tempNode.concat([o])) 
         tempNode = []
       }
-      else {
-        tempNode.push(o)                  
+      else {               
+        if (input.qElemNo > -4 || (!input.qSubNodes || input.qSubNodes.length === 0)) {                  
+          this.validPivotLeft = Math.max(this.validPivotLeft, level)
+        }
+        tempNode.push(o) 
+        // if (o.qElemNo > -4) {                  
+        //   this.validPivotLeft = Math.max(this.validPivotLeft, level)
+        // }
         for (let i = 0; i < input.qSubNodes.length; i++) {
           expandLeft.call(this, input.qSubNodes[i], level + 1, i, input, [...chain, o])
-        }
+        }        
         let s = 0
         for (let i = 0; i < input.qSubNodes.length; i++) {
           s += input.qSubNodes[i].rowspan
         }
         input.rowspan = s
-        o.rowspan = s
+        o.rowspan = s        
       }                
     }
     // This function is used to convert the qTop structure from a parent/child hierarchy

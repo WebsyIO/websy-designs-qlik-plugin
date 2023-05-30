@@ -463,6 +463,11 @@ class ObjectManager {
     }
     if (item.field) {
       this.app.getField(item.field, item.state || '$').then(field => {
+        if (this.options.router) {
+          if (item.method === 'unlock') {
+            // need to think how we do this
+          }
+        }
         field[item.method](...item.params).then(() => {
           if (item.lock === true) {
             field.lock().then(() => {
@@ -488,6 +493,21 @@ class ObjectManager {
       })
     }
     else {
+      if (this.options.router) {
+        if (item.method === 'unlockAll') {
+          let items = Object.entries(this.options.router.currentParams.items)
+          let params = []
+          items.forEach(d => {
+            if (d[0].substring(0, 4) === 'lock') {              
+              params.push(d[0])
+            }
+          })          
+          this.options.router.removeUrlParams(params, false, false)
+        }
+        else if (item.method === 'unlock') {
+          // need to think how we do this
+        }
+      }
       this.app[item.method](...item.params).then(() => {
         index++
         if (index === actionList.length) {
@@ -766,7 +786,7 @@ class ObjectManager {
                 } 
                 else {
                   return {
-                    qText: decodeURI(v)
+                    qText: decodeURI(v).replace(/%26/g, '&')
                   }
                 }
               }
@@ -807,8 +827,15 @@ class ObjectManager {
             state = field.split('::')[0]
             field = field.split('::')[1]
           }
+          let param = parts[0]
+          if (parts[0].substring(0, 6) === 'select') {
+            param = 'select'
+          }
+          else if (parts[0].substring(0, 4) === 'lock') {
+            param = 'lock'
+          }
           return {
-            param: parts[0],
+            param,
             field,
             state,
             values: parts2

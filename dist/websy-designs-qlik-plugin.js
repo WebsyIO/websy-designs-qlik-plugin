@@ -4316,7 +4316,8 @@ var Table3 = /*#__PURE__*/function () {
 
       var pData = this.transformPivotTable(this.layout.qHyperCube.qPivotDataPages[0]); // this.pinnedColumns = this.layout.qHyperCube.qIndentMode === true ? 1 : this.layout.qHyperCube.qNoOfLeftDims
 
-      this.columns = pData.columns;
+      this.columns = pData.columns; // .filter(c => c.show !== false) -- shift logic to underlying table
+
       this.startCol = 0; // if (this.layout.qHyperCube.qIndentMode !== true) {
       //   this.startCol = this.pinnedColumns
       // }
@@ -4358,10 +4359,11 @@ var Table3 = /*#__PURE__*/function () {
       });
 
       if (dimensionLengths.length > this.pinnedColumns) {
-        // we have a top column
-        measureLengths = Math.max(measureLengths, dimensionLengths.reduce(function (a, b) {
-          return Math.max(a, b.length);
-        }, 0));
+        // we have a top column(s)
+        for (var i = this.layout.qHyperCube.qNoOfLeftDims; i < dimensionLengths.length; i++) {
+          measureLengths = Math.max(measureLengths, dimensionLengths[effectiveOrder[i]].length);
+        }
+
         maxMLength = measureLengths > maxMLength.length ? new Array(measureLengths).fill('X').join('') : maxMLength;
       }
 
@@ -4369,12 +4371,12 @@ var Table3 = /*#__PURE__*/function () {
       var rows = [];
       var columns = [];
 
-      for (var i = 0; i < effectiveOrder.length; i++) {
-        if (effectiveOrder[i] < this.layout.qHyperCube.qDimensionInfo.length) {
-          if (effectiveOrder[i] >= 0) {
-            var dim = this.properties.qHyperCubeDef.qDimensions[effectiveOrder[i]];
+      for (var _i17 = 0; _i17 < effectiveOrder.length; _i17++) {
+        if (effectiveOrder[_i17] < this.layout.qHyperCube.qDimensionInfo.length) {
+          if (effectiveOrder[_i17] >= 0) {
+            var dim = this.properties.qHyperCubeDef.qDimensions[effectiveOrder[_i17]];
 
-            if (i < this.pinnedColumns) {
+            if (_i17 < this.pinnedColumns) {
               rows.push(dim);
             } else {
               columns.push(dim);
@@ -4383,24 +4385,24 @@ var Table3 = /*#__PURE__*/function () {
         }
 
         if (this.layout.qHyperCube.qIndentMode === true) {
-          if (i < this.pinnedColumns) {
-            if (effectiveOrder[i] === -1) {
+          if (_i17 < this.pinnedColumns) {
+            if (effectiveOrder[_i17] === -1) {
               activeColumns.push(new Array(measureLengths).fill('X')); // activeColumns.push(maxMLength)
             }
 
             if (!activeColumns[0]) {
-              activeColumns.push(dimensionLengths[i]);
-            } else if (dimensionLengths[i] && dimensionLengths[i].length > activeColumns[0].length) {
-              activeColumns[0] = dimensionLengths[i];
+              activeColumns.push(dimensionLengths[_i17]);
+            } else if (dimensionLengths[_i17] && dimensionLengths[_i17].length > activeColumns[0].length) {
+              activeColumns[0] = dimensionLengths[_i17];
             }
           }
-        } else if (i < this.pinnedColumns) {
-          activeColumns.push(dimensionLengths[i]);
+        } else if (_i17 < this.pinnedColumns) {
+          activeColumns.push(dimensionLengths[_i17]);
         }
       }
 
       if (effectiveOrder.indexOf(-1) >= (this.layout.qHyperCube.qIndentMode === true ? 1 : this.pinnedColumns)) {
-        for (var _i17 = this.layout.qHyperCube.qIndentMode === true ? 1 : this.pinnedColumns; _i17 < this.columns[this.columns.length - 1].length; _i17++) {
+        for (var _i18 = this.layout.qHyperCube.qIndentMode === true ? 1 : this.pinnedColumns; _i18 < this.columns[this.columns.length - 1].length; _i18++) {
           // activeColumns.push(Math.max(maxMLength, maxMLabel))
           activeColumns.push(maxMLength);
         }
@@ -4411,12 +4413,12 @@ var Table3 = /*#__PURE__*/function () {
           activeColumns = [];
         }
 
-        for (var _i18 = activeColumns.length; _i18 < this.columns[this.columns.length - 1].length; _i18++) {
+        for (var _i19 = activeColumns.length; _i19 < this.columns[this.columns.length - 1].length; _i19++) {
           activeColumns.push(maxMLength);
         }
       }
 
-      for (var _i19 = activeColumns.length; _i19 < this.columns[this.columns.length - 1].length; _i19++) {
+      for (var _i20 = activeColumns.length; _i20 < this.columns[this.columns.length - 1].length; _i20++) {
         // activeColumns.push(Math.max(maxMLength, maxMLabel))
         activeColumns.push(maxMLength);
       }
@@ -4434,8 +4436,8 @@ var Table3 = /*#__PURE__*/function () {
         var rEl = document.getElementById("".concat(this.elementId, "_pivotRows"));
         var count = this.layout.qHyperCube.qIndentMode === true ? 1 : this.pinnedColumns;
 
-        for (var _i20 = 0; _i20 < count; _i20++) {
-          rowsWidth += this.columns[this.columns.length - 1][_i20].actualWidth;
+        for (var _i21 = 0; _i21 < count; _i21++) {
+          rowsWidth += this.columns[this.columns.length - 1][_i21].actualWidth;
         }
 
         if (this.options.pivotPanel === 'docked') {
@@ -5234,11 +5236,12 @@ var Table3 = /*#__PURE__*/function () {
       var _this49 = this;
 
       var pageNum = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
-
       // if (this.searchPrepped === false) {
       //   this.prepSearch()
       //   return 
       // }
+      this.validPivotLeft = 0;
+
       if (this.inSelections === false) {
         this.table.showLoading({
           message: 'Loading...'
@@ -5539,6 +5542,7 @@ var Table3 = /*#__PURE__*/function () {
       var visibleLeftCount = 0;
       var visibleTopCount = 0;
       var visibleColCount = 0;
+      this.validPivotLeft = 0;
       var tempNode = [];
       var sourceColumns = this.layout.qHyperCube.qDimensionInfo.concat(this.layout.qHyperCube.qMeasureInfo);
 
@@ -5546,11 +5550,20 @@ var Table3 = /*#__PURE__*/function () {
         expandLeft.call(this, page.qLeft[i], 0, 0, null, []);
       }
 
-      for (var _i21 = 0; _i21 < page.qTop.length; _i21++) {
-        expandTop.call(this, page.qTop[_i21], 0, _i21);
+      for (var _i22 = 0; _i22 < page.qTop.length; _i22++) {
+        expandTop.call(this, page.qTop[_i22], 0, _i22);
       }
 
-      this.pinnedColumns = visibleLeftCount;
+      this.pinnedColumns = Math.min(this.validPivotLeft + 1, visibleLeftCount);
+      leftNodes = leftNodes.map(function (n) {
+        return n.map(function (c, i) {
+          if (c.level >= _this52.pinnedColumns && c.qElemNo === -4) {
+            c.level = -1;
+          }
+
+          return c;
+        });
+      });
 
       for (var r = 0; r < page.qData.length; r++) {
         var row = page.qData[r];
@@ -5606,7 +5619,7 @@ var Table3 = /*#__PURE__*/function () {
         additionalCellCount = 1;
       }
 
-      for (var _i22 = 0; _i22 < additionalCellCount; _i22++) {
+      for (var _i23 = 0; _i23 < additionalCellCount; _i23++) {
         additionalTopCells.push({
           rowspan: 1,
           colspan: 1,
@@ -5618,8 +5631,8 @@ var Table3 = /*#__PURE__*/function () {
       }
 
       if (visibleLeftCount !== 0) {
-        for (var _i23 = 0; _i23 < topNodesTransposed.length; _i23++) {
-          if (_i23 === topNodesTransposed.length - 1 && this.layout.qHyperCube.qMode === 'P' && this.layout.qHyperCube.qIndentMode !== true) {
+        for (var _i24 = 0; _i24 < topNodesTransposed.length; _i24++) {
+          if (_i24 === topNodesTransposed.length - 1 && this.layout.qHyperCube.qMode === 'P' && this.layout.qHyperCube.qIndentMode !== true) {
             (function () {
               var columns = _this52.layout.qHyperCube.qDimensionInfo.filter(function (d) {
                 return !d.qError;
@@ -5627,9 +5640,10 @@ var Table3 = /*#__PURE__*/function () {
 
               var labelledTopCells = additionalTopCells.map(function (d, i) {
                 d.name = (columns[i] || {}).qFallbackTitle || '';
+                d.show = i <= _this52.validPivotLeft;
                 return d;
               });
-              topNodesTransposed[_i23] = labelledTopCells.concat(topNodesTransposed[_i23]);
+              topNodesTransposed[_i24] = labelledTopCells.concat(topNodesTransposed[_i24]);
             })();
           } else {
             // if (i === topNodesTransposed.length - 1) {          
@@ -5649,7 +5663,7 @@ var Table3 = /*#__PURE__*/function () {
             // })).concat(topNodesTransposed[i])
             // } 
             // else {
-            topNodesTransposed[_i23] = additionalTopCells.concat(topNodesTransposed[_i23]);
+            topNodesTransposed[_i24] = additionalTopCells.concat(topNodesTransposed[_i24]);
           }
         }
       }
@@ -5722,25 +5736,36 @@ var Table3 = /*#__PURE__*/function () {
             leftNodes.push([o]);
           }
 
-          tempNode = [];
-
-          for (var _i24 = 0; _i24 < input.qSubNodes.length; _i24++) {
-            expandLeft.call(this, input.qSubNodes[_i24], level + 1, _i24, input, [].concat(_toConsumableArray(chain), [o]));
-          }
-        } else if (input.qSubNodes.length === 0) {
-          leftNodes.push(tempNode.concat([o]));
-          tempNode = [];
-        } else {
-          tempNode.push(o);
+          tempNode = []; // if (o.qElemNo > -4) {
+          // }
 
           for (var _i25 = 0; _i25 < input.qSubNodes.length; _i25++) {
             expandLeft.call(this, input.qSubNodes[_i25], level + 1, _i25, input, [].concat(_toConsumableArray(chain), [o]));
           }
+        } else if (input.qSubNodes.length === 0) {
+          if (o.qElemNo > -4) {
+            this.validPivotLeft = Math.max(this.validPivotLeft, level);
+          }
+
+          leftNodes.push(tempNode.concat([o]));
+          tempNode = [];
+        } else {
+          if (input.qElemNo > -4 || !input.qSubNodes || input.qSubNodes.length === 0) {
+            this.validPivotLeft = Math.max(this.validPivotLeft, level);
+          }
+
+          tempNode.push(o); // if (o.qElemNo > -4) {                  
+          //   this.validPivotLeft = Math.max(this.validPivotLeft, level)
+          // }
+
+          for (var _i26 = 0; _i26 < input.qSubNodes.length; _i26++) {
+            expandLeft.call(this, input.qSubNodes[_i26], level + 1, _i26, input, [].concat(_toConsumableArray(chain), [o]));
+          }
 
           var s = 0;
 
-          for (var _i26 = 0; _i26 < input.qSubNodes.length; _i26++) {
-            s += input.qSubNodes[_i26].rowspan;
+          for (var _i27 = 0; _i27 < input.qSubNodes.length; _i27++) {
+            s += input.qSubNodes[_i27].rowspan;
           }
 
           input.rowspan = s;
@@ -5827,17 +5852,17 @@ var Table3 = /*#__PURE__*/function () {
           } // }
 
         } else {
-          for (var _i27 = 0; _i27 < input.qSubNodes.length; _i27++) {
-            expandTop.call(this, input.qSubNodes[_i27], level + 1, _i27, input);
+          for (var _i28 = 0; _i28 < input.qSubNodes.length; _i28++) {
+            expandTop.call(this, input.qSubNodes[_i28], level + 1, _i28, input);
           }
 
           var s = 0;
           var inView = false;
 
-          for (var _i28 = 0; _i28 < input.qSubNodes.length; _i28++) {
+          for (var _i29 = 0; _i29 < input.qSubNodes.length; _i29++) {
             // if (input.qSubNodes[i].inView === true) {
             // inView = true
-            s += input.qSubNodes[_i28].colspan; // }
+            s += input.qSubNodes[_i29].colspan; // }
           } // o.inView = inView
           // input.inView = inView
 
@@ -6486,6 +6511,11 @@ if (typeof WebsyDesigns !== 'undefined') {
 
         if (item.field) {
           this.app.getField(item.field, item.state || '$').then(function (field) {
+            if (_this61.options.router) {
+              if (item.method === 'unlock') {// need to think how we do this
+              }
+            }
+
             field[item.method].apply(field, _toConsumableArray(item.params)).then(function () {
               if (item.lock === true) {
                 field.lock().then(function () {
@@ -6510,6 +6540,20 @@ if (typeof WebsyDesigns !== 'undefined') {
           });
         } else {
           var _this$app;
+
+          if (this.options.router) {
+            if (item.method === 'unlockAll') {
+              var items = Object.entries(this.options.router.currentParams.items);
+              var params = [];
+              items.forEach(function (d) {
+                if (d[0].substring(0, 4) === 'lock') {
+                  params.push(d[0]);
+                }
+              });
+              this.options.router.removeUrlParams(params, false, false);
+            } else if (item.method === 'unlock') {// need to think how we do this
+            }
+          }
 
           (_this$app = this.app)[item.method].apply(_this$app, _toConsumableArray(item.params)).then(function () {
             index++;
@@ -6867,7 +6911,7 @@ if (typeof WebsyDesigns !== 'undefined') {
                   };
                 } else {
                   return {
-                    qText: decodeURI(v)
+                    qText: decodeURI(v).replace(/%26/g, '&')
                   };
                 }
               }
@@ -6911,8 +6955,16 @@ if (typeof WebsyDesigns !== 'undefined') {
               field = field.split('::')[1];
             }
 
+            var param = parts[0];
+
+            if (parts[0].substring(0, 6) === 'select') {
+              param = 'select';
+            } else if (parts[0].substring(0, 4) === 'lock') {
+              param = 'lock';
+            }
+
             return {
-              param: parts[0],
+              param: param,
               field: field,
               state: state,
               values: parts2
