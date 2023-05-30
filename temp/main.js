@@ -4294,7 +4294,7 @@ class Table3 {
         // console.log(row)
         return row.filter((c, i) => {  
           if (this.layout.qHyperCube.qMode === 'P' && this.layout.qHyperCube.qIndentMode !== true) {
-            return c.level < this.pinnedColumns || (c.dataIndex >= startCol && c.dataIndex <= endCol)
+            return c.level < this.pinnedColumns || (c.dataIndex >= (startCol - (this.layout.qHyperCube.qNoOfLeftDims - this.pinnedColumns)) && c.dataIndex <= (endCol - (this.layout.qHyperCube.qNoOfLeftDims - this.pinnedColumns)))
             // return c.level < this.pinnedColumns || (c.level >= startCol && c.level <= endCol)
           }        
           else {

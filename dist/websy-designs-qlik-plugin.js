@@ -5104,7 +5104,7 @@ var Table3 = /*#__PURE__*/function () {
           // console.log(row)
           return row.filter(function (c, i) {
             if (_this48.layout.qHyperCube.qMode === 'P' && _this48.layout.qHyperCube.qIndentMode !== true) {
-              return c.level < _this48.pinnedColumns || c.dataIndex >= startCol && c.dataIndex <= endCol; // return c.level < this.pinnedColumns || (c.level >= startCol && c.level <= endCol)
+              return c.level < _this48.pinnedColumns || c.dataIndex >= startCol - (_this48.layout.qHyperCube.qNoOfLeftDims - _this48.pinnedColumns) && c.dataIndex <= endCol - (_this48.layout.qHyperCube.qNoOfLeftDims - _this48.pinnedColumns); // return c.level < this.pinnedColumns || (c.level >= startCol && c.level <= endCol)
             } else {
               return i < _this48.pinnedColumns || i >= startCol + _this48.pinnedColumns && i <= endCol + _this48.pinnedColumns;
             }
