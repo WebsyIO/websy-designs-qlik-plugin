@@ -5255,6 +5255,9 @@ class ObjectManager {
                 field[item.method](...item.params)
               })
             }
+            else if (item.fn) {
+              item.fn()
+            }
             else {
               this.app[item.method](...item.params)
             }

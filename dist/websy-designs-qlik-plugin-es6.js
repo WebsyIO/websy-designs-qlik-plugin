@@ -6210,6 +6210,8 @@ var ObjectManager = /*#__PURE__*/function () {
                 _this56.app.getField(item.field, item.state || '$').then(function (field) {
                   field[item.method].apply(field, _toConsumableArray(item.params));
                 });
+              } else if (item.fn) {
+                item.fn();
               } else {
                 var _this56$app;
 
