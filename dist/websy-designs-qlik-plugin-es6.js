@@ -4337,11 +4337,15 @@ var Table3 = /*#__PURE__*/function () {
       var possibleExpandCollapse = this.layout.qHyperCube.qMode === 'P' && this.layout.qHyperCube.qAlwaysFullyExpanded !== true;
       var measureLengths = this.layout.qHyperCube.qMeasureInfo.reduce(function (a, b) {
         return Math.max(a, b.qApprMaxGlyphCount);
-      }, 0);
-      var dimensionLengths = this.layout.qHyperCube.qDimensionInfo.filter(function (d) {
-        return !d.qError;
-      }).map(function (d) {
+      }, 0); // let dimensionLengths = this.layout.qHyperCube.qDimensionInfo.filter(d => !d.qError).map(d => {
+      // dimensionLengths not filtered
+
+      var dimensionLengths = this.layout.qHyperCube.qDimensionInfo.map(function (d) {
         var out = possibleExpandCollapse ? 'xxx' : '';
+
+        if (d.qError) {
+          return '';
+        }
 
         if (d.qApprMaxGlyphCount > d.qFallbackTitle.length) {
           out += new Array(d.qApprMaxGlyphCount).fill('X').join('');
@@ -4355,12 +4359,28 @@ var Table3 = /*#__PURE__*/function () {
       if (dimensionLengths.length > this.pinnedColumns) {
         // we have a top column(s)
         for (var i = this.layout.qHyperCube.qNoOfLeftDims; i < dimensionLengths.length; i++) {
-          measureLengths = Math.max(measureLengths, dimensionLengths[effectiveOrder[i]].length);
+          if (dimensionLengths[effectiveOrder[i]]) {
+            measureLengths = Math.max(measureLengths, dimensionLengths[effectiveOrder[i]].length);
+          }
         }
 
         maxMLength = measureLengths > maxMLength.length ? new Array(measureLengths).fill('X').join('') : maxMLength;
-      }
+      } // dimensionLengths filtered
 
+
+      dimensionLengths = this.layout.qHyperCube.qDimensionInfo.filter(function (d) {
+        return !d.qError;
+      }).map(function (d) {
+        var out = possibleExpandCollapse ? 'xxx' : '';
+
+        if (d.qApprMaxGlyphCount > d.qFallbackTitle.length) {
+          out += new Array(d.qApprMaxGlyphCount).fill('X').join('');
+        } else {
+          out += d.qFallbackTitle;
+        }
+
+        return out;
+      });
       var activeColumns = [];
       var rows = [];
       var columns = [];

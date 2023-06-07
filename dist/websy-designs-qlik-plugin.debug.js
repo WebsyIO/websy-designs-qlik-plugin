@@ -3671,8 +3671,13 @@ class Table3 {
     let effectiveOrder = this.layout.qHyperCube.qEffectiveInterColumnSortOrder
     let possibleExpandCollapse = this.layout.qHyperCube.qMode === 'P' && this.layout.qHyperCube.qAlwaysFullyExpanded !== true
     let measureLengths = this.layout.qHyperCube.qMeasureInfo.reduce((a, b) => Math.max(a, b.qApprMaxGlyphCount), 0)    
-    let dimensionLengths = this.layout.qHyperCube.qDimensionInfo.filter(d => !d.qError).map(d => {
+    // let dimensionLengths = this.layout.qHyperCube.qDimensionInfo.filter(d => !d.qError).map(d => {
+    // dimensionLengths not filtered
+    let dimensionLengths = this.layout.qHyperCube.qDimensionInfo.map(d => {
       let out = possibleExpandCollapse ? 'xxx' : ''
+      if (d.qError) {
+        return ''
+      }
       if (d.qApprMaxGlyphCount > d.qFallbackTitle.length) {
         out += new Array(d.qApprMaxGlyphCount).fill('X').join('') 
       } 
@@ -3684,10 +3689,23 @@ class Table3 {
     if (dimensionLengths.length > this.pinnedColumns) {
       // we have a top column(s)
       for (let i = this.layout.qHyperCube.qNoOfLeftDims; i < dimensionLengths.length; i++) {
-        measureLengths = Math.max(measureLengths, dimensionLengths[effectiveOrder[i]].length) 
+        if (dimensionLengths[effectiveOrder[i]]) {
+          measureLengths = Math.max(measureLengths, dimensionLengths[effectiveOrder[i]].length) 
+        }        
       }      
       maxMLength = measureLengths > maxMLength.length ? new Array(measureLengths).fill('X').join('') : maxMLength
     }
+    // dimensionLengths filtered
+    dimensionLengths = this.layout.qHyperCube.qDimensionInfo.filter(d => !d.qError).map(d => {
+      let out = possibleExpandCollapse ? 'xxx' : ''      
+      if (d.qApprMaxGlyphCount > d.qFallbackTitle.length) {
+        out += new Array(d.qApprMaxGlyphCount).fill('X').join('') 
+      } 
+      else {
+        out += d.qFallbackTitle
+      }
+      return out
+    })
     let activeColumns = []
     let rows = []
     let columns = []
