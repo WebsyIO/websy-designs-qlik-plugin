@@ -4854,6 +4854,8 @@ var Table3 = /*#__PURE__*/function () {
             this.options.model[method]('/qHyperCubeDef', pageDefs).then(function (pages) {
               if (pages) {
                 if (_this46.layout.qHyperCube.qMode === 'P') {
+                  _this46.layout.qHyperCube.qPivotDataPages = pages;
+
                   var pData = _this46.transformPivotTable(pages[0]);
 
                   pages[0].qMatrix = pData.data; // this.fullData.push(pages[0])
@@ -5392,6 +5394,10 @@ var Table3 = /*#__PURE__*/function () {
       }
 
       this.getData(this.startRow, function (page) {
+        if (_this50.layout.qHyperCube.qPivotDataPages && _this50.layout.qHyperCube.qPivotDataPages[0] && _this50.layout.qHyperCube.qPivotDataPages[0].qData.length !== _this50.layout.qHyperCube.qSize.qcx) {
+          _this50.buildPivotColumns();
+        }
+
         _this50.table.hideLoading(); // if (this.layout.qHyperCube.qMode === 'S') {
 
 

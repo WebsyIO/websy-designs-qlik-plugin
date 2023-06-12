@@ -572,6 +572,7 @@ class Table3 {
           this.options.model[method]('/qHyperCubeDef', pageDefs).then(pages => {
             if (pages) {
               if (this.layout.qHyperCube.qMode === 'P') {
+                this.layout.qHyperCube.qPivotDataPages = pages
                 let pData = this.transformPivotTable(pages[0])                
                 pages[0].qMatrix = pData.data                                
                 // this.fullData.push(pages[0])
@@ -1019,14 +1020,17 @@ class Table3 {
     if (this.layout.qHyperCube.qMode === 'S') {
       this.buildStraightColumnsAndTotals()
     }  
-    else {
-      this.buildPivotColumns()            
+    else {      
+      this.buildPivotColumns()         
     }      
     // let dataStart = this.startRow
     if (this.startRow > 0 && this.startRow + this.table.sizes.rowsToRender > this.layout.qHyperCube.qSize.qcy) {
       this.startRow = this.layout.qHyperCube.qSize.qcy - this.table.sizes.rowsToRender
     }
     this.getData(this.startRow, page => {
+      if (this.layout.qHyperCube.qPivotDataPages && this.layout.qHyperCube.qPivotDataPages[0] && this.layout.qHyperCube.qPivotDataPages[0].qData.length !== this.layout.qHyperCube.qSize.qcx) {
+        this.buildPivotColumns()            
+      } 
       this.table.hideLoading()
       // if (this.layout.qHyperCube.qMode === 'S') {
       this.table.render([], false)
