@@ -4205,6 +4205,7 @@ var Table3 = /*#__PURE__*/function () {
     this.options = _extends({}, DEFAULTS, options);
     this.fullData = [];
     this.rowIndexList = [];
+    this.rowsLoaded = 0;
     this.resizeTimeoutFn = null; // this.rowCount = 0
 
     this.pageNum = 0;
@@ -4250,6 +4251,7 @@ var Table3 = /*#__PURE__*/function () {
         onChangePageSize: this.setPageSize.bind(this),
         onSetPage: this.setPageNum.bind(this),
         onScrollX: this.handleVirtualScrollX.bind(this),
+        onNativeScroll: this.handleNativeScroll.bind(this),
         onExpandCell: this.handleExpand.bind(this),
         onCollapseCell: this.handleCollapse.bind(this)
       }, this.options));
@@ -4306,9 +4308,27 @@ var Table3 = /*#__PURE__*/function () {
       this.table.appendRows(data);
     }
   }, {
+    key: "beginSelections",
+    value: function beginSelections() {
+      var _this42 = this;
+
+      return new Promise(function (resolve, reject) {
+        if (_this42.inSelections === true) {
+          resolve();
+        } else {
+          _this42.abortModal().then(function () {
+            _this42.options.model.beginSelections(['/qHyperCubeDef']).then(function () {
+              _this42.inSelections = true;
+              resolve();
+            });
+          });
+        }
+      });
+    }
+  }, {
     key: "buildPivotColumns",
     value: function buildPivotColumns() {
-      var _this42 = this;
+      var _this43 = this;
 
       if (!this.layout.qHyperCube.qPivotDataPages[0]) {
         return;
@@ -4472,12 +4492,12 @@ var Table3 = /*#__PURE__*/function () {
             isQlikPlugin: true,
             dim: dim,
             dimId: dimId,
-            options: _extends({}, _this42.options.dropdownOptions)
+            options: _extends({}, _this43.options.dropdownOptions)
           };
         });
         this.rowList.render();
         this.rowList.options.items.forEach(function (d, i) {
-          if (!_this42.dropdowns[d.dimId]) {
+          if (!_this43.dropdowns[d.dimId]) {
             var ddDef = {
               qInfo: {
                 qType: 'table-dropdown'
@@ -4490,13 +4510,13 @@ var Table3 = /*#__PURE__*/function () {
               qSortByNumeric: 1
             }];
 
-            _this42.options.app.createSessionObject(ddDef).then(function (model) {
-              _this42.dropdowns[d.dimId] = model;
+            _this43.options.app.createSessionObject(ddDef).then(function (model) {
+              _this43.dropdowns[d.dimId] = model;
               d.instance.options.model = model;
               d.instance.render();
             });
           } else {
-            d.instance.options.model = _this42.dropdowns[d.dimId];
+            d.instance.options.model = _this43.dropdowns[d.dimId];
             d.instance.render();
           }
         });
@@ -4507,12 +4527,12 @@ var Table3 = /*#__PURE__*/function () {
             isQlikPlugin: true,
             dim: dim,
             dimId: dimId,
-            options: _extends({}, _this42.options.dropdownOptions)
+            options: _extends({}, _this43.options.dropdownOptions)
           };
         });
         this.columnList.render();
         this.columnList.options.items.forEach(function (d, i) {
-          if (!_this42.dropdowns[d.dimId]) {
+          if (!_this43.dropdowns[d.dimId]) {
             if (!d.dim.qDef) {
               d.dim.qDef = {};
             }
@@ -4534,13 +4554,13 @@ var Table3 = /*#__PURE__*/function () {
               qSortByNumeric: 1
             }];
 
-            _this42.options.app.createSessionObject(ddDef).then(function (model) {
-              _this42.dropdowns[d.dimId] = model;
+            _this43.options.app.createSessionObject(ddDef).then(function (model) {
+              _this43.dropdowns[d.dimId] = model;
               d.instance.options.model = model;
               d.instance.render();
             });
           } else {
-            d.instance.options.model = _this42.dropdowns[d.dimId];
+            d.instance.options.model = _this43.dropdowns[d.dimId];
             d.instance.render();
           }
         });
@@ -4555,7 +4575,7 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "buildStraightColumnsAndTotals",
     value: function buildStraightColumnsAndTotals() {
-      var _this43 = this;
+      var _this44 = this;
 
       // used for straight tables
       this.columns = this.layout.qHyperCube.qDimensionInfo.concat(this.layout.qHyperCube.qMeasureInfo.map(function (m) {
@@ -4564,11 +4584,11 @@ var Table3 = /*#__PURE__*/function () {
       })); // append the column definitions
 
       this.properties.qHyperCubeDef.qDimensions.concat(this.properties.qHyperCubeDef.qMeasures).forEach(function (cDef, i) {
-        _this43.columns[i].def = cDef;
+        _this44.columns[i].def = cDef;
       });
       var activeSort = this.layout.qHyperCube.qEffectiveInterColumnSortOrder[0];
       this.columns = this.columns.map(function (c, i) {
-        c.colIndex = _this43.columnOrder.indexOf(i);
+        c.colIndex = _this44.columnOrder.indexOf(i);
         c.classes = ["".concat(c.isMeasure ? 'measure' : 'dimension')];
         c.name = c.qFallbackTitle;
 
@@ -4579,7 +4599,7 @@ var Table3 = /*#__PURE__*/function () {
         c.reverseSort = activeSort === i && c.qReverseSort !== true;
         c.activeSort = activeSort === i;
 
-        if (_this43.layout.qHyperCube.qMode === 'S') {
+        if (_this44.layout.qHyperCube.qMode === 'S') {
           if (c.qSortIndicator === 'A') {
             c.sort = 'asc';
           } else if (c.qSortIndicator === 'D') {
@@ -4590,15 +4610,15 @@ var Table3 = /*#__PURE__*/function () {
         // }
 
 
-        if (c.searchable !== false && i < _this43.layout.qHyperCube.qDimensionInfo.length) {
+        if (c.searchable !== false && i < _this44.layout.qHyperCube.qDimensionInfo.length) {
           c.searchable = true;
 
           if (!c.onSearch) {
             c.isExternalSearch = true;
             var dimId = c.def.qLibraryId || c.def.qDef.qFieldLabels[0] || c.def.qDef.qFieldDefs[0];
             c.dimId = c.cId || dimId;
-            c.onSearch = _this43.handleSearch.bind(_this43);
-            c.onCloseSearch = _this43.handleCloseSearch.bind(_this43);
+            c.onSearch = _this44.handleSearch.bind(_this44);
+            c.onCloseSearch = _this44.handleCloseSearch.bind(_this44);
           }
         }
 
@@ -4640,7 +4660,7 @@ var Table3 = /*#__PURE__*/function () {
         return !c.qError;
       });
       this.columnParamValues = activeDimensions.filter(function (c, i) {
-        return _this43.layout.qHyperCube.qMode === 'S' || i < _this43.pinnedColumns;
+        return _this44.layout.qHyperCube.qMode === 'S' || i < _this44.pinnedColumns;
       }).map(function (c, i) {
         return {
           value: new Array(Math.max(c.showAsLink ? 0 : c.qApprMaxGlyphCount, activeDimensions[i].qFallbackTitle.length)).fill('X').join(''),
@@ -4675,7 +4695,7 @@ var Table3 = /*#__PURE__*/function () {
       this.columns.forEach(function (c, i) {
         if (c.searchable !== false) {
           if (c.isExternalSearch === true) {
-            if (!_this43.dropdowns[c.dimId]) {
+            if (!_this44.dropdowns[c.dimId]) {
               var ddDef = {
                 qInfo: {
                   qType: 'table-dropdown'
@@ -4688,15 +4708,16 @@ var Table3 = /*#__PURE__*/function () {
                 qSortByNumeric: 1
               }];
 
-              _this43.options.app.createSessionObject(ddDef).then(function (model) {
-                _this43.dropdowns[c.dimId] = new WebsyDesignsQlikPlugins.Dropdown("".concat(_this43.elementId, "_tableContainer_columnSearch_").concat(c.dimId || i), {
+              _this44.options.app.createSessionObject(ddDef).then(function (model) {
+                _this44.dropdowns[c.dimId] = new WebsyDesignsQlikPlugins.Dropdown("".concat(_this44.elementId, "_tableContainer_columnSearch_").concat(c.dimId || i), {
+                  app: _this44.options.app,
                   model: model,
                   multiSelect: true,
                   closeAfterSelection: false,
-                  onClose: _this43.handleCloseSearch
+                  onClose: _this44.handleCloseSearch
                 });
                 model.on('changed', function () {
-                  _this43.dropdowns[c.dimId].render();
+                  _this44.dropdowns[c.dimId].render();
                 }); // d.instance.options.model = model
                 // d.instance.render()
               });
@@ -4739,38 +4760,43 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "checkDataExists",
     value: function checkDataExists(start, end) {
-      var _this44 = this;
+      var _this45 = this;
 
       return new Promise(function (resolve, reject) {
-        if (_this44.layout.qHyperCube.qMode === 'P' && _this44.layout.qHyperCube.qIndentMode !== true) {
-          _this44.getData(start, function () {
+        if (_this45.layout.qHyperCube.qMode === 'P' && _this45.layout.qHyperCube.qIndentMode !== true) {
+          _this45.getData(start, function () {
             resolve();
           });
         } else {
           var top = -1;
 
           for (var i = start; i < end; i++) {
-            if (_this44.rowIndexList.indexOf(i) === -1) {
+            if (_this45.rowIndexList.indexOf(i) === -1) {
               top = i;
               break;
             }
           } // console.log('slicing pre', top)
 
 
-          _this44.buildEmptyRows(top);
+          _this45.buildEmptyRows(top);
 
           if (top < end && top !== -1) {
-            _this44.getData(top, function () {
+            console.log('get data 1');
+
+            _this45.getData(top, function () {
               // console.log('if callback for', top)
               resolve();
             }, true);
           } else if (top !== -1) {
-            _this44.getData(top, function () {
+            console.log('get data 2');
+
+            _this45.getData(top, function () {
               // console.log('else if callback for', top)
               resolve();
             }, true);
           } else {
             // console.log('else callback for', top)
+            console.log('no get data 3');
             resolve();
           }
         }
@@ -4779,14 +4805,14 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "confirmCancelSelections",
     value: function confirmCancelSelections(confirm) {
-      var _this45 = this;
+      var _this46 = this;
 
       this.inSelections = false;
       this.options.model.endSelections(confirm).then(function () {
-        var maskEl = document.getElementById("".concat(_this45.elementId, "_cellSelectMask"));
-        var maskLeftEl = document.getElementById("".concat(_this45.elementId, "_cellSelectMaskLeft"));
-        var maskRightEl = document.getElementById("".concat(_this45.elementId, "_cellSelectMaskRight"));
-        var maskButtonsEl = document.getElementById("".concat(_this45.elementId, "_cellSelectButtons"));
+        var maskEl = document.getElementById("".concat(_this46.elementId, "_cellSelectMask"));
+        var maskLeftEl = document.getElementById("".concat(_this46.elementId, "_cellSelectMaskLeft"));
+        var maskRightEl = document.getElementById("".concat(_this46.elementId, "_cellSelectMaskRight"));
+        var maskButtonsEl = document.getElementById("".concat(_this46.elementId, "_cellSelectButtons"));
 
         if (maskEl) {
           maskEl.classList.remove('active');
@@ -4804,15 +4830,15 @@ var Table3 = /*#__PURE__*/function () {
           maskButtonsEl.classList.remove('active');
         }
 
-        if (_this45.options.forceRenderAfterSelect === true) {
-          _this45.render();
+        if (_this46.options.forceRenderAfterSelect === true) {
+          _this46.render();
         }
       });
     }
   }, {
     key: "getData",
     value: function getData() {
-      var _this46 = this;
+      var _this47 = this;
 
       var top = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
       var callbackFn = arguments.length > 1 ? arguments[1] : undefined;
@@ -4824,7 +4850,7 @@ var Table3 = /*#__PURE__*/function () {
         if (this.options.getAllData === true) {
           getAllData('qHyperCube', this.options.model, this.layout, function (layout) {
             // this.rowCount = layout.qHyperCube.qDataPages[0].qMatrix.length
-            _this46.busy = false;
+            _this47.busy = false;
 
             if (callbackFn) {
               callbackFn(layout.qHyperCube.qDataPages[0].qMatrix);
@@ -4853,10 +4879,10 @@ var Table3 = /*#__PURE__*/function () {
 
             this.options.model[method]('/qHyperCubeDef', pageDefs).then(function (pages) {
               if (pages) {
-                if (_this46.layout.qHyperCube.qMode === 'P') {
-                  _this46.layout.qHyperCube.qPivotDataPages = pages;
+                if (_this47.layout.qHyperCube.qMode === 'P') {
+                  _this47.layout.qHyperCube.qPivotDataPages = pages;
 
-                  var pData = _this46.transformPivotTable(pages[0]);
+                  var pData = _this47.transformPivotTable(pages[0]);
 
                   pages[0].qMatrix = pData.data; // this.fullData.push(pages[0])
                   // this.rowCount += pages[0].qData.length
@@ -4864,29 +4890,31 @@ var Table3 = /*#__PURE__*/function () {
                 // pages[0].qMatrix = pages[0].qMatrix.filter(r => r[0].qText !== '-')              
 
 
-                if (_this46.layout.qHyperCube.qMode === 'S' || _this46.layout.qHyperCube.qIndentMode === true) {
-                  var _this46$fullData;
+                if (_this47.layout.qHyperCube.qMode === 'S' || _this47.layout.qHyperCube.qIndentMode === true) {
+                  var _this47$fullData;
 
-                  (_this46$fullData = _this46.fullData).splice.apply(_this46$fullData, [pages[0].qArea.qTop, pages[0].qArea.qHeight].concat(_toConsumableArray(pages[0].qMatrix)));
+                  (_this47$fullData = _this47.fullData).splice.apply(_this47$fullData, [pages[0].qArea.qTop, pages[0].qArea.qHeight].concat(_toConsumableArray(pages[0].qMatrix)));
+
+                  _this47.rowsLoaded = Math.max(_this47.rowsLoaded, pages[0].qArea.qTop + pages[0].qArea.qHeight);
 
                   for (var i = 0; i < pages[0].qArea.qHeight; i++) {
-                    if (_this46.rowIndexList.indexOf(pages[0].qArea.qTop + i) === -1) {
-                      _this46.rowIndexList.push(pages[0].qArea.qTop + i);
+                    if (_this47.rowIndexList.indexOf(pages[0].qArea.qTop + i) === -1) {
+                      _this47.rowIndexList.push(pages[0].qArea.qTop + i);
                     }
                   }
 
-                  _this46.rowIndexList.sort(function (a, b) {
+                  _this47.rowIndexList.sort(function (a, b) {
                     return a - b;
                   });
                 } else {
-                  _this46.fullData = pages[0].qMatrix;
+                  _this47.fullData = pages[0].qMatrix;
                 } // }
 
 
-                _this46.busy = false;
+                _this47.busy = false;
 
                 if (callbackFn) {
-                  if (_this46.layout.qHyperCube.qMode === 'P') {
+                  if (_this47.layout.qHyperCube.qMode === 'P') {
                     callbackFn(pages[0]);
                   } else {
                     callbackFn(pages[0].qMatrix);
@@ -4932,7 +4960,7 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "handleCellSelect",
     value: function handleCellSelect(event, data) {
-      var _this47 = this;
+      var _this48 = this;
 
       if (this.options.allowCellSelections === true) {
         var elemNum = -1;
@@ -4954,15 +4982,14 @@ var Table3 = /*#__PURE__*/function () {
 
         if (elemNum < 0 || data.column.isMeasure === true) {
           return;
-        }
+        } // this.inSelections = true      
 
-        this.inSelections = true;
-        this.abortModal().then(function () {});
-        this.options.model.beginSelections(['/qHyperCubeDef']).then(function () {
-          var maskEl = document.getElementById("".concat(_this47.elementId, "_cellSelectMask"));
-          var maskLeftEl = document.getElementById("".concat(_this47.elementId, "_cellSelectMaskLeft"));
-          var maskRightEl = document.getElementById("".concat(_this47.elementId, "_cellSelectMaskRight"));
-          var maskButtonsEl = document.getElementById("".concat(_this47.elementId, "_cellSelectButtons"));
+
+        this.beginSelections().then(function () {
+          var maskEl = document.getElementById("".concat(_this48.elementId, "_cellSelectMask"));
+          var maskLeftEl = document.getElementById("".concat(_this48.elementId, "_cellSelectMaskLeft"));
+          var maskRightEl = document.getElementById("".concat(_this48.elementId, "_cellSelectMaskRight"));
+          var maskButtonsEl = document.getElementById("".concat(_this48.elementId, "_cellSelectButtons"));
           var cellEl = null;
 
           if (event.target.classList.contains('websy-table-cell')) {
@@ -4996,12 +5023,22 @@ var Table3 = /*#__PURE__*/function () {
             maskButtonsEl.style.top = '0px';
             maskButtonsEl.style.left = "".concat(cellEl.offsetLeft, "px");
             maskButtonsEl.style.width = "".concat(cellEl.offsetWidth, "px");
-            maskButtonsEl.style.height = "".concat(_this47.table.sizes.header.height, "px");
+            maskButtonsEl.style.height = "".concat(_this48.table.sizes.header.height, "px");
           }
 
           cellEl.classList.add('websy-cell-selected');
+          var rowIndex = cellEl.getAttribute('data-row-index');
+          var cellIndex = cellEl.getAttribute('data-cell-index');
 
-          _this47.options.model.selectHyperCubeValues('/qHyperCubeDef', colIndex, [elemNum], true);
+          if (_this48.fullData && _this48.fullData[rowIndex] && _this48.fullData[rowIndex][cellIndex]) {
+            if (!_this48.fullData[rowIndex][cellIndex].classes) {
+              _this48.fullData[rowIndex][cellIndex].classes = [];
+            }
+
+            _this48.fullData[rowIndex][cellIndex].classes.push('websy-cell-selected');
+          }
+
+          _this48.options.model.selectHyperCubeValues('/qHyperCubeDef', colIndex, [elemNum], true);
         });
       }
     }
@@ -5044,7 +5081,7 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "handleScroll",
     value: function handleScroll(direction, startRow, endRow, startCol, endCol) {
-      var _this48 = this;
+      var _this49 = this;
 
       this.startCol = startCol;
       this.endCol = endCol; // if (this.layout.qHyperCube.qMode === 'P' && this.layout.qHyperCube.qIndentMode !== true) {
@@ -5054,22 +5091,22 @@ var Table3 = /*#__PURE__*/function () {
 
       this.startRow = startRow;
       this.checkDataExists(startRow, endRow).then(function () {
-        if (_this48.columns && _this48.columns.length > 0) {
-          if (_this48.layout.qHyperCube.qMode === 'S') {
-            var columnsInView = _this48.columns.filter(function (c, i) {
-              return i < _this48.pinnedColumns || i >= startCol && i <= endCol;
+        if (_this49.columns && _this49.columns.length > 0) {
+          if (_this49.layout.qHyperCube.qMode === 'S') {
+            var columnsInView = _this49.columns.filter(function (c, i) {
+              return i < _this49.pinnedColumns || i >= startCol && i <= endCol;
             });
 
-            _this48.table.columns = [columnsInView];
+            _this49.table.columns = [columnsInView];
           } else {
-            var _columnsInView = _this48.columns.map(function (cP) {
+            var _columnsInView = _this49.columns.map(function (cP) {
               var acc = 0;
               var adjAcc = 0;
               var firstColTrimmed = false;
               var newRow = cP.map(function (cC, i) {
                 var c = _extends({}, cC);
 
-                if (i < _this48.pinnedColumns) {
+                if (i < _this49.pinnedColumns) {
                   acc += c.colspan || 1;
                   adjAcc += c.colspan || 1;
                   c.inView = true;
@@ -5095,7 +5132,7 @@ var Table3 = /*#__PURE__*/function () {
                     c.inView = false;
                   }
                 } else {
-                  c.inView = i >= startCol + _this48.pinnedColumns && i <= endCol + _this48.pinnedColumns;
+                  c.inView = i >= startCol + _this49.pinnedColumns && i <= endCol + _this49.pinnedColumns;
                 }
 
                 acc += cC.colspan || 1;
@@ -5107,39 +5144,52 @@ var Table3 = /*#__PURE__*/function () {
               });
             });
 
-            _this48.table.columns = _columnsInView;
+            _this49.table.columns = _columnsInView;
           }
         }
 
-        if (_this48.totals && _this48.totals.length > 0) {
-          var totalsInView = _this48.totals.filter(function (c, i) {
-            return i < _this48.pinnedColumns || i >= startCol && i <= endCol;
+        if (_this49.totals && _this49.totals.length > 0) {
+          var totalsInView = _this49.totals.filter(function (c, i) {
+            return i < _this49.pinnedColumns || i >= startCol && i <= endCol;
           });
 
-          _this48.table.totals = totalsInView;
+          _this49.table.totals = totalsInView;
         }
 
-        var start = _this48.layout.qHyperCube.qMode === 'S' || _this48.layout.qHyperCube.qIndentMode === true ? startRow : 0;
-        var end = _this48.layout.qHyperCube.qMode === 'S' || _this48.layout.qHyperCube.qIndentMode === true ? endRow : endRow - startRow;
+        var start = _this49.layout.qHyperCube.qMode === 'S' || _this49.layout.qHyperCube.qIndentMode === true ? startRow : 0;
+        var end = _this49.layout.qHyperCube.qMode === 'S' || _this49.layout.qHyperCube.qIndentMode === true ? endRow : endRow - startRow;
 
-        _this48.appendRows(_this48.transformData(_toConsumableArray(_this48.fullData).slice(start, end + 1).map(function (row) {
+        _this49.appendRows(_this49.transformData(_toConsumableArray(_this49.fullData).slice(start, end + 1).map(function (row) {
           // console.log(row)
           return row.filter(function (c, i) {
-            if (_this48.layout.qHyperCube.qMode === 'P' && _this48.layout.qHyperCube.qIndentMode !== true) {
-              return c.level < _this48.pinnedColumns || c.dataIndex >= startCol - (_this48.layout.qHyperCube.qNoOfLeftDims - _this48.pinnedColumns) && c.dataIndex <= endCol - (_this48.layout.qHyperCube.qNoOfLeftDims - _this48.pinnedColumns); // return c.level < this.pinnedColumns || (c.level >= startCol && c.level <= endCol)
+            if (_this49.layout.qHyperCube.qMode === 'P' && _this49.layout.qHyperCube.qIndentMode !== true) {
+              return c.level < _this49.pinnedColumns || c.dataIndex >= startCol - (_this49.layout.qHyperCube.qNoOfLeftDims - _this49.pinnedColumns) && c.dataIndex <= endCol - (_this49.layout.qHyperCube.qNoOfLeftDims - _this49.pinnedColumns); // return c.level < this.pinnedColumns || (c.level >= startCol && c.level <= endCol)
             } else {
-              return i < _this48.pinnedColumns || i >= startCol + _this48.pinnedColumns && i <= endCol + _this48.pinnedColumns;
+              return i < _this49.pinnedColumns || i >= startCol + _this49.pinnedColumns && i <= endCol + _this49.pinnedColumns;
             }
           }).map(function (c, i, arr) {
-            if (_this48.layout.qHyperCube.qMode === 'P') {
+            if (_this49.layout.qHyperCube.qMode === 'P') {
               // && this.layout.qHyperCube.qIndentMode !== true) {            
-              c.level = c.level > _this48.pinnedColumns - 1 ? _this48.table.options.columns[_this48.table.options.columns.length - 1].length - (arr.length - i) : c.level;
+              c.level = c.level > _this49.pinnedColumns - 1 ? _this49.table.options.columns[_this49.table.options.columns.length - 1].length - (arr.length - i) : c.level;
             }
 
             return c;
           });
         })));
       });
+    }
+  }, {
+    key: "handleNativeScroll",
+    value: function handleNativeScroll(scrollTop) {
+      var _this50 = this;
+
+      var rowsRendered = Math.floor(scrollTop / this.table.sizes.cellHeight);
+
+      if (rowsRendered + this.table.sizes.rowsToRender * 2 > this.rowsLoaded) {
+        this.getData(this.rowsLoaded, function (page) {
+          _this50.appendRows(_this50.transformData(page.qMatrix));
+        });
+      }
     }
   }, {
     key: "handleSearch",
@@ -5255,7 +5305,7 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "render",
     value: function render() {
-      var _this49 = this;
+      var _this51 = this;
 
       var pageNum = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
       // if (this.searchPrepped === false) {
@@ -5271,71 +5321,71 @@ var Table3 = /*#__PURE__*/function () {
       }
 
       this.options.model.getLayout().then(function (layout) {
-        _this49.layout = layout;
+        _this51.layout = layout;
 
-        if (_this49.inSelections === true) {
+        if (_this51.inSelections === true) {
           if (layout.qSelectionInfo.qInSelections === true) {
             return;
           } else {
-            _this49.confirmCancelSelections(true);
+            _this51.confirmCancelSelections(true);
           }
         }
 
-        _this49.dataWidth = _this49.layout.qHyperCube.qSize.qcx;
-        _this49.columnOrder = _this49.layout.qHyperCube.qColumnOrder;
-        _this49.pageNum = pageNum;
+        _this51.dataWidth = _this51.layout.qHyperCube.qSize.qcx;
+        _this51.columnOrder = _this51.layout.qHyperCube.qColumnOrder;
+        _this51.pageNum = pageNum;
 
-        _this49.getData(0, function (page) {
-          _this49.layout.qHyperCube.qDataPages = [page];
+        _this51.getData(0, function (page) {
+          _this51.layout.qHyperCube.qDataPages = [page];
 
           if (layout.qHyperCube.qError && layout.qHyperCube.qCalcCondMsg) {
-            _this49.table.hideLoading();
+            _this51.table.hideLoading();
 
-            _this49.table.showError({
-              message: _this49.options.customError || layout.qHyperCube.qCalcCondMsg
+            _this51.table.showError({
+              message: _this51.options.customError || layout.qHyperCube.qCalcCondMsg
             });
 
             return;
           }
 
-          if (_this49.options.forcedRowLimit && layout.qHyperCube.qSize.qcy > _this49.options.forcedRowLimit) {
-            _this49.table.hideLoading();
+          if (_this51.options.forcedRowLimit && layout.qHyperCube.qSize.qcy > _this51.options.forcedRowLimit) {
+            _this51.table.hideLoading();
 
-            _this49.table.showError({
-              message: _this49.options.forcedRowLimitError || _this49.options.customError || layout.qHyperCube.qCalcCondMsg
+            _this51.table.showError({
+              message: _this51.options.forcedRowLimitError || _this51.options.customError || layout.qHyperCube.qCalcCondMsg
             });
 
             return;
           }
 
-          if (_this49.options.forcedColLimit && layout.qHyperCube.qSize.qcx > _this49.options.forcedColLimit) {
-            _this49.table.hideLoading();
+          if (_this51.options.forcedColLimit && layout.qHyperCube.qSize.qcx > _this51.options.forcedColLimit) {
+            _this51.table.hideLoading();
 
-            _this49.table.showError({
-              message: _this49.options.forcedColLimitError || _this49.options.customError || layout.qHyperCube.qCalcCondMsg
+            _this51.table.showError({
+              message: _this51.options.forcedColLimitError || _this51.options.customError || layout.qHyperCube.qCalcCondMsg
             });
 
             return;
           }
 
-          _this49.table.hideError();
+          _this51.table.hideError();
 
-          _this49.options.model.getEffectiveProperties().then(function (props) {
-            _this49.properties = props;
+          _this51.options.model.getEffectiveProperties().then(function (props) {
+            _this51.properties = props;
 
-            if (_this49.options.onUpdate) {
-              _this49.options.onUpdate(props, layout);
+            if (_this51.options.onUpdate) {
+              _this51.options.onUpdate(props, layout);
             }
 
-            _this49.endCol = layout.qHyperCube.qSize.qcx + (_this49.pinnedColumns || layout.qHyperCube.qNoOfLeftDims); // this.layout = layout
+            _this51.endCol = layout.qHyperCube.qSize.qcx + (_this51.pinnedColumns || layout.qHyperCube.qNoOfLeftDims); // this.layout = layout
 
-            if (_this49.layout.qHyperCube.qMode === 'P') {
-              _this49.qlikColumnOrder = _this49.layout.qHyperCube.qEffectiveInterColumnSortOrder;
+            if (_this51.layout.qHyperCube.qMode === 'P') {
+              _this51.qlikColumnOrder = _this51.layout.qHyperCube.qEffectiveInterColumnSortOrder;
             } else {
-              _this49.qlikColumnOrder = _this49.layout.qHyperCube.qColumnOrder;
+              _this51.qlikColumnOrder = _this51.layout.qHyperCube.qColumnOrder;
             }
 
-            _this49.resize();
+            _this51.resize();
           });
         });
       }, function (err) {
@@ -5345,7 +5395,7 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "resize",
     value: function resize() {
-      var _this50 = this;
+      var _this52 = this;
 
       this.buildDataStructure(); // this.rowCount = pageNum * this.options.pageSize
       // if (this.layout.qHyperCube.qPivotDataPages[0]) {
@@ -5367,16 +5417,16 @@ var Table3 = /*#__PURE__*/function () {
       this.layout.qHyperCube.qDimensionInfo = this.layout.qHyperCube.qDimensionInfo.map(function (c, i) {
         c.searchable = true;
 
-        if (_this50.options.columnOverrides[i]) {
-          c = _objectSpread(_objectSpread({}, c), _this50.options.columnOverrides[i]);
+        if (_this52.options.columnOverrides[i]) {
+          c = _objectSpread(_objectSpread({}, c), _this52.options.columnOverrides[i]);
         }
 
         c.searchField = "dim".concat(i);
         return c;
       });
       this.layout.qHyperCube.qMeasureInfo = this.layout.qHyperCube.qMeasureInfo.map(function (c, i) {
-        if (_this50.options.columnOverrides[_this50.layout.qHyperCube.qDimensionInfo.length + i]) {
-          c = _objectSpread(_objectSpread({}, c), _this50.options.columnOverrides[_this50.layout.qHyperCube.qDimensionInfo.length + i]);
+        if (_this52.options.columnOverrides[_this52.layout.qHyperCube.qDimensionInfo.length + i]) {
+          c = _objectSpread(_objectSpread({}, c), _this52.options.columnOverrides[_this52.layout.qHyperCube.qDimensionInfo.length + i]);
         }
 
         return c;
@@ -5394,27 +5444,30 @@ var Table3 = /*#__PURE__*/function () {
       }
 
       this.getData(this.startRow, function (page) {
-        if (_this50.layout.qHyperCube.qPivotDataPages && _this50.layout.qHyperCube.qPivotDataPages[0] && _this50.layout.qHyperCube.qPivotDataPages[0].qData.length !== _this50.layout.qHyperCube.qSize.qcx) {
-          _this50.buildPivotColumns();
+        if (_this52.layout.qHyperCube.qPivotDataPages && _this52.layout.qHyperCube.qPivotDataPages[0] && _this52.layout.qHyperCube.qPivotDataPages[0].qData.length !== _this52.layout.qHyperCube.qSize.qcx) {
+          _this52.buildPivotColumns();
         }
 
-        _this50.table.hideLoading(); // if (this.layout.qHyperCube.qMode === 'S') {
+        _this52.table.hideLoading(); // if (this.layout.qHyperCube.qMode === 'S') {
 
 
-        _this50.table.render([], false);
+        _this52.table.render([], false);
 
-        _this50.prepDropdowns(); // }        
+        _this52.prepDropdowns(); // }        
 
 
         if (!page || page.err) {
-          var tableEl = document.getElementById("".concat(_this50.elementId, "_foot"));
+          var tableEl = document.getElementById("".concat(_this52.elementId, "_foot"));
 
-          if (_this50.tableEl) {
+          if (_this52.tableEl) {
             tableEl.innerHTML = "\n            <div class='request-abort-error'>Could not fetch data. Click <strong class='table-try-again'>here</strong> to try again</div>\n          ";
           }
         } else {
-          // this.fullData = page
-          _this50.appendRows(_this50.transformData(_this50.fullData));
+          if (_this52.options.virtualScroll === true) {
+            _this52.appendRows(_this52.transformData(_this52.fullData));
+          } else {
+            _this52.appendRows(_this52.transformData(_this52.fullData.slice(0, _this52.rowsLoaded)));
+          }
         }
       });
     }
@@ -5432,15 +5485,15 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "transformData",
     value: function transformData(page) {
-      var _this51 = this;
+      var _this53 = this;
 
       return page.map(function (r) {
         return r.map(function (c, i) {
-          if (_this51.layout.qHyperCube.qMode === 'S') {
+          if (_this53.layout.qHyperCube.qMode === 'S') {
             c.level = i;
           }
 
-          if (_this51.table.options.columns[_this51.table.options.columns.length - 1][i] && (_this51.table.options.columns[_this51.table.options.columns.length - 1][i].showAsLink === true || _this51.table.options.columns[_this51.table.options.columns.length - 1][i].showAsNavigatorLink === true)) {
+          if (_this53.table.options.columns[_this53.table.options.columns.length - 1][i] && (_this53.table.options.columns[_this53.table.options.columns.length - 1][i].showAsLink === true || _this53.table.options.columns[_this53.table.options.columns.length - 1][i].showAsNavigatorLink === true)) {
             if (c.qAttrExps && c.qAttrExps.qValues && c.qAttrExps.qValues[0].qText) {
               c.value = c.qAttrExps.qValues[0].qText;
 
@@ -5458,7 +5511,7 @@ var Table3 = /*#__PURE__*/function () {
 
           if (c.qAttrExps && c.qAttrExps.qValues) {
             // let t = 'qDimensionInfo'
-            var tIndex = i + (_this51.startCol || 0); // if (i > this.layout.qHyperCube.qDimensionInfo.length - 1) {
+            var tIndex = i + (_this53.startCol || 0); // if (i > this.layout.qHyperCube.qDimensionInfo.length - 1) {
             //   t = 'qMeasureInfo'
             //   tIndex -= this.layout.qHyperCube.qDimensionInfo.length
             // }
@@ -5471,18 +5524,18 @@ var Table3 = /*#__PURE__*/function () {
                 // else if (sourceColumns[tIndex] && sourceColumns[tIndex].qAttrExprInfo && sourceColumns[tIndex].qAttrExprInfo[aI] && sourceColumns[tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                 //   c.backgroundColor = a.qText
                 // }
-                if (c.level < _this51.layout.qHyperCube.qDimensionInfo.length) {
-                  if (_this51.layout.qHyperCube.qDimensionInfo[c.level] && _this51.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo && _this51.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI] && _this51.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                if (c.level < _this53.layout.qHyperCube.qDimensionInfo.length) {
+                  if (_this53.layout.qHyperCube.qDimensionInfo[c.level] && _this53.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo && _this53.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI] && _this53.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                     c.color = a.qText;
-                  } else if (_this51.layout.qHyperCube.qDimensionInfo[c.level] && _this51.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo && _this51.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI] && _this51.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                  } else if (_this53.layout.qHyperCube.qDimensionInfo[c.level] && _this53.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo && _this53.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI] && _this53.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                     c.backgroundColor = a.qText;
                   }
                 } else {
-                  var measureIndex = (c.level - _this51.layout.qHyperCube.qDimensionInfo.length) % _this51.layout.qHyperCube.qMeasureInfo.length;
+                  var measureIndex = (c.level - _this53.layout.qHyperCube.qDimensionInfo.length) % _this53.layout.qHyperCube.qMeasureInfo.length;
 
-                  if (_this51.layout.qHyperCube.qMeasureInfo[measureIndex] && _this51.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && _this51.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && _this51.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                  if (_this53.layout.qHyperCube.qMeasureInfo[measureIndex] && _this53.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && _this53.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && _this53.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                     c.color = a.qText;
-                  } else if (_this51.layout.qHyperCube.qMeasureInfo[measureIndex] && _this51.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && _this51.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && _this51.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                  } else if (_this53.layout.qHyperCube.qMeasureInfo[measureIndex] && _this53.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && _this53.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && _this53.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                     c.backgroundColor = a.qText;
                   }
                 }
@@ -5558,7 +5611,7 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "transformPivotTable",
     value: function transformPivotTable(page) {
-      var _this52 = this;
+      var _this54 = this;
 
       var output = [];
       var leftNodes = [];
@@ -5583,7 +5636,7 @@ var Table3 = /*#__PURE__*/function () {
       this.pinnedColumns = Math.min(this.validPivotLeft + 1, visibleLeftCount);
       leftNodes = leftNodes.map(function (n) {
         return n.map(function (c, i) {
-          if (c.level >= _this52.pinnedColumns && c.qElemNo === -4) {
+          if (c.level >= _this54.pinnedColumns && c.qElemNo === -4) {
             c.level = -1;
           }
 
@@ -5604,7 +5657,9 @@ var Table3 = /*#__PURE__*/function () {
 
           row[c].dataIndex = c; // row[c].level = this.pinnedColumns
 
-          row[c].level = this.pinnedColumns + c; // row[c].width = `${this.columnParams.cellWidths[(this.options.freezeColumns || this.layout.qHyperCube.qNoOfLeftDims) + c] || this.columnParams.cellWidths[this.columnParams.cellWidths.length - 1]}px`
+          if (this.layout.qHyperCube.qIndentMode !== true) {
+            row[c].level = this.pinnedColumns + c;
+          } // row[c].width = `${this.columnParams.cellWidths[(this.options.freezeColumns || this.layout.qHyperCube.qNoOfLeftDims) + c] || this.columnParams.cellWidths[this.columnParams.cellWidths.length - 1]}px`
           // if (row[c].qAttrExps && row[c].qAttrExps.qValues && row[c].qAttrExps.qValues[0] && row[c].qAttrExps.qValues[0].qText) {
           //   row[c].backgroundColor = row[c].qAttrExps.qValues[0].qText
           //   row[c].color = this.getFontColor(row[c].qAttrExps.qValues[0].qText)
@@ -5612,6 +5667,7 @@ var Table3 = /*#__PURE__*/function () {
           // if (row[c].qAttrExps && row[c].qAttrExps.qValues && row[c].qAttrExps.qValues[1] && row[c].qAttrExps.qValues[1].qText) {
           //   row[c].color = this.getFontColor(row[c].qAttrExps.qValues[1].qText)
           // }
+
 
           var lastTop = topNodesTransposed[topNodesTransposed.length - 1][c];
 
@@ -5624,8 +5680,17 @@ var Table3 = /*#__PURE__*/function () {
               leftNodes[r][leftNodes[r].length - 1].classes = [];
             }
 
-            leftNodes[r][leftNodes[r].length - 1].classes.push('total-cell');
-            row[c].classes.push('total-cell');
+            if (leftNodes[r][leftNodes[r].length - 1].classes.indexOf('total-cell') === -1) {
+              leftNodes[r][leftNodes[r].length - 1].classes.push('total-cell');
+            }
+
+            if (row[c].classes.indexOf('total-cell') === -1) {
+              row[c].classes.push('total-cell');
+            }
+          }
+
+          if (leftNodes[r] && leftNodes[r][leftNodes[r].length - 1].classes && leftNodes[r][leftNodes[r].length - 1].classes.indexOf('sub-total-cell') !== -1) {
+            row[c].classes.push('sub-total-cell');
           }
 
           row[c].value = row[c].qText || '';
@@ -5660,13 +5725,13 @@ var Table3 = /*#__PURE__*/function () {
         for (var _i24 = 0; _i24 < topNodesTransposed.length; _i24++) {
           if (_i24 === topNodesTransposed.length - 1 && this.layout.qHyperCube.qMode === 'P' && this.layout.qHyperCube.qIndentMode !== true) {
             (function () {
-              var columns = _this52.layout.qHyperCube.qDimensionInfo.filter(function (d) {
+              var columns = _this54.layout.qHyperCube.qDimensionInfo.filter(function (d) {
                 return !d.qError;
               });
 
               var labelledTopCells = additionalTopCells.map(function (d, i) {
                 d.name = (columns[i] || {}).qFallbackTitle || '';
-                d.show = i <= _this52.validPivotLeft;
+                d.show = i <= _this54.validPivotLeft;
                 return d;
               });
               topNodesTransposed[_i24] = labelledTopCells.concat(topNodesTransposed[_i24]);
@@ -5701,10 +5766,17 @@ var Table3 = /*#__PURE__*/function () {
       function expandLeft(input, level, index, parent, chain) {
         var o = _extends({}, input);
 
-        o.level = level;
+        o.level = this.layout.qHyperCube.qIndentMode === true ? 0 : level;
+        o.index = level;
         o.pos = 'Left';
         o.style = '';
-        o.value = o.qText || '';
+        o.value = o.qText || ''; // if (!o.classes) {
+        //   o.classes = []
+        // }           
+        // if (!input.classes) {
+        //   input.classes = []
+        // }
+
         input.value = input.qText || '';
         visibleLeftCount = Math.max(visibleLeftCount, level + 1);
         o.childCount = o.qSubNodes.length; // TODO add id mapping to attribute exressions here
@@ -5721,81 +5793,94 @@ var Table3 = /*#__PURE__*/function () {
         delete o.qSubNodes;
 
         if (o.qElemNo < 0 && this.layout.qHyperCube.qIndentMode === true && level > 0) {
-          return;
-        }
-
-        if (typeof o.qText === 'undefined') {
-          if (o.qElemNo === -1) {
-            o.qText = 'Totals';
-          } else if (o.qElemNo === -4) {
-            o.qText = ''; // o.qType = 'T'
-          }
-        }
-
-        o.expandable = o.qCanExpand;
-        o.collapsable = o.qCanCollapse;
-        o.rowspan = Math.max(1, input.qSubNodes.length);
-
-        if (o.qAttrExps && o.qAttrExps.qValues) {
-          o.qAttrExps.qValues.forEach(function (a, aI) {
-            if (a.qText && a.qText !== '') {
-              if (sourceColumns[o.level] && sourceColumns[o.level].qAttrExprInfo && sourceColumns[o.level].qAttrExprInfo[aI] && sourceColumns[o.level].qAttrExprInfo[aI].id === 'cellForegroundColor') {
-                o.color = a.qText;
-              } else if (sourceColumns[o.level] && sourceColumns[o.level].qAttrExprInfo && sourceColumns[o.level].qAttrExprInfo[aI] && sourceColumns[o.level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
-                o.backgroundColor = a.qText;
-              }
+          if (o.qType === 'T') {
+            if (!parent.classes) {
+              parent.classes = [];
             }
-          });
-        }
 
-        input.rowspan = Math.max(1, input.qSubNodes.length);
+            if (parent.classes.indexOf('sub-total-cell') === -1) {
+              parent.classes.push('sub-total-cell');
+              parent.isTotal = true;
+            }
+          } // return
 
-        if (this.layout.qHyperCube.qIndentMode === true) {
-          o.rowspan = 1;
-          o.indent = level;
-
-          if (level > 0) {
-            o.style = "padding-left: ".concat(level * 20, "px;");
-          }
-
-          if (o.qType !== 'E') {
-            leftNodes.push([o]);
-          }
-
-          tempNode = []; // if (o.qElemNo > -4) {
-          // }
-
-          for (var _i25 = 0; _i25 < input.qSubNodes.length; _i25++) {
-            expandLeft.call(this, input.qSubNodes[_i25], level + 1, _i25, input, [].concat(_toConsumableArray(chain), [o]));
-          }
-        } else if (input.qSubNodes.length === 0) {
-          if (o.qElemNo > -4) {
-            this.validPivotLeft = Math.max(this.validPivotLeft, level);
-          }
-
-          leftNodes.push(tempNode.concat([o]));
-          tempNode = [];
         } else {
-          if (input.qElemNo > -4 || !input.qSubNodes || input.qSubNodes.length === 0) {
-            this.validPivotLeft = Math.max(this.validPivotLeft, level);
+          if (typeof o.qText === 'undefined') {
+            if (o.qElemNo === -1) {
+              o.qText = 'Totals';
+            } else if (o.qElemNo === -4) {
+              o.qText = ''; // o.qType = 'T'
+            }
           }
 
-          tempNode.push(o); // if (o.qElemNo > -4) {                  
-          //   this.validPivotLeft = Math.max(this.validPivotLeft, level)
-          // }
+          o.expandable = o.qCanExpand;
+          o.collapsable = o.qCanCollapse;
+          o.rowspan = Math.max(1, input.qSubNodes.length);
 
-          for (var _i26 = 0; _i26 < input.qSubNodes.length; _i26++) {
-            expandLeft.call(this, input.qSubNodes[_i26], level + 1, _i26, input, [].concat(_toConsumableArray(chain), [o]));
+          if (o.qAttrExps && o.qAttrExps.qValues) {
+            o.qAttrExps.qValues.forEach(function (a, aI) {
+              if (a.qText && a.qText !== '') {
+                if (sourceColumns[o.level] && sourceColumns[o.level].qAttrExprInfo && sourceColumns[o.level].qAttrExprInfo[aI] && sourceColumns[o.level].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                  o.color = a.qText;
+                } else if (sourceColumns[o.level] && sourceColumns[o.level].qAttrExprInfo && sourceColumns[o.level].qAttrExprInfo[aI] && sourceColumns[o.level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                  o.backgroundColor = a.qText;
+                }
+              }
+            });
           }
 
-          var s = 0;
+          input.rowspan = Math.max(1, input.qSubNodes.length);
 
-          for (var _i27 = 0; _i27 < input.qSubNodes.length; _i27++) {
-            s += input.qSubNodes[_i27].rowspan;
+          if (this.layout.qHyperCube.qIndentMode === true) {
+            o.rowspan = 1;
+            o.indent = level;
+
+            if (level > 0) {
+              // o.style = `padding-left: ${level * 20}px;`
+              o.style = "text-indent: ".concat(level * 20, "px;");
+            }
+
+            if (o.qType !== 'E') {
+              leftNodes.push([o]);
+            }
+
+            tempNode = []; // if (o.qElemNo > -4) {
+            // }
+
+            for (var _i25 = 0; _i25 < input.qSubNodes.length; _i25++) {
+              expandLeft.call(this, input.qSubNodes[_i25], level + 1, _i25, input, [].concat(_toConsumableArray(chain), [o]));
+            }
+
+            o.classes = input.classes;
+          } else if (input.qSubNodes.length === 0) {
+            if (o.qElemNo > -4) {
+              this.validPivotLeft = Math.max(this.validPivotLeft, level);
+            }
+
+            leftNodes.push(tempNode.concat([o]));
+            tempNode = [];
+          } else {
+            if (input.qElemNo > -4 || !input.qSubNodes || input.qSubNodes.length === 0) {
+              this.validPivotLeft = Math.max(this.validPivotLeft, level);
+            }
+
+            tempNode.push(o); // if (o.qElemNo > -4) {                  
+            //   this.validPivotLeft = Math.max(this.validPivotLeft, level)
+            // }
+
+            for (var _i26 = 0; _i26 < input.qSubNodes.length; _i26++) {
+              expandLeft.call(this, input.qSubNodes[_i26], level + 1, _i26, input, [].concat(_toConsumableArray(chain), [o]));
+            }
+
+            var s = 0;
+
+            for (var _i27 = 0; _i27 < input.qSubNodes.length; _i27++) {
+              s += input.qSubNodes[_i27].rowspan;
+            }
+
+            input.rowspan = s;
+            o.rowspan = s;
           }
-
-          input.rowspan = s;
-          o.rowspan = s;
         }
       } // This function is used to convert the qTop structure from a parent/child hierarchy
       // into a 2 dimensions array
@@ -5810,7 +5895,7 @@ var Table3 = /*#__PURE__*/function () {
 
         var o = _extends({}, input);
 
-        o.level = level;
+        o.level = this.layout.qHyperCube.qIndentMode === true ? 0 : level;
         o.pos = 'Top';
         o.rowIndex = topCounter;
         o.topNode = true;
@@ -6002,7 +6087,7 @@ if (typeof WebsyDesigns !== 'undefined') {
 
   var ObjectManager = /*#__PURE__*/function () {
     function ObjectManager(options) {
-      var _this53 = this;
+      var _this55 = this;
 
       _classCallCheck(this, ObjectManager);
 
@@ -6047,7 +6132,7 @@ if (typeof WebsyDesigns !== 'undefined') {
         });
         defaultVisualisationPlugins.forEach(function (p) {
           if (visKeys.indexOf(p.id) === -1) {
-            _this53.options.visualisationPlugins.push(p);
+            _this55.options.visualisationPlugins.push(p);
           }
         });
       } else {
@@ -6081,7 +6166,7 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "mergeObjects",
       value: function mergeObjects() {
-        var _this54 = this;
+        var _this56 = this;
 
         // Variables
         var extended = {};
@@ -6099,7 +6184,7 @@ if (typeof WebsyDesigns !== 'undefined') {
             if (obj.hasOwnProperty(prop)) {
               if (deep && Object.prototype.toString.call(obj[prop]) === '[object Object]') {
                 // If we're doing a deep merge and the property is an object
-                extended[prop] = _this54.mergeObjects(extended, extended[prop], obj[prop]);
+                extended[prop] = _this56.mergeObjects(extended, extended[prop], obj[prop]);
               } else {
                 // Otherwise, do a regular merge
                 if (Array.isArray(extended[prop]) && Array.isArray(obj[prop])) {
@@ -6131,14 +6216,14 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "init",
       value: function init() {
-        var _this55 = this;
+        var _this57 = this;
 
         return new Promise(function (resolve, reject) {
-          _this55.prep('global');
+          _this57.prep('global');
 
-          _this55.connectToApp().then(function () {
-            _this55.executeAction(0, _this55.options.initialActions, function () {
-              _this55.selectFromUrl(function () {
+          _this57.connectToApp().then(function () {
+            _this57.executeAction(0, _this57.options.initialActions, function () {
+              _this57.selectFromUrl(function () {
                 resolve();
               });
             });
@@ -6219,7 +6304,7 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "prep",
       value: function prep(view) {
-        var _this56 = this;
+        var _this58 = this;
 
         // for (let view in this.options.views) {
         // sort out the elements in each view
@@ -6241,31 +6326,31 @@ if (typeof WebsyDesigns !== 'undefined') {
 
 
         var _loop = function _loop(a) {
-          var el = document.getElementById(_this56.options.actions[a].elementId);
+          var el = document.getElementById(_this58.options.actions[a].elementId);
 
           if (el) {
-            el.addEventListener(_this56.options.actions[a].event, function () {
+            el.addEventListener(_this58.options.actions[a].event, function () {
               var _loop2 = function _loop2(i) {
-                var item = _this56.options.actions[a].items[i];
+                var item = _this58.options.actions[a].items[i];
 
                 if (typeof item.params === 'undefined') {
                   item.params = [];
                 }
 
                 if (item.field) {
-                  _this56.app.getField(item.field, item.state || '$').then(function (field) {
+                  _this58.app.getField(item.field, item.state || '$').then(function (field) {
                     field[item.method].apply(field, _toConsumableArray(item.params));
                   });
                 } else if (item.fn) {
                   item.fn();
                 } else {
-                  var _this56$app;
+                  var _this58$app;
 
-                  (_this56$app = _this56.app)[item.method].apply(_this56$app, _toConsumableArray(item.params));
+                  (_this58$app = _this58.app)[item.method].apply(_this58$app, _toConsumableArray(item.params));
                 }
               };
 
-              for (var i = 0; i < _this56.options.actions[a].items.length; i++) {
+              for (var i = 0; i < _this58.options.actions[a].items.length; i++) {
                 _loop2(i);
               }
             });
@@ -6281,14 +6366,14 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "connectToApp",
       value: function connectToApp() {
-        var _this57 = this;
+        var _this59 = this;
 
         return new Promise(function (resolve, reject) {
           // check for enigma.js      
-          var originalId = _this57.options.enigmaConfig.app;
+          var originalId = _this59.options.enigmaConfig.app;
 
-          if (_this57.options.enigmaConfig.app) {
-            _this57.options.enigmaConfig.app = _this57.normalizeId(_this57.options.enigmaConfig.app);
+          if (_this59.options.enigmaConfig.app) {
+            _this59.options.enigmaConfig.app = _this59.normalizeId(_this59.options.enigmaConfig.app);
           }
 
           if (typeof enigma === 'undefined') {
@@ -6298,28 +6383,28 @@ if (typeof WebsyDesigns !== 'undefined') {
             return;
           }
 
-          if (typeof _this57.options.enigmaSchema === 'undefined') {
+          if (typeof _this59.options.enigmaSchema === 'undefined') {
             reject({
               error: 'enigmaSchema property not found.'
             });
             return;
           }
 
-          var url = _this57.options.enigmaConfig.url;
+          var url = _this59.options.enigmaConfig.url;
 
-          if (_this57.options.enigmaConfig.ticket) {
+          if (_this59.options.enigmaConfig.ticket) {
             if (url.indexOf('?') === -1) {
               url += '?';
             } else {
               url += '&';
             }
 
-            url += "qlikTicket=".concat(_this57.options.enigmaConfig.ticket);
+            url += "qlikTicket=".concat(_this59.options.enigmaConfig.ticket);
           }
 
           var MAX_RETRIES = 5;
           var config = {
-            schema: _this57.options.enigmaSchema,
+            schema: _this59.options.enigmaSchema,
             url: url,
             onRejected: function onRejected(sessionReference, request, error) {
               if (error.code === this.options.enigmaSchema.enums.LocalizedErrorCode.LOCERR_GENERIC_ABORTED) {
@@ -6334,16 +6419,16 @@ if (typeof WebsyDesigns !== 'undefined') {
             }
           };
           var session = enigma.create(config);
-          _this57.session = session;
+          _this59.session = session;
           session.open().then(function (global) {
-            _this57.global = global;
+            _this59.global = global;
             global.getActiveDoc().then(function (app) {
               if (app) {
                 app.abortModal(true).then(function () {
-                  _this57.app = app;
+                  _this59.app = app;
 
-                  if (_this57.options.views.global) {
-                    _this57.executeActions('global').then(function () {
+                  if (_this59.options.views.global) {
+                    _this59.executeActions('global').then(function () {
                       resolve();
                     });
                   } else {
@@ -6351,7 +6436,7 @@ if (typeof WebsyDesigns !== 'undefined') {
                   }
                 });
               } else {
-                return _this57.openApp(originalId).then(function () {
+                return _this59.openApp(originalId).then(function () {
                   resolve();
                 });
               }
@@ -6359,10 +6444,10 @@ if (typeof WebsyDesigns !== 'undefined') {
               var e = err;
 
               if (originalId) {
-                return _this57.openApp(originalId).then(function () {
+                return _this59.openApp(originalId).then(function () {
                   resolve();
                 }, function (err) {
-                  _this57.sessionOnNotification({
+                  _this59.sessionOnNotification({
                     err: err
                   });
                 });
@@ -6371,40 +6456,40 @@ if (typeof WebsyDesigns !== 'undefined') {
               }
             });
 
-            if (_this57.options.keepAlive === true) {
-              _this57.keepAlive();
+            if (_this59.options.keepAlive === true) {
+              _this59.keepAlive();
             }
           }, function (err) {
             reject(err);
           });
           session.on('traffic:received', function (data) {
             if (typeof data.suspend !== 'undefined') {
-              _this57.sessionSuspended();
+              _this59.sessionSuspended();
             }
           });
           session.on('notification:*', function (eventName, data) {
             if (eventName === 'OnAuthenticationInformation') {
               if (data.mustAuthenticate === true) {
-                if (_this57.options.enigmaConfig.authUrl) {
-                  window.location = _this57.options.enigmaConfig.authUrl + window.location.search.replace('?', '%3F').replace('=', '%3D');
-                } else if (_this57.options.enigmaConfig.onMustAuthenticate) {
-                  _this57.options.enigmaConfig.onMustAuthenticate();
+                if (_this59.options.enigmaConfig.authUrl) {
+                  window.location = _this59.options.enigmaConfig.authUrl + window.location.search.replace('?', '%3F').replace('=', '%3D');
+                } else if (_this59.options.enigmaConfig.onMustAuthenticate) {
+                  _this59.options.enigmaConfig.onMustAuthenticate();
                 } else if (data.loginUri) {
                   window.location = data.loginUri;
                 }
               } else if (data.mustAuthenticate === false) {
-                _this57.user = {
+                _this59.user = {
                   userDirectory: data.userDirectory,
                   userId: data.userId
                 };
               }
             } else {
-              _this57.sessionOnNotification(data, eventName);
+              _this59.sessionOnNotification(data, eventName);
             }
           });
-          session.on('suspended', _this57.sessionSuspended.bind(_this57));
-          session.on('resumed', _this57.sessionResumed.bind(_this57));
-          session.on('closed', _this57.sessionClosed.bind(_this57));
+          session.on('suspended', _this59.sessionSuspended.bind(_this59));
+          session.on('resumed', _this59.sessionResumed.bind(_this59));
+          session.on('closed', _this59.sessionClosed.bind(_this59));
         });
       }
     }, {
@@ -6425,25 +6510,25 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "keepAlive",
       value: function keepAlive() {
-        var _this58 = this;
+        var _this60 = this;
 
         this.global.engineVersion();
         setTimeout(function () {
-          _this58.keepAlive();
+          _this60.keepAlive();
         }, 59000);
       }
     }, {
       key: "openApp",
       value: function openApp(appId) {
-        var _this59 = this;
+        var _this61 = this;
 
         return new Promise(function (resolve, reject) {
-          _this59.global.openDoc(appId).then(function (app) {
+          _this61.global.openDoc(appId).then(function (app) {
             app.abortModal(true).then(function () {
-              _this59.app = app;
+              _this61.app = app;
 
-              if (_this59.options.views.global) {
-                _this59.executeActions('global').then(function () {
+              if (_this61.options.views.global) {
+                _this61.executeActions('global').then(function () {
                   resolve();
                 });
               } else {
@@ -6458,7 +6543,7 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "loadView",
       value: function loadView(view, force) {
-        var _this60 = this;
+        var _this62 = this;
 
         if (typeof force === 'undefined') {
           force = false;
@@ -6478,23 +6563,23 @@ if (typeof WebsyDesigns !== 'undefined') {
 
         if (this.options.views[view].controller && this.options.views[view].initialized !== true) {
           this.options.views[view].controller.init(function () {
-            _this60.options.views[view].initialized = true;
+            _this62.options.views[view].initialized = true;
 
-            if (_this60.options.views[view].prepped !== true) {
-              _this60.prep(view);
+            if (_this62.options.views[view].prepped !== true) {
+              _this62.prep(view);
             }
 
-            _this60.executeActions(view).then(function () {
-              if ((_this60.globalObjectsLoaded === false || _this60.options.alwaysLoadGlobal === true) && view !== 'global') {
-                _this60.loadObjects('global', force);
+            _this62.executeActions(view).then(function () {
+              if ((_this62.globalObjectsLoaded === false || _this62.options.alwaysLoadGlobal === true) && view !== 'global') {
+                _this62.loadObjects('global', force);
 
-                _this60.globalObjectsLoaded = true;
+                _this62.globalObjectsLoaded = true;
               }
 
-              _this60.loadObjects(view, force);
+              _this62.loadObjects(view, force);
 
               if (view === 'global') {
-                _this60.globalObjectsLoaded = true;
+                _this62.globalObjectsLoaded = true;
               }
             });
           });
@@ -6507,16 +6592,16 @@ if (typeof WebsyDesigns !== 'undefined') {
           this.executeActions(view).then(function () {
             console.log('Actions complete', view);
 
-            if ((_this60.globalObjectsLoaded === false || _this60.options.alwaysLoadGlobal === true) && view !== 'global') {
-              _this60.loadObjects('global', force);
+            if ((_this62.globalObjectsLoaded === false || _this62.options.alwaysLoadGlobal === true) && view !== 'global') {
+              _this62.loadObjects('global', force);
 
-              _this60.globalObjectsLoaded = true;
+              _this62.globalObjectsLoaded = true;
             }
 
-            _this60.loadObjects(view, force);
+            _this62.loadObjects(view, force);
 
             if (view === 'global') {
-              _this60.globalObjectsLoaded = true;
+              _this62.globalObjectsLoaded = true;
             }
           });
         }
@@ -6524,7 +6609,7 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "executeAction",
       value: function executeAction(index, actionList, callbackFn) {
-        var _this61 = this;
+        var _this63 = this;
 
         var item = actionList[index];
 
@@ -6539,7 +6624,7 @@ if (typeof WebsyDesigns !== 'undefined') {
 
         if (item.field) {
           this.app.getField(item.field, item.state || '$').then(function (field) {
-            if (_this61.options.router) {
+            if (_this63.options.router) {
               if (item.method === 'unlock') {// need to think how we do this
               }
             }
@@ -6552,7 +6637,7 @@ if (typeof WebsyDesigns !== 'undefined') {
                   if (index === actionList.length) {
                     callbackFn();
                   } else {
-                    _this61.executeAction(index, actionList, callbackFn);
+                    _this63.executeAction(index, actionList, callbackFn);
                   }
                 });
               } else {
@@ -6561,7 +6646,7 @@ if (typeof WebsyDesigns !== 'undefined') {
                 if (index === actionList.length) {
                   callbackFn();
                 } else {
-                  _this61.executeAction(index, actionList, callbackFn);
+                  _this63.executeAction(index, actionList, callbackFn);
                 }
               }
             });
@@ -6589,7 +6674,7 @@ if (typeof WebsyDesigns !== 'undefined') {
             if (index === actionList.length) {
               callbackFn();
             } else {
-              _this61.executeAction(index, actionList, callbackFn);
+              _this63.executeAction(index, actionList, callbackFn);
             }
           });
         }
@@ -6597,20 +6682,20 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "executeActions",
       value: function executeActions(view) {
-        var _this62 = this;
+        var _this64 = this;
 
         return new Promise(function (resolve, reject) {
-          if (!_this62.options.views[view] || !_this62.options.views[view].actions || _this62.options.views[view].actions.length === 0) {
+          if (!_this64.options.views[view] || !_this64.options.views[view].actions || _this64.options.views[view].actions.length === 0) {
             resolve();
           }
 
-          _this62.executeAction(0, _this62.options.views[view].actions, resolve);
+          _this64.executeAction(0, _this64.options.views[view].actions, resolve);
         });
       }
     }, {
       key: "loadObjects",
       value: function loadObjects(view, force) {
-        var _this63 = this;
+        var _this65 = this;
 
         console.log('Loading objects', view);
 
@@ -6636,16 +6721,16 @@ if (typeof WebsyDesigns !== 'undefined') {
               }
             } else if (objList[i].definition) {
               if (typeof objList[i].definition === 'string' && objList[i].definition.toLowerCase().indexOf('.json') !== -1) {
-                _this63.request('GET', objList[i].definition).then(function (def) {
+                _this65.request('GET', objList[i].definition).then(function (def) {
                   objList[i].definition = def;
 
-                  _this63.createObjectFromDefinition(objList[i]);
+                  _this65.createObjectFromDefinition(objList[i]);
                 });
               } else {
-                _this63.createObjectFromDefinition(objList[i]);
+                _this65.createObjectFromDefinition(objList[i]);
               }
             } else {
-              _this63.createObjectFromDefinition(objList[i]);
+              _this65.createObjectFromDefinition(objList[i]);
             }
           };
 
@@ -6706,7 +6791,7 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "createObjectFromDefinition",
       value: function createObjectFromDefinition(objectConfig) {
-        var _this64 = this;
+        var _this66 = this;
 
         if (objectConfig.retries) {
           objectConfig.retries = 0;
@@ -6731,16 +6816,16 @@ if (typeof WebsyDesigns !== 'undefined') {
             objectConfig.attached = true;
             var chartType = objectConfig.type || objectConfig.definition.qInfo.qType;
 
-            if (_this64.supportedChartTypes.indexOf(chartType) !== -1) {
+            if (_this66.supportedChartTypes.indexOf(chartType) !== -1) {
               var options = _extends({}, objectConfig.options, {
                 model: model,
                 def: objectConfig.definition,
-                app: _this64.app
+                app: _this66.app
               });
 
-              objectConfig.vis = new _this64.chartLibrary[chartType]("".concat(objectConfig.elementId, "_vis"), options);
+              objectConfig.vis = new _this66.chartLibrary[chartType]("".concat(objectConfig.elementId, "_vis"), options);
               model.on('changed', function () {
-                if (objectConfig.attached === true && _this64.paused === false) {
+                if (objectConfig.attached === true && _this66.paused === false) {
                   objectConfig.vis.render();
                 }
               });
@@ -6750,7 +6835,7 @@ if (typeof WebsyDesigns !== 'undefined') {
               objectConfig.model = model;
               objectConfig.render(objectConfig, model);
               model.on('changed', function () {
-                if (objectConfig.attached === true && _this64.paused === false) {
+                if (objectConfig.attached === true && _this66.paused === false) {
                   objectConfig.render(objectConfig, model);
                 }
               });
@@ -6758,11 +6843,11 @@ if (typeof WebsyDesigns !== 'undefined') {
           }, function (err) {
             console.log('Error creating object', err);
 
-            if (objectConfig.retries < _this64.options.retryCount) {
+            if (objectConfig.retries < _this66.options.retryCount) {
               console.log('retrying');
               objectConfig.retries++;
 
-              _this64.createObjectFromDefinition(objectConfig);
+              _this66.createObjectFromDefinition(objectConfig);
             } else {
               console.log('Max retries reached.');
             }
@@ -6911,7 +6996,7 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "select",
       value: function select(index, selections, locks, callbackFn) {
-        var _this65 = this;
+        var _this67 = this;
 
         if (index === selections.length) {
           this.play();
@@ -6949,19 +7034,19 @@ if (typeof WebsyDesigns !== 'undefined') {
                 f.lock().then(function () {
                   index++;
 
-                  _this65.select(index, selections, locks, callbackFn);
+                  _this67.select(index, selections, locks, callbackFn);
                 });
               } else {
                 index++;
 
-                _this65.select(index, selections, locks, callbackFn);
+                _this67.select(index, selections, locks, callbackFn);
               }
             });
           }, function (err) {
             console.log('field for selection not found', err);
             index++;
 
-            _this65.select(index, selections, locks, callbackFn);
+            _this67.select(index, selections, locks, callbackFn);
           });
         }
       }

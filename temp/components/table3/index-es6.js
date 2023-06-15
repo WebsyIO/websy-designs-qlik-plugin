@@ -32,6 +32,7 @@ class Table3 {
     this.options = Object.assign({}, DEFAULTS, options)
     this.fullData = []
     this.rowIndexList = []
+    this.rowsLoaded = 0
     this.resizeTimeoutFn = null
     // this.rowCount = 0
     this.pageNum = 0
@@ -102,6 +103,7 @@ class Table3 {
         onChangePageSize: this.setPageSize.bind(this),
         onSetPage: this.setPageNum.bind(this),
         onScrollX: this.handleVirtualScrollX.bind(this),
+        onNativeScroll: this.handleNativeScroll.bind(this),
         onExpandCell: this.handleExpand.bind(this),
         onCollapseCell: this.handleCollapse.bind(this)
       }, this.options))
@@ -147,6 +149,21 @@ class Table3 {
   }
   appendRows (data) {      
     this.table.appendRows(data)
+  }
+  beginSelections () {
+    return new Promise((resolve, reject) => {
+      if (this.inSelections === true) {
+        resolve()
+      }
+      else {
+        this.abortModal().then(() => {
+          this.options.model.beginSelections(['/qHyperCubeDef']).then(() => {
+            this.inSelections = true
+            resolve()
+          })
+        })        
+      }
+    })
   }
   buildPivotColumns () {
     if (!this.layout.qHyperCube.qPivotDataPages[0]) {
@@ -441,6 +458,7 @@ class Table3 {
             }]
             this.options.app.createSessionObject(ddDef).then(model => {
               this.dropdowns[c.dimId] = new WebsyDesignsQlikPlugins.Dropdown(`${this.elementId}_tableContainer_columnSearch_${c.dimId || i}`, {
+                app: this.options.app,
                 model,
                 multiSelect: true,
                 closeAfterSelection: false,
@@ -502,12 +520,14 @@ class Table3 {
         // console.log('slicing pre', top)
         this.buildEmptyRows(top)
         if (top < end && top !== -1) {
+          console.log('get data 1')
           this.getData(top, () => {
             // console.log('if callback for', top)
             resolve()
           }, true)        
         }
         else if (top !== -1) {
+          console.log('get data 2')
           this.getData(top, () => {
             // console.log('else if callback for', top)
             resolve()
@@ -515,6 +535,7 @@ class Table3 {
         }      
         else {
           // console.log('else callback for', top)
+          console.log('no get data 3')
           resolve()
         } 
       }           
@@ -585,6 +606,7 @@ class Table3 {
               // pages[0].qMatrix = pages[0].qMatrix.filter(r => r[0].qText !== '-')              
               if (this.layout.qHyperCube.qMode === 'S' || this.layout.qHyperCube.qIndentMode === true) {
                 this.fullData.splice(pages[0].qArea.qTop, pages[0].qArea.qHeight, ...pages[0].qMatrix)
+                this.rowsLoaded = Math.max(this.rowsLoaded, pages[0].qArea.qTop + pages[0].qArea.qHeight)
                 for (let i = 0; i < pages[0].qArea.qHeight; i++) {
                   if (this.rowIndexList.indexOf(pages[0].qArea.qTop + i) === -1) {
                     this.rowIndexList.push(pages[0].qArea.qTop + i)
@@ -660,11 +682,8 @@ class Table3 {
       if (elemNum < 0 || data.column.isMeasure === true) {
         return
       }
-      this.inSelections = true
-      this.abortModal().then(() => {
-
-      })
-      this.options.model.beginSelections(['/qHyperCubeDef']).then(() => {        
+      // this.inSelections = true      
+      this.beginSelections().then(() => {        
         const maskEl = document.getElementById(`${this.elementId}_cellSelectMask`)
         const maskLeftEl = document.getElementById(`${this.elementId}_cellSelectMaskLeft`)
         const maskRightEl = document.getElementById(`${this.elementId}_cellSelectMaskRight`)        
@@ -700,7 +719,15 @@ class Table3 {
           maskButtonsEl.style.width = `${cellEl.offsetWidth}px`
           maskButtonsEl.style.height = `${this.table.sizes.header.height}px`
         }        
-        cellEl.classList.add('websy-cell-selected')      
+        cellEl.classList.add('websy-cell-selected')   
+        let rowIndex = cellEl.getAttribute('data-row-index')
+        let cellIndex = cellEl.getAttribute('data-cell-index')
+        if (this.fullData && this.fullData[rowIndex] && this.fullData[rowIndex][cellIndex]) {
+          if (!this.fullData[rowIndex][cellIndex].classes) {
+            this.fullData[rowIndex][cellIndex].classes = []
+          }
+          this.fullData[rowIndex][cellIndex].classes.push('websy-cell-selected')
+        }   
         this.options.model.selectHyperCubeValues('/qHyperCubeDef', colIndex, [elemNum], true)
       })      
     }
@@ -826,6 +853,14 @@ class Table3 {
         })
       })))
     })
+  }
+  handleNativeScroll (scrollTop) {
+    let rowsRendered = Math.floor(scrollTop / this.table.sizes.cellHeight)    
+    if (rowsRendered + (this.table.sizes.rowsToRender * 2) > this.rowsLoaded) {
+      this.getData(this.rowsLoaded, (page) => {
+        this.appendRows(this.transformData(page.qMatrix))
+      })
+    }
   }
   handleSearch (event, column) {
     // console.log(event, column)
@@ -1048,8 +1083,12 @@ class Table3 {
         }               
       }
       else {
-        // this.fullData = page
-        this.appendRows(this.transformData(this.fullData))
+        if (this.options.virtualScroll === true) {
+          this.appendRows(this.transformData(this.fullData))
+        }
+        else {
+          this.appendRows(this.transformData(this.fullData.slice(0, this.rowsLoaded)))
+        }
       }
     })
   }
@@ -1220,7 +1259,9 @@ class Table3 {
         // row[c].level = this.layout.qHyperCube.qDimensionInfo.filter(d => !d.qError).length + c
         row[c].dataIndex = c        
         // row[c].level = this.pinnedColumns
-        row[c].level = this.pinnedColumns + c
+        if (this.layout.qHyperCube.qIndentMode !== true) {
+          row[c].level = this.pinnedColumns + c
+        }        
         // row[c].width = `${this.columnParams.cellWidths[(this.options.freezeColumns || this.layout.qHyperCube.qNoOfLeftDims) + c] || this.columnParams.cellWidths[this.columnParams.cellWidths.length - 1]}px`
         // if (row[c].qAttrExps && row[c].qAttrExps.qValues && row[c].qAttrExps.qValues[0] && row[c].qAttrExps.qValues[0].qText) {
         //   row[c].backgroundColor = row[c].qAttrExps.qValues[0].qText
@@ -1237,9 +1278,16 @@ class Table3 {
           if (!leftNodes[r][leftNodes[r].length - 1].classes) {
             leftNodes[r][leftNodes[r].length - 1].classes = []
           }
-          leftNodes[r][leftNodes[r].length - 1].classes.push('total-cell')
-          row[c].classes.push('total-cell')
-        }                          
+          if (leftNodes[r][leftNodes[r].length - 1].classes.indexOf('total-cell') === -1) {
+            leftNodes[r][leftNodes[r].length - 1].classes.push('total-cell')
+          }
+          if (row[c].classes.indexOf('total-cell') === -1) {
+            row[c].classes.push('total-cell')
+          }
+        }
+        if (leftNodes[r] && leftNodes[r][leftNodes[r].length - 1].classes && leftNodes[r][leftNodes[r].length - 1].classes.indexOf('sub-total-cell') !== -1) {
+          row[c].classes.push('sub-total-cell')
+        }                        
         row[c].value = row[c].qText || ''            
       }
       if (leftNodes[r]) {
@@ -1301,10 +1349,17 @@ class Table3 {
     // into a 2 dimensions array    
     function expandLeft (input, level, index, parent, chain) {
       let o = Object.assign({}, input)
-      o.level = level
+      o.level = this.layout.qHyperCube.qIndentMode === true ? 0 : level
+      o.index = level
       o.pos = 'Left'
       o.style = ''
-      o.value = o.qText || ''
+      o.value = o.qText || '' 
+      // if (!o.classes) {
+      //   o.classes = []
+      // }           
+      // if (!input.classes) {
+      //   input.classes = []
+      // }
       input.value = input.qText || ''
       visibleLeftCount = Math.max(visibleLeftCount, level + 1)
       o.childCount = o.qSubNodes.length    
@@ -1317,76 +1372,89 @@ class Table3 {
         o.color = this.getFontColor(o.qAttrExps.qValues[1].qText)
       }
       delete o.qSubNodes  
-      if (o.qElemNo < 0 && this.layout.qHyperCube.qIndentMode === true && level > 0) {        
-        return
-      }
-      if (typeof o.qText === 'undefined') {
-        if (o.qElemNo === -1) {          
-          o.qText = 'Totals'
-        } 
-        else if (o.qElemNo === -4) {
-          o.qText = ''
-          // o.qType = 'T'
-        }
-      }
-      o.expandable = o.qCanExpand
-      o.collapsable = o.qCanCollapse
-      o.rowspan = Math.max(1, input.qSubNodes.length)
-      if (o.qAttrExps && o.qAttrExps.qValues) {
-        o.qAttrExps.qValues.forEach((a, aI) => {            
-          if (a.qText && a.qText !== '') {
-            if (sourceColumns[o.level] && sourceColumns[o.level].qAttrExprInfo && sourceColumns[o.level].qAttrExprInfo[aI] && sourceColumns[o.level].qAttrExprInfo[aI].id === 'cellForegroundColor') {
-              o.color = a.qText
-            }
-            else if (sourceColumns[o.level] && sourceColumns[o.level].qAttrExprInfo && sourceColumns[o.level].qAttrExprInfo[aI] && sourceColumns[o.level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
-              o.backgroundColor = a.qText
-            }
+      if (o.qElemNo < 0 && this.layout.qHyperCube.qIndentMode === true && level > 0) {   
+        if (o.qType === 'T') {
+          if (!parent.classes) {
+            parent.classes = []
           }
-        })
-      }      
-      input.rowspan = Math.max(1, input.qSubNodes.length)
-      if (this.layout.qHyperCube.qIndentMode === true) {
-        o.rowspan = 1
-        o.indent = level
-        if (level > 0) {
-          o.style = `padding-left: ${level * 20}px;`
-        }        
-        if (o.qType !== 'E') {
-          leftNodes.push([o])
-        }        
-        tempNode = []
-        // if (o.qElemNo > -4) {
-
-        // }
-        for (let i = 0; i < input.qSubNodes.length; i++) {
-          expandLeft.call(this, input.qSubNodes[i], level + 1, i, input, [...chain, o])
-        }      
-      } 
-      else if (input.qSubNodes.length === 0) {     
-        if (o.qElemNo > -4) {
-          this.validPivotLeft = Math.max(this.validPivotLeft, level)
-        }
-        leftNodes.push(tempNode.concat([o])) 
-        tempNode = []
+          if (parent.classes.indexOf('sub-total-cell') === -1) {
+            parent.classes.push('sub-total-cell')
+            parent.isTotal = true
+          }
+        }     
+        // return
       }
-      else {               
-        if (input.qElemNo > -4 || (!input.qSubNodes || input.qSubNodes.length === 0)) {                  
-          this.validPivotLeft = Math.max(this.validPivotLeft, level)
+      else {
+        if (typeof o.qText === 'undefined') {
+          if (o.qElemNo === -1) {          
+            o.qText = 'Totals'
+          } 
+          else if (o.qElemNo === -4) {
+            o.qText = ''
+            // o.qType = 'T'
+          }
         }
-        tempNode.push(o) 
-        // if (o.qElemNo > -4) {                  
-        //   this.validPivotLeft = Math.max(this.validPivotLeft, level)
-        // }
-        for (let i = 0; i < input.qSubNodes.length; i++) {
-          expandLeft.call(this, input.qSubNodes[i], level + 1, i, input, [...chain, o])
-        }        
-        let s = 0
-        for (let i = 0; i < input.qSubNodes.length; i++) {
-          s += input.qSubNodes[i].rowspan
+        o.expandable = o.qCanExpand
+        o.collapsable = o.qCanCollapse
+        o.rowspan = Math.max(1, input.qSubNodes.length)
+        if (o.qAttrExps && o.qAttrExps.qValues) {
+          o.qAttrExps.qValues.forEach((a, aI) => {            
+            if (a.qText && a.qText !== '') {
+              if (sourceColumns[o.level] && sourceColumns[o.level].qAttrExprInfo && sourceColumns[o.level].qAttrExprInfo[aI] && sourceColumns[o.level].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                o.color = a.qText
+              }
+              else if (sourceColumns[o.level] && sourceColumns[o.level].qAttrExprInfo && sourceColumns[o.level].qAttrExprInfo[aI] && sourceColumns[o.level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                o.backgroundColor = a.qText
+              }
+            }
+          })
+        }      
+        input.rowspan = Math.max(1, input.qSubNodes.length)
+        if (this.layout.qHyperCube.qIndentMode === true) {
+          o.rowspan = 1
+          o.indent = level
+          if (level > 0) {
+            // o.style = `padding-left: ${level * 20}px;`
+            o.style = `text-indent: ${level * 20}px;`
+          }        
+          if (o.qType !== 'E') {
+            leftNodes.push([o])
+          }        
+          tempNode = []
+          // if (o.qElemNo > -4) {
+  
+          // }
+          for (let i = 0; i < input.qSubNodes.length; i++) {
+            expandLeft.call(this, input.qSubNodes[i], level + 1, i, input, [...chain, o])
+          }      
+          o.classes = input.classes
+        } 
+        else if (input.qSubNodes.length === 0) {     
+          if (o.qElemNo > -4) {
+            this.validPivotLeft = Math.max(this.validPivotLeft, level)
+          }
+          leftNodes.push(tempNode.concat([o])) 
+          tempNode = []
         }
-        input.rowspan = s
-        o.rowspan = s        
-      }                
+        else {               
+          if (input.qElemNo > -4 || (!input.qSubNodes || input.qSubNodes.length === 0)) {                  
+            this.validPivotLeft = Math.max(this.validPivotLeft, level)
+          }
+          tempNode.push(o) 
+          // if (o.qElemNo > -4) {                  
+          //   this.validPivotLeft = Math.max(this.validPivotLeft, level)
+          // }
+          for (let i = 0; i < input.qSubNodes.length; i++) {
+            expandLeft.call(this, input.qSubNodes[i], level + 1, i, input, [...chain, o])
+          }        
+          let s = 0
+          for (let i = 0; i < input.qSubNodes.length; i++) {
+            s += input.qSubNodes[i].rowspan
+          }
+          input.rowspan = s
+          o.rowspan = s        
+        }
+      }                      
     }
     // This function is used to convert the qTop structure from a parent/child hierarchy
     // into a 2 dimensions array
@@ -1395,7 +1463,7 @@ class Table3 {
         topNodesTransposed[level] = []
       }
       let o = Object.assign({}, input)
-      o.level = level
+      o.level = this.layout.qHyperCube.qIndentMode === true ? 0 : level
       o.pos = 'Top'
       o.rowIndex = topCounter
       o.topNode = true
