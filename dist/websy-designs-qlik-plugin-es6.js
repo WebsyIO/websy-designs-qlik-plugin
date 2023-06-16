@@ -4215,6 +4215,7 @@ var Table3 = /*#__PURE__*/function () {
     this.searchPrepped = false;
     this.qlikColumnOrder = [];
     this.pinnedColumns = 0;
+    this.selectedCells = [];
     this.startCol = 0;
     this.endCol = 0;
     this.startRow = 0;
@@ -4289,6 +4290,7 @@ var Table3 = /*#__PURE__*/function () {
       return new Promise(function (resolve, reject) {
         if (_this41.options.app) {
           _this41.options.app.abortModal(true).then(function () {
+            _this41.selectedCells = [];
             resolve();
           });
         } else {
@@ -4310,9 +4312,10 @@ var Table3 = /*#__PURE__*/function () {
         if (_this42.inSelections === true) {
           resolve();
         } else {
+          _this42.inSelections = true;
+
           _this42.abortModal().then(function () {
             _this42.options.model.beginSelections(['/qHyperCubeDef']).then(function () {
-              _this42.inSelections = true;
               resolve();
             });
           });
@@ -5024,15 +5027,79 @@ var Table3 = /*#__PURE__*/function () {
           var rowIndex = cellEl.getAttribute('data-row-index');
           var cellIndex = cellEl.getAttribute('data-cell-index');
 
-          if (_this48.fullData && _this48.fullData[rowIndex] && _this48.fullData[rowIndex][cellIndex]) {
-            if (!_this48.fullData[rowIndex][cellIndex].classes) {
-              _this48.fullData[rowIndex][cellIndex].classes = [];
+          if (_this48.layout.qHyperCube.qMode === 'P') {
+            var cellRef = "".concat(data.cell.pos === 'Left' ? 'L' : 'T', "_").concat(+data.colIndex, "_").concat(data.rowIndex);
+
+            var cellRefIndex = _this48.selectedCells.indexOf(cellRef);
+
+            if (cellRefIndex === -1) {
+              if (_this48.fullData && _this48.fullData[rowIndex] && _this48.fullData[rowIndex][cellIndex]) {
+                if (!_this48.fullData[rowIndex][cellIndex].classes) {
+                  _this48.fullData[rowIndex][cellIndex].classes = [];
+                }
+
+                if (_this48.fullData[rowIndex][cellIndex].classes.indexOf('websy-cell-selected') === -1) {
+                  _this48.fullData[rowIndex][cellIndex].classes.push('websy-cell-selected');
+                }
+              }
+
+              _this48.selectedCells.push(cellRef);
+            } else {
+              if (_this48.fullData && _this48.fullData[rowIndex] && _this48.fullData[rowIndex][cellIndex]) {
+                if (!_this48.fullData[rowIndex][cellIndex].classes) {
+                  _this48.fullData[rowIndex][cellIndex].classes = [];
+                }
+
+                var classIndex = _this48.fullData[rowIndex][cellIndex].classes.indexOf('websy-cell-selected');
+
+                if (classIndex !== -1) {
+                  _this48.fullData[rowIndex][cellIndex].classes.splice(classIndex, 1);
+                }
+              }
+
+              _this48.selectedCells.splice(cellRefIndex, 1);
             }
 
-            _this48.fullData[rowIndex][cellIndex].classes.push('websy-cell-selected');
-          }
+            _this48.options.model.selectPivotCells('/qHyperCubeDef', _this48.selectedCells.map(function (c) {
+              return {
+                qType: c.split('_')[0],
+                qCol: +c.split('_')[1],
+                qRow: +c.split('_')[2]
+              };
+            }));
+          } else {
+            var _cellRefIndex = _this48.selectedCells.indexOf(+data.rowIndex);
 
-          _this48.options.model.selectHyperCubeValues('/qHyperCubeDef', colIndex, [elemNum], true);
+            if (_cellRefIndex === -1) {
+              if (_this48.fullData && _this48.fullData[rowIndex] && _this48.fullData[rowIndex][cellIndex]) {
+                if (!_this48.fullData[rowIndex][cellIndex].classes) {
+                  _this48.fullData[rowIndex][cellIndex].classes = [];
+                }
+
+                if (_this48.fullData[rowIndex][cellIndex].classes.indexOf('websy-cell-selected') === -1) {
+                  _this48.fullData[rowIndex][cellIndex].classes.push('websy-cell-selected');
+                }
+              }
+
+              _this48.selectedCells.push(+data.rowIndex);
+            } else {
+              if (_this48.fullData && _this48.fullData[rowIndex] && _this48.fullData[rowIndex][cellIndex]) {
+                if (!_this48.fullData[rowIndex][cellIndex].classes) {
+                  _this48.fullData[rowIndex][cellIndex].classes = [];
+                }
+
+                var _classIndex = _this48.fullData[rowIndex][cellIndex].classes.indexOf('websy-cell-selected');
+
+                if (_classIndex !== -1) {
+                  _this48.fullData[rowIndex][cellIndex].classes.splice(_classIndex, 1);
+                }
+              }
+
+              _this48.selectedCells.splice(_cellRefIndex, 1);
+            }
+
+            _this48.options.model.selectHyperCubeCells('/qHyperCubeDef', _this48.selectedCells, [colIndex]);
+          }
         });
       }
     }
@@ -5193,9 +5260,12 @@ var Table3 = /*#__PURE__*/function () {
         var el = document.getElementById("".concat(this.elementId, "_tableContainer_columnSearch_").concat(column.dimId));
 
         if (el) {
-          el.classList.toggle('active');
-          el.style.top = "".concat(event.pageY, "px");
-          el.style.right = "calc(100vw - ".concat(event.pageX + event.target.offsetWidth, "px)");
+          el.classList.toggle('active'); // el.style.top = `${event.pageY}px`
+
+          el.style.top = '0px'; // el.style.right = `calc(100vw - ${event.pageX + event.target.offsetWidth}px)`
+
+          el.style.left = "".concat(Math.max(130, event.pageX - this.table.sizes.outer.left), "px"); // need to improve this logic. currently based on the dropdown being 220px wide
+
           this.dropdowns[column.dimId].open();
         }
       }

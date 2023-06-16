@@ -3549,6 +3549,7 @@ class Table3 {
     this.searchPrepped = false
     this.qlikColumnOrder = []
     this.pinnedColumns = 0    
+    this.selectedCells = []
     this.startCol = 0
     this.endCol = 0
     this.startRow = 0
@@ -3640,6 +3641,7 @@ class Table3 {
     return new Promise((resolve, reject) => {
       if (this.options.app) {
         this.options.app.abortModal(true).then(() => {
+          this.selectedCells = []
           resolve()
         })
       }
@@ -3657,9 +3659,9 @@ class Table3 {
         resolve()
       }
       else {
+        this.inSelections = true
         this.abortModal().then(() => {
-          this.options.model.beginSelections(['/qHyperCubeDef']).then(() => {
-            this.inSelections = true
+          this.options.model.beginSelections(['/qHyperCubeDef']).then(() => {            
             resolve()
           })
         })        
@@ -4222,14 +4224,62 @@ class Table3 {
         }        
         cellEl.classList.add('websy-cell-selected')   
         let rowIndex = cellEl.getAttribute('data-row-index')
-        let cellIndex = cellEl.getAttribute('data-cell-index')
-        if (this.fullData && this.fullData[rowIndex] && this.fullData[rowIndex][cellIndex]) {
-          if (!this.fullData[rowIndex][cellIndex].classes) {
-            this.fullData[rowIndex][cellIndex].classes = []
+        let cellIndex = cellEl.getAttribute('data-cell-index')        
+        if (this.layout.qHyperCube.qMode === 'P') {
+          let cellRef = `${data.cell.pos === 'Left' ? 'L' : 'T'}_${+data.colIndex}_${data.rowIndex}`
+          let cellRefIndex = this.selectedCells.indexOf(cellRef)
+          if (cellRefIndex === -1) {
+            if (this.fullData && this.fullData[rowIndex] && this.fullData[rowIndex][cellIndex]) {
+              if (!this.fullData[rowIndex][cellIndex].classes) {
+                this.fullData[rowIndex][cellIndex].classes = []
+              }
+              if (this.fullData[rowIndex][cellIndex].classes.indexOf('websy-cell-selected') === -1) {                
+                this.fullData[rowIndex][cellIndex].classes.push('websy-cell-selected')
+              }
+            }
+            this.selectedCells.push(cellRef)
           }
-          this.fullData[rowIndex][cellIndex].classes.push('websy-cell-selected')
+          else {
+            if (this.fullData && this.fullData[rowIndex] && this.fullData[rowIndex][cellIndex]) {
+              if (!this.fullData[rowIndex][cellIndex].classes) {
+                this.fullData[rowIndex][cellIndex].classes = []
+              }
+              let classIndex = this.fullData[rowIndex][cellIndex].classes.indexOf('websy-cell-selected')
+              if (classIndex !== -1) {
+                this.fullData[rowIndex][cellIndex].classes.splice(classIndex, 1)
+              }
+            }
+            this.selectedCells.splice(cellRefIndex, 1)
+          }
+          this.options.model.selectPivotCells('/qHyperCubeDef', this.selectedCells.map(c => ({qType: c.split('_')[0], qCol: +c.split('_')[1], qRow: +c.split('_')[2]})))
         }   
-        this.options.model.selectHyperCubeValues('/qHyperCubeDef', colIndex, [elemNum], true)
+        else {
+          let cellRefIndex = this.selectedCells.indexOf(+data.rowIndex)
+          if (cellRefIndex === -1) {
+            if (this.fullData && this.fullData[rowIndex] && this.fullData[rowIndex][cellIndex]) {
+              if (!this.fullData[rowIndex][cellIndex].classes) {
+                this.fullData[rowIndex][cellIndex].classes = []
+              }
+              if (this.fullData[rowIndex][cellIndex].classes.indexOf('websy-cell-selected') === -1) {                
+                this.fullData[rowIndex][cellIndex].classes.push('websy-cell-selected')
+              }
+            }
+            this.selectedCells.push(+data.rowIndex)
+          }
+          else {
+            if (this.fullData && this.fullData[rowIndex] && this.fullData[rowIndex][cellIndex]) {
+              if (!this.fullData[rowIndex][cellIndex].classes) {
+                this.fullData[rowIndex][cellIndex].classes = []
+              }
+              let classIndex = this.fullData[rowIndex][cellIndex].classes.indexOf('websy-cell-selected')
+              if (classIndex !== -1) {
+                this.fullData[rowIndex][cellIndex].classes.splice(classIndex, 1)
+              }
+            }
+            this.selectedCells.splice(cellRefIndex, 1)
+          }
+          this.options.model.selectHyperCubeCells('/qHyperCubeDef', this.selectedCells, [colIndex])
+        }        
       })      
     }
   }
@@ -4369,8 +4419,10 @@ class Table3 {
       let el = document.getElementById(`${this.elementId}_tableContainer_columnSearch_${column.dimId}`)
       if (el) {
         el.classList.toggle('active')
-        el.style.top = `${event.pageY}px`
-        el.style.right = `calc(100vw - ${event.pageX + event.target.offsetWidth}px)`
+        // el.style.top = `${event.pageY}px`
+        el.style.top = '0px'
+        // el.style.right = `calc(100vw - ${event.pageX + event.target.offsetWidth}px)`
+        el.style.left = `${Math.max(130, event.pageX - this.table.sizes.outer.left)}px` // need to improve this logic. currently based on the dropdown being 220px wide
         this.dropdowns[column.dimId].open()
       }
     }
