@@ -1436,77 +1436,77 @@ class Table3 {
         }     
         // return
       }
-      else {
-        if (typeof o.qText === 'undefined') {
-          if (o.qElemNo === -1) {          
-            o.qText = 'Totals'
-          } 
-          else if (o.qElemNo === -4) {
-            o.qText = ''
-            // o.qType = 'T'
-          }
-        }
-        o.expandable = o.qCanExpand
-        o.collapsable = o.qCanCollapse
-        o.rowspan = Math.max(1, input.qSubNodes.length)
-        if (o.qAttrExps && o.qAttrExps.qValues) {
-          o.qAttrExps.qValues.forEach((a, aI) => {            
-            if (a.qText && a.qText !== '') {
-              if (sourceColumns[o.level] && sourceColumns[o.level].qAttrExprInfo && sourceColumns[o.level].qAttrExprInfo[aI] && sourceColumns[o.level].qAttrExprInfo[aI].id === 'cellForegroundColor') {
-                o.color = a.qText
-              }
-              else if (sourceColumns[o.level] && sourceColumns[o.level].qAttrExprInfo && sourceColumns[o.level].qAttrExprInfo[aI] && sourceColumns[o.level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
-                o.backgroundColor = a.qText
-              }
-            }
-          })
-        }      
-        input.rowspan = Math.max(1, input.qSubNodes.length)
-        if (this.layout.qHyperCube.qIndentMode === true) {
-          o.rowspan = 1
-          o.indent = level
-          if (level > 0) {
-            // o.style = `padding-left: ${level * 20}px;`
-            o.style = `text-indent: ${level * 20}px;`
-          }        
-          if (o.qType !== 'E') {
-            leftNodes.push([o])
-          }        
-          tempNode = []
-          // if (o.qElemNo > -4) {
-  
-          // }
-          for (let i = 0; i < input.qSubNodes.length; i++) {
-            expandLeft.call(this, input.qSubNodes[i], level + 1, i, input, [...chain, o])
-          }      
-          o.classes = input.classes
+      // else {
+      if (typeof o.qText === 'undefined') {
+        if (o.qElemNo === -1) {          
+          o.qText = 'Totals'
         } 
-        else if (input.qSubNodes.length === 0) {     
-          if (o.qElemNo > -4) {
-            this.validPivotLeft = Math.max(this.validPivotLeft, level)
-          }
-          leftNodes.push(tempNode.concat([o])) 
-          tempNode = []
+        else if (o.qElemNo === -4) {
+          o.qText = ''
+          // o.qType = 'T'
         }
-        else {               
-          if (input.qElemNo > -4 || (!input.qSubNodes || input.qSubNodes.length === 0)) {                  
-            this.validPivotLeft = Math.max(this.validPivotLeft, level)
+      }
+      o.expandable = o.qCanExpand
+      o.collapsable = o.qCanCollapse
+      o.rowspan = Math.max(1, input.qSubNodes.length)
+      if (o.qAttrExps && o.qAttrExps.qValues) {
+        o.qAttrExps.qValues.forEach((a, aI) => {            
+          if (a.qText && a.qText !== '') {
+            if (sourceColumns[o.level] && sourceColumns[o.level].qAttrExprInfo && sourceColumns[o.level].qAttrExprInfo[aI] && sourceColumns[o.level].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+              o.color = a.qText
+            }
+            else if (sourceColumns[o.level] && sourceColumns[o.level].qAttrExprInfo && sourceColumns[o.level].qAttrExprInfo[aI] && sourceColumns[o.level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+              o.backgroundColor = a.qText
+            }
           }
-          tempNode.push(o) 
-          // if (o.qElemNo > -4) {                  
-          //   this.validPivotLeft = Math.max(this.validPivotLeft, level)
-          // }
-          for (let i = 0; i < input.qSubNodes.length; i++) {
-            expandLeft.call(this, input.qSubNodes[i], level + 1, i, input, [...chain, o])
-          }        
-          let s = 0
-          for (let i = 0; i < input.qSubNodes.length; i++) {
-            s += input.qSubNodes[i].rowspan
-          }
-          input.rowspan = s
-          o.rowspan = s        
+        })
+      }      
+      input.rowspan = Math.max(1, input.qSubNodes.length)
+      if (this.layout.qHyperCube.qIndentMode === true) {
+        o.rowspan = 1
+        o.indent = level
+        if (level > 0) {
+          // o.style = `padding-left: ${level * 20}px;`
+          o.style = `text-indent: ${level * 20}px;`
+        }        
+        if (o.qType !== 'E' && o.qUp === 0) {
+          leftNodes.push([o])
+        }        
+        tempNode = []
+        // if (o.qElemNo > -4) {
+
+        // }
+        for (let i = 0; i < input.qSubNodes.length; i++) {
+          expandLeft.call(this, input.qSubNodes[i], level + 1, i, input, [...chain, o])
+        }      
+        o.classes = input.classes
+      } 
+      else if (input.qSubNodes.length === 0) {     
+        if (o.qElemNo > -4) {
+          this.validPivotLeft = Math.max(this.validPivotLeft, level)
         }
-      }                      
+        leftNodes.push(tempNode.concat([o])) 
+        tempNode = []
+      }
+      else {               
+        if (input.qElemNo > -4 || (!input.qSubNodes || input.qSubNodes.length === 0)) {                  
+          this.validPivotLeft = Math.max(this.validPivotLeft, level)
+        }
+        tempNode.push(o) 
+        // if (o.qElemNo > -4) {                  
+        //   this.validPivotLeft = Math.max(this.validPivotLeft, level)
+        // }
+        for (let i = 0; i < input.qSubNodes.length; i++) {
+          expandLeft.call(this, input.qSubNodes[i], level + 1, i, input, [...chain, o])
+        }        
+        let s = 0
+        for (let i = 0; i < input.qSubNodes.length; i++) {
+          s += input.qSubNodes[i].rowspan
+        }
+        input.rowspan = s
+        o.rowspan = s        
+      }
+      // }                      
     }
     // This function is used to convert the qTop structure from a parent/child hierarchy
     // into a 2 dimensions array

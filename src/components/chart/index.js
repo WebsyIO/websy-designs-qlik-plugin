@@ -428,6 +428,7 @@ class Chart {
         data: this.layout.qHyperCube.qDataPages[0].qMatrix.map(r => r.map((c, i) => {
           c.value = isNaN(c.qNum) ? 0 : c.qNum
           c.index = i
+          c.label = c.qText || ''
           if (c.qAttrExps && c.qAttrExps.qValues[0] && c.qAttrExps.qValues[0].qText) {
             c.label = c.qAttrExps.qValues[0].qText
           }

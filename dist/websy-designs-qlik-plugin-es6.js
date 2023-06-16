@@ -1092,6 +1092,7 @@ var Chart = /*#__PURE__*/function () {
             return r.map(function (c, i) {
               c.value = isNaN(c.qNum) ? 0 : c.qNum;
               c.index = i;
+              c.label = c.qText || '';
 
               if (c.qAttrExps && c.qAttrExps.qValues[0] && c.qAttrExps.qValues[0].qText) {
                 c.label = c.qAttrExps.qValues[0].qText;
@@ -5868,84 +5869,86 @@ var Table3 = /*#__PURE__*/function () {
             }
           } // return
 
-        } else {
-          if (typeof o.qText === 'undefined') {
-            if (o.qElemNo === -1) {
-              o.qText = 'Totals';
-            } else if (o.qElemNo === -4) {
-              o.qText = ''; // o.qType = 'T'
-            }
-          }
+        } // else {
 
-          o.expandable = o.qCanExpand;
-          o.collapsable = o.qCanCollapse;
-          o.rowspan = Math.max(1, input.qSubNodes.length);
 
-          if (o.qAttrExps && o.qAttrExps.qValues) {
-            o.qAttrExps.qValues.forEach(function (a, aI) {
-              if (a.qText && a.qText !== '') {
-                if (sourceColumns[o.level] && sourceColumns[o.level].qAttrExprInfo && sourceColumns[o.level].qAttrExprInfo[aI] && sourceColumns[o.level].qAttrExprInfo[aI].id === 'cellForegroundColor') {
-                  o.color = a.qText;
-                } else if (sourceColumns[o.level] && sourceColumns[o.level].qAttrExprInfo && sourceColumns[o.level].qAttrExprInfo[aI] && sourceColumns[o.level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
-                  o.backgroundColor = a.qText;
-                }
-              }
-            });
-          }
-
-          input.rowspan = Math.max(1, input.qSubNodes.length);
-
-          if (this.layout.qHyperCube.qIndentMode === true) {
-            o.rowspan = 1;
-            o.indent = level;
-
-            if (level > 0) {
-              // o.style = `padding-left: ${level * 20}px;`
-              o.style = "text-indent: ".concat(level * 20, "px;");
-            }
-
-            if (o.qType !== 'E') {
-              leftNodes.push([o]);
-            }
-
-            tempNode = []; // if (o.qElemNo > -4) {
-            // }
-
-            for (var _i25 = 0; _i25 < input.qSubNodes.length; _i25++) {
-              expandLeft.call(this, input.qSubNodes[_i25], level + 1, _i25, input, [].concat(_toConsumableArray(chain), [o]));
-            }
-
-            o.classes = input.classes;
-          } else if (input.qSubNodes.length === 0) {
-            if (o.qElemNo > -4) {
-              this.validPivotLeft = Math.max(this.validPivotLeft, level);
-            }
-
-            leftNodes.push(tempNode.concat([o]));
-            tempNode = [];
-          } else {
-            if (input.qElemNo > -4 || !input.qSubNodes || input.qSubNodes.length === 0) {
-              this.validPivotLeft = Math.max(this.validPivotLeft, level);
-            }
-
-            tempNode.push(o); // if (o.qElemNo > -4) {                  
-            //   this.validPivotLeft = Math.max(this.validPivotLeft, level)
-            // }
-
-            for (var _i26 = 0; _i26 < input.qSubNodes.length; _i26++) {
-              expandLeft.call(this, input.qSubNodes[_i26], level + 1, _i26, input, [].concat(_toConsumableArray(chain), [o]));
-            }
-
-            var s = 0;
-
-            for (var _i27 = 0; _i27 < input.qSubNodes.length; _i27++) {
-              s += input.qSubNodes[_i27].rowspan;
-            }
-
-            input.rowspan = s;
-            o.rowspan = s;
+        if (typeof o.qText === 'undefined') {
+          if (o.qElemNo === -1) {
+            o.qText = 'Totals';
+          } else if (o.qElemNo === -4) {
+            o.qText = ''; // o.qType = 'T'
           }
         }
+
+        o.expandable = o.qCanExpand;
+        o.collapsable = o.qCanCollapse;
+        o.rowspan = Math.max(1, input.qSubNodes.length);
+
+        if (o.qAttrExps && o.qAttrExps.qValues) {
+          o.qAttrExps.qValues.forEach(function (a, aI) {
+            if (a.qText && a.qText !== '') {
+              if (sourceColumns[o.level] && sourceColumns[o.level].qAttrExprInfo && sourceColumns[o.level].qAttrExprInfo[aI] && sourceColumns[o.level].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                o.color = a.qText;
+              } else if (sourceColumns[o.level] && sourceColumns[o.level].qAttrExprInfo && sourceColumns[o.level].qAttrExprInfo[aI] && sourceColumns[o.level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                o.backgroundColor = a.qText;
+              }
+            }
+          });
+        }
+
+        input.rowspan = Math.max(1, input.qSubNodes.length);
+
+        if (this.layout.qHyperCube.qIndentMode === true) {
+          o.rowspan = 1;
+          o.indent = level;
+
+          if (level > 0) {
+            // o.style = `padding-left: ${level * 20}px;`
+            o.style = "text-indent: ".concat(level * 20, "px;");
+          }
+
+          if (o.qType !== 'E' && o.qUp === 0) {
+            leftNodes.push([o]);
+          }
+
+          tempNode = []; // if (o.qElemNo > -4) {
+          // }
+
+          for (var _i25 = 0; _i25 < input.qSubNodes.length; _i25++) {
+            expandLeft.call(this, input.qSubNodes[_i25], level + 1, _i25, input, [].concat(_toConsumableArray(chain), [o]));
+          }
+
+          o.classes = input.classes;
+        } else if (input.qSubNodes.length === 0) {
+          if (o.qElemNo > -4) {
+            this.validPivotLeft = Math.max(this.validPivotLeft, level);
+          }
+
+          leftNodes.push(tempNode.concat([o]));
+          tempNode = [];
+        } else {
+          if (input.qElemNo > -4 || !input.qSubNodes || input.qSubNodes.length === 0) {
+            this.validPivotLeft = Math.max(this.validPivotLeft, level);
+          }
+
+          tempNode.push(o); // if (o.qElemNo > -4) {                  
+          //   this.validPivotLeft = Math.max(this.validPivotLeft, level)
+          // }
+
+          for (var _i26 = 0; _i26 < input.qSubNodes.length; _i26++) {
+            expandLeft.call(this, input.qSubNodes[_i26], level + 1, _i26, input, [].concat(_toConsumableArray(chain), [o]));
+          }
+
+          var s = 0;
+
+          for (var _i27 = 0; _i27 < input.qSubNodes.length; _i27++) {
+            s += input.qSubNodes[_i27].rowspan;
+          }
+
+          input.rowspan = s;
+          o.rowspan = s;
+        } // }                      
+
       } // This function is used to convert the qTop structure from a parent/child hierarchy
       // into a 2 dimensions array
 
