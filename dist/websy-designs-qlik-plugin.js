@@ -4832,11 +4832,11 @@ var Table3 = /*#__PURE__*/function () {
 
         if (maskButtonsEl) {
           maskButtonsEl.classList.remove('active');
-        }
+        } // if (this.options.forceRenderAfterSelect === true) {
 
-        if (_this46.options.forceRenderAfterSelect === true) {
-          _this46.render();
-        }
+
+        _this46.render(); // }
+
       });
     }
   }, {
@@ -5028,9 +5028,9 @@ var Table3 = /*#__PURE__*/function () {
             maskButtonsEl.style.left = "".concat(cellEl.offsetLeft, "px");
             maskButtonsEl.style.width = "".concat(cellEl.offsetWidth, "px");
             maskButtonsEl.style.height = "".concat(_this48.table.sizes.header.height, "px");
-          }
+          } // cellEl.classList.add('websy-cell-selected')   
 
-          cellEl.classList.add('websy-cell-selected');
+
           var rowIndex = cellEl.getAttribute('data-row-index');
           var cellIndex = cellEl.getAttribute('data-cell-index');
 
@@ -5047,6 +5047,10 @@ var Table3 = /*#__PURE__*/function () {
 
                 if (_this48.fullData[rowIndex][cellIndex].classes.indexOf('websy-cell-selected') === -1) {
                   _this48.fullData[rowIndex][cellIndex].classes.push('websy-cell-selected');
+
+                  if (!cellEl.classList.contains('websy-cell-selected')) {
+                    cellEl.classList.add('websy-cell-selected');
+                  }
                 }
               }
 
@@ -5061,19 +5065,27 @@ var Table3 = /*#__PURE__*/function () {
 
                 if (classIndex !== -1) {
                   _this48.fullData[rowIndex][cellIndex].classes.splice(classIndex, 1);
+
+                  if (cellEl.classList.contains('websy-cell-selected')) {
+                    cellEl.classList.remove('websy-cell-selected');
+                  }
                 }
               }
 
               _this48.selectedCells.splice(cellRefIndex, 1);
             }
 
-            _this48.options.model.selectPivotCells('/qHyperCubeDef', _this48.selectedCells.map(function (c) {
-              return {
-                qType: c.split('_')[0],
-                qCol: +c.split('_')[1],
-                qRow: +c.split('_')[2]
-              };
-            }));
+            if (_this48.selectedCells.length > 0) {
+              _this48.options.model.selectPivotCells('/qHyperCubeDef', _this48.selectedCells.map(function (c) {
+                return {
+                  qType: c.split('_')[0],
+                  qCol: +c.split('_')[1],
+                  qRow: +c.split('_')[2]
+                };
+              }));
+            } else {
+              _this48.options.model.clearSelections('/qHyperCubeDef', [+data.colIndex]);
+            }
           } else {
             var _cellRefIndex = _this48.selectedCells.indexOf(+data.rowIndex);
 
@@ -5085,6 +5097,10 @@ var Table3 = /*#__PURE__*/function () {
 
                 if (_this48.fullData[rowIndex][cellIndex].classes.indexOf('websy-cell-selected') === -1) {
                   _this48.fullData[rowIndex][cellIndex].classes.push('websy-cell-selected');
+
+                  if (!cellEl.classList.contains('websy-cell-selected')) {
+                    cellEl.classList.add('websy-cell-selected');
+                  }
                 }
               }
 
@@ -5099,13 +5115,21 @@ var Table3 = /*#__PURE__*/function () {
 
                 if (_classIndex !== -1) {
                   _this48.fullData[rowIndex][cellIndex].classes.splice(_classIndex, 1);
+
+                  if (cellEl.classList.contains('websy-cell-selected')) {
+                    cellEl.classList.remove('websy-cell-selected');
+                  }
                 }
               }
 
               _this48.selectedCells.splice(_cellRefIndex, 1);
             }
 
-            _this48.options.model.selectHyperCubeCells('/qHyperCubeDef', _this48.selectedCells, [colIndex]);
+            if (_this48.selectedCells.length > 0) {
+              _this48.options.model.selectHyperCubeCells('/qHyperCubeDef', _this48.selectedCells, [colIndex]);
+            } else {
+              _this48.options.model.clearSelections('/qHyperCubeDef', [+data.colIndex]);
+            }
           }
         });
       }
@@ -5253,7 +5277,7 @@ var Table3 = /*#__PURE__*/function () {
 
       var rowsRendered = Math.floor(scrollTop / this.table.sizes.cellHeight);
 
-      if (rowsRendered + this.table.sizes.rowsToRender * 2 > this.rowsLoaded) {
+      if (rowsRendered + this.table.sizes.rowsToRender * 2 > this.rowsLoaded && this.rowsLoaded < this.layout.qHyperCube.qSize.qcy) {
         this.getData(this.rowsLoaded, function (page) {
           _this50.appendRows(_this50.transformData(page.qMatrix));
         });
@@ -5389,6 +5413,10 @@ var Table3 = /*#__PURE__*/function () {
         this.table.showLoading({
           message: 'Loading...'
         });
+      }
+
+      if (this.inSelections === true && this.layout.qSelectionInfo.qInSelections === true) {
+        return;
       }
 
       this.options.model.getLayout().then(function (layout) {
@@ -5581,20 +5609,9 @@ var Table3 = /*#__PURE__*/function () {
           }
 
           if (c.qAttrExps && c.qAttrExps.qValues) {
-            // let t = 'qDimensionInfo'
-            var tIndex = i + (_this53.startCol || 0); // if (i > this.layout.qHyperCube.qDimensionInfo.length - 1) {
-            //   t = 'qMeasureInfo'
-            //   tIndex -= this.layout.qHyperCube.qDimensionInfo.length
-            // }
-
+            var tIndex = i + (_this53.startCol || 0);
             c.qAttrExps.qValues.forEach(function (a, aI) {
               if (a.qText && a.qText !== '') {
-                // if (sourceColumns[tIndex] && sourceColumns[tIndex].qAttrExprInfo && sourceColumns[tIndex].qAttrExprInfo[aI] && sourceColumns[tIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
-                //   c.color = a.qText
-                // }
-                // else if (sourceColumns[tIndex] && sourceColumns[tIndex].qAttrExprInfo && sourceColumns[tIndex].qAttrExprInfo[aI] && sourceColumns[tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
-                //   c.backgroundColor = a.qText
-                // }
                 if (c.level < _this53.layout.qHyperCube.qDimensionInfo.length) {
                   if (_this53.layout.qHyperCube.qDimensionInfo[c.level] && _this53.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo && _this53.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI] && _this53.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                     c.color = a.qText;
@@ -5616,68 +5633,7 @@ var Table3 = /*#__PURE__*/function () {
 
           return c;
         });
-      }); // }
-      // else {
-      //   let {columns, data} = this.transformPivotTable(page)      
-      //   // let columns = [{ name: this.layout.qHyperCube.qDimensionInfo[0].qFallbackTitle }]
-      //   // columns = columns.concat(page.qTop.map(c => ({ name: c.qText ? c.qText : c.qType === 'T' ? 'Total' : '-' })))
-      //   // this.table.options.columns = columns   
-      //   // this.fullColumnList = data.shift()
-      //   // let visibleColumns = []
-      //   // let visibleStart = (this.options.freezeColumns || this.layout.qHyperCube.qNoOfLeftDims)
-      //   // for (let i = 0; i < this.fullColumnList.length; i++) {
-      //   //   if (i < visibleStart) {
-      //   //     visibleColumns.push(this.fullColumnList[i])
-      //   //   }
-      //   //   else if (i >= visibleStart + this.leftDataCol && i < (visibleStart + this.leftDataCol + this.columnsToRender)) {
-      //   //     visibleColumns.push(this.fullColumnList[i])
-      //   //   }        
-      //   // }            
-      //   this.table.options.columns = columns
-      //   if (this.columnParamValues) {
-      //     this.table.calculateSizes(this.columnParamValues, this.layout.qHyperCube.qSize.qcy, this.layout.qHyperCube.qSize.qcx, 0)
-      //   }
-      //   let renderedWidth = 0
-      //   // visibleColumns.forEach(c => {
-      //   //   renderedWidth += +(c.width.toString()).replace('px', '')
-      //   // })
-      //   // this.table.setWidth(renderedWidth)
-      //   this.table.render()
-      //   this.prepDropdowns()
-      //   return data
-      //   // let rows = []
-      //   // page.qData.forEach((r, i) => {
-      //   //   rows.push([{ value: page.qLeft[i].qText, ...page.qLeft[i] }, ...r.map(c => {
-      //   //     c.value = c.qText || '-'        
-      //   //     if (c.qAttrExps && c.qAttrExps.qValues && c.qAttrExps.qValues[0].qText) {
-      //   //       c.backgroundColor = c.qAttrExps.qValues[0].qText
-      //   //       let colorParts
-      //   //       let red
-      //   //       let green
-      //   //       let blue
-      //   //       if (c.backgroundColor.indexOf('#') !== -1) {
-      //   //         // hex color
-      //   //         colorParts = c.qAttrExps.qValues[0].qText.toLowerCase().replace('#', '')
-      //   //         colorParts = colorParts.split('')
-      //   //         red = parseInt(colorParts[0] + colorParts[1], 16)
-      //   //         green = parseInt(colorParts[2] + colorParts[3], 16)
-      //   //         blue = parseInt(colorParts[4] + colorParts[5], 16)
-      //   //       }
-      //   //       else if (c.backgroundColor.toLowerCase().indexOf('rgb') !== -1) {
-      //   //         // rgb color
-      //   //         colorParts = c.qAttrExps.qValues[0].qText.toLowerCase().replace('rgb(', '').replace(')', '')
-      //   //         colorParts = colorParts.split(',')
-      //   //         red = colorParts[0]
-      //   //         green = colorParts[1]
-      //   //         blue = colorParts[2]
-      //   //       }
-      //   //       c.color = (red * 0.299 + green * 0.587 + blue * 0.114) > 186 ? '#000000' : '#ffffff'
-      //   //     }
-      //   //     return c
-      //   //   })])
-      //   // })
-      //   // return rows  
-      // }
+      });
     }
   }, {
     key: "transformPivotTable",
@@ -5715,10 +5671,10 @@ var Table3 = /*#__PURE__*/function () {
         });
       });
 
-      for (var r = 0; r < page.qData.length; r++) {
+      var _loop = function _loop(r) {
         var row = page.qData[r];
 
-        for (var c = 0; c < row.length; c++) {
+        var _loop2 = function _loop2(c) {
           if (!row[c].classes) {
             row[c].classes = [];
           }
@@ -5728,8 +5684,30 @@ var Table3 = /*#__PURE__*/function () {
 
           row[c].dataIndex = c; // row[c].level = this.pinnedColumns
 
-          if (this.layout.qHyperCube.qIndentMode !== true) {
-            row[c].level = this.pinnedColumns + c;
+          if (_this54.layout.qHyperCube.qIndentMode !== true) {
+            row[c].level = _this54.pinnedColumns + c;
+          }
+
+          if (row[c].qAttrExps && row[c].qAttrExps.qValues) {
+            row[c].qAttrExps.qValues.forEach(function (a, aI) {
+              if (a.qText && a.qText !== '') {
+                if (row[c].level < _this54.layout.qHyperCube.qDimensionInfo.length) {
+                  if (_this54.layout.qHyperCube.qDimensionInfo[row[c].level] && _this54.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo && _this54.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo[aI] && _this54.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                    row[c].color = a.qText;
+                  } else if (_this54.layout.qHyperCube.qDimensionInfo[row[c].level] && _this54.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo && _this54.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo[aI] && _this54.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                    row[c].backgroundColor = a.qText;
+                  }
+                } else {
+                  var measureIndex = (row[c].level - _this54.layout.qHyperCube.qDimensionInfo.length) % _this54.layout.qHyperCube.qMeasureInfo.length;
+
+                  if (_this54.layout.qHyperCube.qMeasureInfo[measureIndex] && _this54.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && _this54.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && _this54.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                    row[c].color = a.qText;
+                  } else if (_this54.layout.qHyperCube.qMeasureInfo[measureIndex] && _this54.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && _this54.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && _this54.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                    row[c].backgroundColor = a.qText;
+                  }
+                }
+              }
+            });
           } // row[c].width = `${this.columnParams.cellWidths[(this.options.freezeColumns || this.layout.qHyperCube.qNoOfLeftDims) + c] || this.columnParams.cellWidths[this.columnParams.cellWidths.length - 1]}px`
           // if (row[c].qAttrExps && row[c].qAttrExps.qValues && row[c].qAttrExps.qValues[0] && row[c].qAttrExps.qValues[0].qText) {
           //   row[c].backgroundColor = row[c].qAttrExps.qValues[0].qText
@@ -5765,6 +5743,10 @@ var Table3 = /*#__PURE__*/function () {
           }
 
           row[c].value = row[c].qText || '';
+        };
+
+        for (var c = 0; c < row.length; c++) {
+          _loop2(c);
         }
 
         if (leftNodes[r]) {
@@ -5772,6 +5754,10 @@ var Table3 = /*#__PURE__*/function () {
         }
 
         output.push(row);
+      };
+
+      for (var r = 0; r < page.qData.length; r++) {
+        _loop(r);
       }
 
       var additionalTopCells = [];
@@ -5849,6 +5835,7 @@ var Table3 = /*#__PURE__*/function () {
         // }
 
         input.value = input.qText || '';
+        input.index = level;
         visibleLeftCount = Math.max(visibleLeftCount, level + 1);
         o.childCount = o.qSubNodes.length; // TODO add id mapping to attribute exressions here
 
@@ -5869,7 +5856,7 @@ var Table3 = /*#__PURE__*/function () {
               parent.classes = [];
             }
 
-            if (parent.classes.indexOf('sub-total-cell') === -1) {
+            if (parent.classes.indexOf('sub-total-cell') === -1 && parent.index > 0) {
               parent.classes.push('sub-total-cell');
               parent.isTotal = true;
             }
@@ -5884,6 +5871,14 @@ var Table3 = /*#__PURE__*/function () {
           } else if (o.qElemNo === -4) {
             o.qText = ''; // o.qType = 'T'
           }
+        }
+
+        if (o.qElemNo === -4 && this.layout.qHyperCube.qIndentMode === true) {
+          return; // o.qType = 'T'
+        }
+
+        if (o.qType === 'T' && this.layout.qHyperCube.qIndentMode === true && level > 0) {
+          return; // o.qType = 'T'
         }
 
         o.expandable = o.qCanExpand;
@@ -5907,6 +5902,17 @@ var Table3 = /*#__PURE__*/function () {
         if (this.layout.qHyperCube.qIndentMode === true) {
           o.rowspan = 1;
           o.indent = level;
+
+          if (level < this.layout.qHyperCube.qNoOfLeftDims - 1 && o.qType !== 'T') {
+            if (!input.classes) {
+              input.classes = [];
+            }
+
+            if (input.classes.indexOf('sub-total-cell') === -1) {
+              input.classes.push('sub-total-cell');
+              input.isTotal = true;
+            }
+          }
 
           if (level > 0) {
             // o.style = `padding-left: ${level * 20}px;`
@@ -6398,12 +6404,12 @@ if (typeof WebsyDesigns !== 'undefined') {
         // actions should not have a visualisation in the same property structure
 
 
-        var _loop = function _loop(a) {
+        var _loop3 = function _loop3(a) {
           var el = document.getElementById(_this58.options.actions[a].elementId);
 
           if (el) {
             el.addEventListener(_this58.options.actions[a].event, function () {
-              var _loop2 = function _loop2(i) {
+              var _loop4 = function _loop4(i) {
                 var item = _this58.options.actions[a].items[i];
 
                 if (typeof item.params === 'undefined') {
@@ -6424,14 +6430,14 @@ if (typeof WebsyDesigns !== 'undefined') {
               };
 
               for (var i = 0; i < _this58.options.actions[a].items.length; i++) {
-                _loop2(i);
+                _loop4(i);
               }
             });
           }
         };
 
         for (var a = 0; a < this.options.actions.length; a++) {
-          _loop(a);
+          _loop3(a);
         }
 
         this.options.views[view].prepped = true;
@@ -6783,7 +6789,7 @@ if (typeof WebsyDesigns !== 'undefined') {
         var objList = this.options.views[view].objects;
 
         if (objList && objList.length > 0) {
-          var _loop3 = function _loop3(i) {
+          var _loop5 = function _loop5(i) {
             if (objList[i].objectId) {
               objList[i].attached = true;
 
@@ -6808,7 +6814,7 @@ if (typeof WebsyDesigns !== 'undefined') {
           };
 
           for (var i = 0; i < objList.length; i++) {
-            _loop3(i);
+            _loop5(i);
           }
         }
       }

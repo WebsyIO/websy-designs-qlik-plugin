@@ -4064,9 +4064,9 @@ class Table3 {
       if (maskButtonsEl) {
         maskButtonsEl.classList.remove('active')
       }
-      if (this.options.forceRenderAfterSelect === true) {
-        this.render()
-      }
+      // if (this.options.forceRenderAfterSelect === true) {
+      this.render()
+      // }
     })
   }
   getData (top = 0, callbackFn, force = false) {
@@ -4223,7 +4223,7 @@ class Table3 {
           maskButtonsEl.style.width = `${cellEl.offsetWidth}px`
           maskButtonsEl.style.height = `${this.table.sizes.header.height}px`
         }        
-        cellEl.classList.add('websy-cell-selected')   
+        // cellEl.classList.add('websy-cell-selected')   
         let rowIndex = cellEl.getAttribute('data-row-index')
         let cellIndex = cellEl.getAttribute('data-cell-index')        
         if (this.layout.qHyperCube.qMode === 'P') {
@@ -4236,6 +4236,9 @@ class Table3 {
               }
               if (this.fullData[rowIndex][cellIndex].classes.indexOf('websy-cell-selected') === -1) {                
                 this.fullData[rowIndex][cellIndex].classes.push('websy-cell-selected')
+                if (!cellEl.classList.contains('websy-cell-selected')) {
+                  cellEl.classList.add('websy-cell-selected')                  
+                }
               }
             }
             this.selectedCells.push(cellRef)
@@ -4248,11 +4251,19 @@ class Table3 {
               let classIndex = this.fullData[rowIndex][cellIndex].classes.indexOf('websy-cell-selected')
               if (classIndex !== -1) {
                 this.fullData[rowIndex][cellIndex].classes.splice(classIndex, 1)
+                if (cellEl.classList.contains('websy-cell-selected')) {
+                  cellEl.classList.remove('websy-cell-selected')                  
+                }
               }
             }
             this.selectedCells.splice(cellRefIndex, 1)
           }
-          this.options.model.selectPivotCells('/qHyperCubeDef', this.selectedCells.map(c => ({qType: c.split('_')[0], qCol: +c.split('_')[1], qRow: +c.split('_')[2]})))
+          if (this.selectedCells.length > 0) {
+            this.options.model.selectPivotCells('/qHyperCubeDef', this.selectedCells.map(c => ({qType: c.split('_')[0], qCol: +c.split('_')[1], qRow: +c.split('_')[2]})))            
+          }
+          else {
+            this.options.model.clearSelections('/qHyperCubeDef', [+data.colIndex])
+          }
         }   
         else {
           let cellRefIndex = this.selectedCells.indexOf(+data.rowIndex)
@@ -4263,6 +4274,9 @@ class Table3 {
               }
               if (this.fullData[rowIndex][cellIndex].classes.indexOf('websy-cell-selected') === -1) {                
                 this.fullData[rowIndex][cellIndex].classes.push('websy-cell-selected')
+                if (!cellEl.classList.contains('websy-cell-selected')) {
+                  cellEl.classList.add('websy-cell-selected')                  
+                }
               }
             }
             this.selectedCells.push(+data.rowIndex)
@@ -4275,11 +4289,19 @@ class Table3 {
               let classIndex = this.fullData[rowIndex][cellIndex].classes.indexOf('websy-cell-selected')
               if (classIndex !== -1) {
                 this.fullData[rowIndex][cellIndex].classes.splice(classIndex, 1)
+                if (cellEl.classList.contains('websy-cell-selected')) {
+                  cellEl.classList.remove('websy-cell-selected')                  
+                }
               }
             }
             this.selectedCells.splice(cellRefIndex, 1)
           }
-          this.options.model.selectHyperCubeCells('/qHyperCubeDef', this.selectedCells, [colIndex])
+          if (this.selectedCells.length > 0) {
+            this.options.model.selectHyperCubeCells('/qHyperCubeDef', this.selectedCells, [colIndex])            
+          }
+          else {
+            this.options.model.clearSelections('/qHyperCubeDef', [+data.colIndex])
+          }
         }        
       })      
     }
@@ -4408,7 +4430,7 @@ class Table3 {
   }
   handleNativeScroll (scrollTop) {
     let rowsRendered = Math.floor(scrollTop / this.table.sizes.cellHeight)    
-    if (rowsRendered + (this.table.sizes.rowsToRender * 2) > this.rowsLoaded) {
+    if (rowsRendered + (this.table.sizes.rowsToRender * 2) > this.rowsLoaded && this.rowsLoaded < this.layout.qHyperCube.qSize.qcy) {
       this.getData(this.rowsLoaded, (page) => {
         this.appendRows(this.transformData(page.qMatrix))
       })
@@ -4523,6 +4545,9 @@ class Table3 {
     if (this.inSelections === false) {
       this.table.showLoading({message: 'Loading...'})    
     }    
+    if (this.inSelections === true && this.layout.qSelectionInfo.qInSelections === true) {
+      return
+    }
     this.options.model.getLayout().then(layout => {  
       this.layout = layout
       if (this.inSelections === true) {
@@ -4674,21 +4699,10 @@ class Table3 {
         else {
           c.value = c.qText || '-'
         }
-        if (c.qAttrExps && c.qAttrExps.qValues) {
-          // let t = 'qDimensionInfo'
-          let tIndex = i + (this.startCol || 0)
-          // if (i > this.layout.qHyperCube.qDimensionInfo.length - 1) {
-          //   t = 'qMeasureInfo'
-          //   tIndex -= this.layout.qHyperCube.qDimensionInfo.length
-          // }
+        if (c.qAttrExps && c.qAttrExps.qValues) {          
+          let tIndex = i + (this.startCol || 0)          
           c.qAttrExps.qValues.forEach((a, aI) => {            
-            if (a.qText && a.qText !== '') {
-              // if (sourceColumns[tIndex] && sourceColumns[tIndex].qAttrExprInfo && sourceColumns[tIndex].qAttrExprInfo[aI] && sourceColumns[tIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
-              //   c.color = a.qText
-              // }
-              // else if (sourceColumns[tIndex] && sourceColumns[tIndex].qAttrExprInfo && sourceColumns[tIndex].qAttrExprInfo[aI] && sourceColumns[tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
-              //   c.backgroundColor = a.qText
-              // }
+            if (a.qText && a.qText !== '') {              
               if (c.level < this.layout.qHyperCube.qDimensionInfo.length) {              
                 if (this.layout.qHyperCube.qDimensionInfo[c.level] && this.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo && this.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI] && this.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                   c.color = a.qText
@@ -4711,69 +4725,7 @@ class Table3 {
         }        
         return c
       })
-    })
-    // }
-    // else {
-    //   let {columns, data} = this.transformPivotTable(page)      
-    //   // let columns = [{ name: this.layout.qHyperCube.qDimensionInfo[0].qFallbackTitle }]
-    //   // columns = columns.concat(page.qTop.map(c => ({ name: c.qText ? c.qText : c.qType === 'T' ? 'Total' : '-' })))
-    //   // this.table.options.columns = columns   
-    //   // this.fullColumnList = data.shift()
-    //   // let visibleColumns = []
-    //   // let visibleStart = (this.options.freezeColumns || this.layout.qHyperCube.qNoOfLeftDims)
-    //   // for (let i = 0; i < this.fullColumnList.length; i++) {
-    //   //   if (i < visibleStart) {
-    //   //     visibleColumns.push(this.fullColumnList[i])
-    //   //   }
-    //   //   else if (i >= visibleStart + this.leftDataCol && i < (visibleStart + this.leftDataCol + this.columnsToRender)) {
-    //   //     visibleColumns.push(this.fullColumnList[i])
-    //   //   }        
-    //   // }            
-    //   this.table.options.columns = columns
-    //   if (this.columnParamValues) {
-    //     this.table.calculateSizes(this.columnParamValues, this.layout.qHyperCube.qSize.qcy, this.layout.qHyperCube.qSize.qcx, 0)
-    //   }
-    //   let renderedWidth = 0
-    //   // visibleColumns.forEach(c => {
-    //   //   renderedWidth += +(c.width.toString()).replace('px', '')
-    //   // })
-    //   // this.table.setWidth(renderedWidth)
-    //   this.table.render()
-    //   this.prepDropdowns()
-    //   return data
-    //   // let rows = []
-    //   // page.qData.forEach((r, i) => {
-    //   //   rows.push([{ value: page.qLeft[i].qText, ...page.qLeft[i] }, ...r.map(c => {
-    //   //     c.value = c.qText || '-'        
-    //   //     if (c.qAttrExps && c.qAttrExps.qValues && c.qAttrExps.qValues[0].qText) {
-    //   //       c.backgroundColor = c.qAttrExps.qValues[0].qText
-    //   //       let colorParts
-    //   //       let red
-    //   //       let green
-    //   //       let blue
-    //   //       if (c.backgroundColor.indexOf('#') !== -1) {
-    //   //         // hex color
-    //   //         colorParts = c.qAttrExps.qValues[0].qText.toLowerCase().replace('#', '')
-    //   //         colorParts = colorParts.split('')
-    //   //         red = parseInt(colorParts[0] + colorParts[1], 16)
-    //   //         green = parseInt(colorParts[2] + colorParts[3], 16)
-    //   //         blue = parseInt(colorParts[4] + colorParts[5], 16)
-    //   //       }
-    //   //       else if (c.backgroundColor.toLowerCase().indexOf('rgb') !== -1) {
-    //   //         // rgb color
-    //   //         colorParts = c.qAttrExps.qValues[0].qText.toLowerCase().replace('rgb(', '').replace(')', '')
-    //   //         colorParts = colorParts.split(',')
-    //   //         red = colorParts[0]
-    //   //         green = colorParts[1]
-    //   //         blue = colorParts[2]
-    //   //       }
-    //   //       c.color = (red * 0.299 + green * 0.587 + blue * 0.114) > 186 ? '#000000' : '#ffffff'
-    //   //     }
-    //   //     return c
-    //   //   })])
-    //   // })
-    //   // return rows  
-    // }
+    })    
   }
   transformPivotTable (page) {    
     let output = []
@@ -4815,7 +4767,30 @@ class Table3 {
         // row[c].level = this.pinnedColumns
         if (this.layout.qHyperCube.qIndentMode !== true) {
           row[c].level = this.pinnedColumns + c
-        }        
+        }  
+        if (row[c].qAttrExps && row[c].qAttrExps.qValues) {
+          row[c].qAttrExps.qValues.forEach((a, aI) => {            
+            if (a.qText && a.qText !== '') {              
+              if (row[c].level < this.layout.qHyperCube.qDimensionInfo.length) {              
+                if (this.layout.qHyperCube.qDimensionInfo[row[c].level] && this.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo && this.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo[aI] && this.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                  row[c].color = a.qText
+                }
+                else if (this.layout.qHyperCube.qDimensionInfo[row[c].level] && this.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo && this.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo[aI] && this.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                  row[c].backgroundColor = a.qText
+                }
+              }
+              else {
+                let measureIndex = (row[c].level - this.layout.qHyperCube.qDimensionInfo.length) % this.layout.qHyperCube.qMeasureInfo.length
+                if (this.layout.qHyperCube.qMeasureInfo[measureIndex] && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                  row[c].color = a.qText
+                }
+                else if (this.layout.qHyperCube.qMeasureInfo[measureIndex] && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                  row[c].backgroundColor = a.qText
+                }
+              }              
+            }
+          })
+        }       
         // row[c].width = `${this.columnParams.cellWidths[(this.options.freezeColumns || this.layout.qHyperCube.qNoOfLeftDims) + c] || this.columnParams.cellWidths[this.columnParams.cellWidths.length - 1]}px`
         // if (row[c].qAttrExps && row[c].qAttrExps.qValues && row[c].qAttrExps.qValues[0] && row[c].qAttrExps.qValues[0].qText) {
         //   row[c].backgroundColor = row[c].qAttrExps.qValues[0].qText
@@ -4915,6 +4890,7 @@ class Table3 {
       //   input.classes = []
       // }
       input.value = input.qText || ''
+      input.index = level
       visibleLeftCount = Math.max(visibleLeftCount, level + 1)
       o.childCount = o.qSubNodes.length    
       // TODO add id mapping to attribute exressions here
@@ -4931,7 +4907,7 @@ class Table3 {
           if (!parent.classes) {
             parent.classes = []
           }
-          if (parent.classes.indexOf('sub-total-cell') === -1) {
+          if (parent.classes.indexOf('sub-total-cell') === -1 && parent.index > 0) {
             parent.classes.push('sub-total-cell')
             parent.isTotal = true
           }
@@ -4947,6 +4923,14 @@ class Table3 {
           o.qText = ''
           // o.qType = 'T'
         }
+      }
+      if (o.qElemNo === -4 && this.layout.qHyperCube.qIndentMode === true) {
+        return
+        // o.qType = 'T'
+      }
+      if (o.qType === 'T' && this.layout.qHyperCube.qIndentMode === true && level > 0) {
+        return
+        // o.qType = 'T'
       }
       o.expandable = o.qCanExpand
       o.collapsable = o.qCanCollapse
@@ -4967,6 +4951,15 @@ class Table3 {
       if (this.layout.qHyperCube.qIndentMode === true) {
         o.rowspan = 1
         o.indent = level
+        if (level < this.layout.qHyperCube.qNoOfLeftDims - 1 && o.qType !== 'T') {
+          if (!input.classes) {
+            input.classes = []
+          }
+          if (input.classes.indexOf('sub-total-cell') === -1) {
+            input.classes.push('sub-total-cell')
+            input.isTotal = true
+          }
+        }
         if (level > 0) {
           // o.style = `padding-left: ${level * 20}px;`
           o.style = `text-indent: ${level * 20}px;`
