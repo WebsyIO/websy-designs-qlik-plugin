@@ -4883,6 +4883,8 @@ var Table3 = /*#__PURE__*/function () {
 
             this.options.model[method]('/qHyperCubeDef', pageDefs).then(function (pages) {
               if (pages) {
+                _this47.qlikTop = pages[0].qArea.qTop;
+
                 if (_this47.layout.qHyperCube.qMode === 'P') {
                   _this47.layout.qHyperCube.qPivotDataPages = pages;
 
@@ -5029,15 +5031,21 @@ var Table3 = /*#__PURE__*/function () {
             maskButtonsEl.style.width = "".concat(cellEl.offsetWidth, "px");
             maskButtonsEl.style.height = "".concat(_this48.table.sizes.header.height, "px");
           } // cellEl.classList.add('websy-cell-selected')   
+          // let rowIndex = +cellEl.getAttribute('data-row-index')
 
 
-          var rowIndex = cellEl.getAttribute('data-row-index');
-          var cellIndex = cellEl.getAttribute('data-cell-index');
+          var rowIndex = +data.cell.qlikRowIndex;
+          var cellIndex = +cellEl.getAttribute('data-cell-index');
+          var colIndex = +cellEl.getAttribute('data-col-index');
 
           if (_this48.layout.qHyperCube.qMode === 'P') {
-            var cellRef = "".concat(data.cell.pos === 'Left' ? 'L' : 'T', "_").concat(+data.colIndex, "_").concat(data.rowIndex);
+            var cellRef = "".concat(data.cell.pos === 'Left' ? 'L' : 'T', "_").concat(colIndex, "_").concat(rowIndex);
 
             var cellRefIndex = _this48.selectedCells.indexOf(cellRef);
+
+            if (_this48.layout.qHyperCube.qIndentMode !== true) {
+              rowIndex -= _this48.startRow;
+            }
 
             if (cellRefIndex === -1) {
               if (_this48.fullData && _this48.fullData[rowIndex] && _this48.fullData[rowIndex][cellIndex]) {
@@ -5084,10 +5092,10 @@ var Table3 = /*#__PURE__*/function () {
                 };
               }));
             } else {
-              _this48.options.model.clearSelections('/qHyperCubeDef', [+data.colIndex]);
+              _this48.options.model.clearSelections('/qHyperCubeDef', [colIndex]);
             }
           } else {
-            var _cellRefIndex = _this48.selectedCells.indexOf(+data.rowIndex);
+            var _cellRefIndex = _this48.selectedCells.indexOf(rowIndex);
 
             if (_cellRefIndex === -1) {
               if (_this48.fullData && _this48.fullData[rowIndex] && _this48.fullData[rowIndex][cellIndex]) {
@@ -5128,7 +5136,7 @@ var Table3 = /*#__PURE__*/function () {
             if (_this48.selectedCells.length > 0) {
               _this48.options.model.selectHyperCubeCells('/qHyperCubeDef', _this48.selectedCells, [colIndex]);
             } else {
-              _this48.options.model.clearSelections('/qHyperCubeDef', [+data.colIndex]);
+              _this48.options.model.clearSelections('/qHyperCubeDef', [colIndex]);
             }
           }
         });
@@ -5421,6 +5429,7 @@ var Table3 = /*#__PURE__*/function () {
 
       this.options.model.getLayout().then(function (layout) {
         _this51.layout = layout;
+        _this51.startRow = 0;
 
         if (_this51.inSelections === true) {
           if (layout.qSelectionInfo.qInSelections === true) {
@@ -5648,6 +5657,7 @@ var Table3 = /*#__PURE__*/function () {
       var visibleLeftCount = 0;
       var visibleTopCount = 0;
       var visibleColCount = 0;
+      var leftKeys = {};
       this.validPivotLeft = 0;
       var tempNode = [];
       var sourceColumns = this.layout.qHyperCube.qDimensionInfo.concat(this.layout.qHyperCube.qMeasureInfo);
@@ -5698,7 +5708,7 @@ var Table3 = /*#__PURE__*/function () {
                     row[c].backgroundColor = a.qText;
                   }
                 } else {
-                  var measureIndex = (row[c].level - _this54.layout.qHyperCube.qDimensionInfo.length) % _this54.layout.qHyperCube.qMeasureInfo.length;
+                  var measureIndex = c % _this54.layout.qHyperCube.qMeasureInfo.length;
 
                   if (_this54.layout.qHyperCube.qMeasureInfo[measureIndex] && _this54.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && _this54.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && _this54.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                     row[c].color = a.qText;
@@ -5836,6 +5846,18 @@ var Table3 = /*#__PURE__*/function () {
 
         input.value = input.qText || '';
         input.index = level;
+
+        if (!leftKeys[this.layout.qHyperCube.qIndentMode !== true ? level : 0]) {
+          leftKeys[this.layout.qHyperCube.qIndentMode !== true ? level : 0] = [];
+        }
+
+        o.qlikRowIndex = leftKeys[this.layout.qHyperCube.qIndentMode !== true ? level : 0].length + (this.layout.qHyperCube.qIndentMode !== true ? this.qlikTop : this.startRow);
+        input.qlikRowIndex = leftKeys[this.layout.qHyperCube.qIndentMode !== true ? level : 0].length + (this.layout.qHyperCube.qIndentMode !== true ? this.qlikTop : this.startRow);
+
+        if (leftKeys[this.layout.qHyperCube.qIndentMode !== true ? level : 0].indexOf(o.qElemNo) === -1) {
+          leftKeys[this.layout.qHyperCube.qIndentMode !== true ? level : 0].push(o.qElemNo);
+        }
+
         visibleLeftCount = Math.max(visibleLeftCount, level + 1);
         o.childCount = o.qSubNodes.length; // TODO add id mapping to attribute exressions here
 

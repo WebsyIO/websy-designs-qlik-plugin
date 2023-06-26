@@ -597,9 +597,10 @@ class Table3 {
           }
           this.options.model[method]('/qHyperCubeDef', pageDefs).then(pages => {
             if (pages) {
+              this.qlikTop = pages[0].qArea.qTop
               if (this.layout.qHyperCube.qMode === 'P') {
                 this.layout.qHyperCube.qPivotDataPages = pages
-                let pData = this.transformPivotTable(pages[0])                
+                let pData = this.transformPivotTable(pages[0])                                
                 pages[0].qMatrix = pData.data                                
                 // this.fullData.push(pages[0])
                 // this.rowCount += pages[0].qData.length
@@ -722,11 +723,16 @@ class Table3 {
           maskButtonsEl.style.height = `${this.table.sizes.header.height}px`
         }        
         // cellEl.classList.add('websy-cell-selected')   
-        let rowIndex = cellEl.getAttribute('data-row-index')
-        let cellIndex = cellEl.getAttribute('data-cell-index')        
+        // let rowIndex = +cellEl.getAttribute('data-row-index')
+        let rowIndex = +data.cell.qlikRowIndex
+        let cellIndex = +cellEl.getAttribute('data-cell-index')
+        let colIndex = +cellEl.getAttribute('data-col-index')        
         if (this.layout.qHyperCube.qMode === 'P') {
-          let cellRef = `${data.cell.pos === 'Left' ? 'L' : 'T'}_${+data.colIndex}_${data.rowIndex}`
+          let cellRef = `${data.cell.pos === 'Left' ? 'L' : 'T'}_${colIndex}_${rowIndex}`
           let cellRefIndex = this.selectedCells.indexOf(cellRef)
+          if (this.layout.qHyperCube.qIndentMode !== true) {
+            rowIndex -= this.startRow
+          }
           if (cellRefIndex === -1) {
             if (this.fullData && this.fullData[rowIndex] && this.fullData[rowIndex][cellIndex]) {
               if (!this.fullData[rowIndex][cellIndex].classes) {
@@ -760,11 +766,11 @@ class Table3 {
             this.options.model.selectPivotCells('/qHyperCubeDef', this.selectedCells.map(c => ({qType: c.split('_')[0], qCol: +c.split('_')[1], qRow: +c.split('_')[2]})))            
           }
           else {
-            this.options.model.clearSelections('/qHyperCubeDef', [+data.colIndex])
+            this.options.model.clearSelections('/qHyperCubeDef', [colIndex])
           }
         }   
         else {
-          let cellRefIndex = this.selectedCells.indexOf(+data.rowIndex)
+          let cellRefIndex = this.selectedCells.indexOf(rowIndex)
           if (cellRefIndex === -1) {
             if (this.fullData && this.fullData[rowIndex] && this.fullData[rowIndex][cellIndex]) {
               if (!this.fullData[rowIndex][cellIndex].classes) {
@@ -798,7 +804,7 @@ class Table3 {
             this.options.model.selectHyperCubeCells('/qHyperCubeDef', this.selectedCells, [colIndex])            
           }
           else {
-            this.options.model.clearSelections('/qHyperCubeDef', [+data.colIndex])
+            this.options.model.clearSelections('/qHyperCubeDef', [colIndex])
           }
         }        
       })      
@@ -1048,6 +1054,7 @@ class Table3 {
     }
     this.options.model.getLayout().then(layout => {  
       this.layout = layout
+      this.startRow = 0      
       if (this.inSelections === true) {
         if (layout.qSelectionInfo.qInSelections === true) {
           return
@@ -1234,6 +1241,7 @@ class Table3 {
     let visibleLeftCount = 0    
     let visibleTopCount = 0    
     let visibleColCount = 0
+    let leftKeys = {}
     this.validPivotLeft = 0
     let tempNode = []
     let sourceColumns = this.layout.qHyperCube.qDimensionInfo.concat(this.layout.qHyperCube.qMeasureInfo)
@@ -1278,7 +1286,7 @@ class Table3 {
                 }
               }
               else {
-                let measureIndex = (row[c].level - this.layout.qHyperCube.qDimensionInfo.length) % this.layout.qHyperCube.qMeasureInfo.length
+                let measureIndex = c % this.layout.qHyperCube.qMeasureInfo.length
                 if (this.layout.qHyperCube.qMeasureInfo[measureIndex] && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                   row[c].color = a.qText
                 }
@@ -1389,6 +1397,14 @@ class Table3 {
       // }
       input.value = input.qText || ''
       input.index = level
+      if (!leftKeys[this.layout.qHyperCube.qIndentMode !== true ? level : 0]) {
+        leftKeys[this.layout.qHyperCube.qIndentMode !== true ? level : 0] = []
+      }      
+      o.qlikRowIndex = leftKeys[this.layout.qHyperCube.qIndentMode !== true ? level : 0].length + (this.layout.qHyperCube.qIndentMode !== true ? this.qlikTop : this.startRow)
+      input.qlikRowIndex = leftKeys[this.layout.qHyperCube.qIndentMode !== true ? level : 0].length + (this.layout.qHyperCube.qIndentMode !== true ? this.qlikTop : this.startRow)
+      if (leftKeys[this.layout.qHyperCube.qIndentMode !== true ? level : 0].indexOf(o.qElemNo) === -1) {
+        leftKeys[this.layout.qHyperCube.qIndentMode !== true ? level : 0].push(o.qElemNo)
+      }      
       visibleLeftCount = Math.max(visibleLeftCount, level + 1)
       o.childCount = o.qSubNodes.length    
       // TODO add id mapping to attribute exressions here
