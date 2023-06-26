@@ -29,6 +29,7 @@ class Table3 {
     // }
     this.elementId = elementId  
     this.inSelections = false  
+    this.qlikTop = 0
     this.options = Object.assign({}, DEFAULTS, options)
     this.fullData = []
     this.rowIndexList = []
@@ -1054,7 +1055,8 @@ class Table3 {
     }
     this.options.model.getLayout().then(layout => {  
       this.layout = layout
-      this.startRow = 0      
+      this.qlikTop = 0
+      this.startRow = 0
       if (this.inSelections === true) {
         if (layout.qSelectionInfo.qInSelections === true) {
           return
@@ -1397,14 +1399,16 @@ class Table3 {
       // }
       input.value = input.qText || ''
       input.index = level
-      if (!leftKeys[this.layout.qHyperCube.qIndentMode !== true ? level : 0]) {
-        leftKeys[this.layout.qHyperCube.qIndentMode !== true ? level : 0] = []
+      let keyLevel = level
+      if (this.layout.qHyperCube.qIndentMode === true) {
+        keyLevel = 0
+      }
+      if (!leftKeys[keyLevel]) {
+        leftKeys[keyLevel] = []
       }      
-      o.qlikRowIndex = leftKeys[this.layout.qHyperCube.qIndentMode !== true ? level : 0].length + (this.layout.qHyperCube.qIndentMode !== true ? this.qlikTop : this.startRow)
-      input.qlikRowIndex = leftKeys[this.layout.qHyperCube.qIndentMode !== true ? level : 0].length + (this.layout.qHyperCube.qIndentMode !== true ? this.qlikTop : this.startRow)
-      if (leftKeys[this.layout.qHyperCube.qIndentMode !== true ? level : 0].indexOf(o.qElemNo) === -1) {
-        leftKeys[this.layout.qHyperCube.qIndentMode !== true ? level : 0].push(o.qElemNo)
-      }      
+      o.qlikRowIndex = leftKeys[keyLevel].length + this.qlikTop
+      input.qlikRowIndex = leftKeys[keyLevel].length + this.qlikTop            
+      leftKeys[keyLevel].push(o.qElemNo)      
       visibleLeftCount = Math.max(visibleLeftCount, level + 1)
       o.childCount = o.qSubNodes.length    
       // TODO add id mapping to attribute exressions here

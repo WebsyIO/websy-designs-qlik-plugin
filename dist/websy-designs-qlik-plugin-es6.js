@@ -4197,6 +4197,7 @@ var Table3 = /*#__PURE__*/function () {
 
     this.elementId = elementId;
     this.inSelections = false;
+    this.qlikTop = 0;
     this.options = _extends({}, DEFAULTS, options);
     this.fullData = [];
     this.rowIndexList = [];
@@ -5423,6 +5424,7 @@ var Table3 = /*#__PURE__*/function () {
 
       this.options.model.getLayout().then(function (layout) {
         _this51.layout = layout;
+        _this51.qlikTop = 0;
         _this51.startRow = 0;
 
         if (_this51.inSelections === true) {
@@ -5840,18 +5842,19 @@ var Table3 = /*#__PURE__*/function () {
 
         input.value = input.qText || '';
         input.index = level;
+        var keyLevel = level;
 
-        if (!leftKeys[this.layout.qHyperCube.qIndentMode !== true ? level : 0]) {
-          leftKeys[this.layout.qHyperCube.qIndentMode !== true ? level : 0] = [];
+        if (this.layout.qHyperCube.qIndentMode === true) {
+          keyLevel = 0;
         }
 
-        o.qlikRowIndex = leftKeys[this.layout.qHyperCube.qIndentMode !== true ? level : 0].length + (this.layout.qHyperCube.qIndentMode !== true ? this.qlikTop : this.startRow);
-        input.qlikRowIndex = leftKeys[this.layout.qHyperCube.qIndentMode !== true ? level : 0].length + (this.layout.qHyperCube.qIndentMode !== true ? this.qlikTop : this.startRow);
-
-        if (leftKeys[this.layout.qHyperCube.qIndentMode !== true ? level : 0].indexOf(o.qElemNo) === -1) {
-          leftKeys[this.layout.qHyperCube.qIndentMode !== true ? level : 0].push(o.qElemNo);
+        if (!leftKeys[keyLevel]) {
+          leftKeys[keyLevel] = [];
         }
 
+        o.qlikRowIndex = leftKeys[keyLevel].length + this.qlikTop;
+        input.qlikRowIndex = leftKeys[keyLevel].length + this.qlikTop;
+        leftKeys[keyLevel].push(o.qElemNo);
         visibleLeftCount = Math.max(visibleLeftCount, level + 1);
         o.childCount = o.qSubNodes.length; // TODO add id mapping to attribute exressions here
 
