@@ -5654,6 +5654,7 @@ var Table3 = /*#__PURE__*/function () {
       var visibleTopCount = 0;
       var visibleColCount = 0;
       var leftKeys = {};
+      var lowestLevelNodes = 0;
       this.validPivotLeft = 0;
       var tempNode = [];
       var sourceColumns = this.layout.qHyperCube.qDimensionInfo.concat(this.layout.qHyperCube.qMeasureInfo);
@@ -5841,20 +5842,17 @@ var Table3 = /*#__PURE__*/function () {
         // }
 
         input.value = input.qText || '';
-        input.index = level;
-        var keyLevel = level;
+        input.index = level; // let keyLevel = level
+        // if (this.layout.qHyperCube.qIndentMode === true) {
+        //   keyLevel = 0
+        // }
+        // if (!leftKeys[keyLevel]) {
+        //   leftKeys[keyLevel] = []
+        // }      
+        // o.qlikRowIndex = leftKeys[keyLevel].length + this.qlikTop
+        // input.qlikRowIndex = leftKeys[keyLevel].length + this.qlikTop            
+        // leftKeys[keyLevel].push(o.qElemNo)      
 
-        if (this.layout.qHyperCube.qIndentMode === true) {
-          keyLevel = 0;
-        }
-
-        if (!leftKeys[keyLevel]) {
-          leftKeys[keyLevel] = [];
-        }
-
-        o.qlikRowIndex = leftKeys[keyLevel].length + this.qlikTop;
-        input.qlikRowIndex = leftKeys[keyLevel].length + this.qlikTop;
-        leftKeys[keyLevel].push(o.qElemNo);
         visibleLeftCount = Math.max(visibleLeftCount, level + 1);
         o.childCount = o.qSubNodes.length; // TODO add id mapping to attribute exressions here
 
@@ -5940,6 +5938,9 @@ var Table3 = /*#__PURE__*/function () {
 
           if (o.qType !== 'E' && o.qUp === 0) {
             leftNodes.push([o]);
+            o.qlikRowIndex = lowestLevelNodes + this.qlikTop;
+            input.qlikRowIndex = lowestLevelNodes + this.qlikTop;
+            lowestLevelNodes++;
           }
 
           tempNode = []; // if (o.qElemNo > -4) {
@@ -5956,6 +5957,9 @@ var Table3 = /*#__PURE__*/function () {
           }
 
           leftNodes.push(tempNode.concat([o]));
+          o.qlikRowIndex = lowestLevelNodes + this.qlikTop;
+          input.qlikRowIndex = lowestLevelNodes + this.qlikTop;
+          lowestLevelNodes++;
           tempNode = [];
         } else {
           if (input.qElemNo > -4 || !input.qSubNodes || input.qSubNodes.length === 0) {
@@ -5967,6 +5971,8 @@ var Table3 = /*#__PURE__*/function () {
           // }
 
           for (var _i26 = 0; _i26 < input.qSubNodes.length; _i26++) {
+            o.qlikRowIndex = lowestLevelNodes + this.qlikTop;
+            input.qlikRowIndex = lowestLevelNodes + this.qlikTop;
             expandLeft.call(this, input.qSubNodes[_i26], level + 1, _i26, input, [].concat(_toConsumableArray(chain), [o]));
           }
 

@@ -1244,6 +1244,7 @@ class Table3 {
     let visibleTopCount = 0    
     let visibleColCount = 0
     let leftKeys = {}
+    let lowestLevelNodes = 0
     this.validPivotLeft = 0
     let tempNode = []
     let sourceColumns = this.layout.qHyperCube.qDimensionInfo.concat(this.layout.qHyperCube.qMeasureInfo)
@@ -1399,16 +1400,16 @@ class Table3 {
       // }
       input.value = input.qText || ''
       input.index = level
-      let keyLevel = level
-      if (this.layout.qHyperCube.qIndentMode === true) {
-        keyLevel = 0
-      }
-      if (!leftKeys[keyLevel]) {
-        leftKeys[keyLevel] = []
-      }      
-      o.qlikRowIndex = leftKeys[keyLevel].length + this.qlikTop
-      input.qlikRowIndex = leftKeys[keyLevel].length + this.qlikTop            
-      leftKeys[keyLevel].push(o.qElemNo)      
+      // let keyLevel = level
+      // if (this.layout.qHyperCube.qIndentMode === true) {
+      //   keyLevel = 0
+      // }
+      // if (!leftKeys[keyLevel]) {
+      //   leftKeys[keyLevel] = []
+      // }      
+      // o.qlikRowIndex = leftKeys[keyLevel].length + this.qlikTop
+      // input.qlikRowIndex = leftKeys[keyLevel].length + this.qlikTop            
+      // leftKeys[keyLevel].push(o.qElemNo)      
       visibleLeftCount = Math.max(visibleLeftCount, level + 1)
       o.childCount = o.qSubNodes.length    
       // TODO add id mapping to attribute exressions here
@@ -1484,6 +1485,9 @@ class Table3 {
         }        
         if (o.qType !== 'E' && o.qUp === 0) {
           leftNodes.push([o])
+          o.qlikRowIndex = lowestLevelNodes + this.qlikTop
+          input.qlikRowIndex = lowestLevelNodes + this.qlikTop
+          lowestLevelNodes++
         }        
         tempNode = []
         // if (o.qElemNo > -4) {
@@ -1499,6 +1503,9 @@ class Table3 {
           this.validPivotLeft = Math.max(this.validPivotLeft, level)
         }
         leftNodes.push(tempNode.concat([o])) 
+        o.qlikRowIndex = lowestLevelNodes + this.qlikTop
+        input.qlikRowIndex = lowestLevelNodes + this.qlikTop
+        lowestLevelNodes++
         tempNode = []
       }
       else {               
@@ -1510,7 +1517,9 @@ class Table3 {
         //   this.validPivotLeft = Math.max(this.validPivotLeft, level)
         // }
         for (let i = 0; i < input.qSubNodes.length; i++) {
-          expandLeft.call(this, input.qSubNodes[i], level + 1, i, input, [...chain, o])
+          o.qlikRowIndex = lowestLevelNodes + this.qlikTop
+          input.qlikRowIndex = lowestLevelNodes + this.qlikTop
+          expandLeft.call(this, input.qSubNodes[i], level + 1, i, input, [...chain, o])          
         }        
         let s = 0
         for (let i = 0; i < input.qSubNodes.length; i++) {
