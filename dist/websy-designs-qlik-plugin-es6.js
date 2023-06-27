@@ -6678,10 +6678,7 @@ var ObjectManager = /*#__PURE__*/function () {
           this.prep(view);
         }
 
-        console.log('Running Actions', view);
         this.executeActions(view).then(function () {
-          console.log('Actions complete', view);
-
           if ((_this62.globalObjectsLoaded === false || _this62.options.alwaysLoadGlobal === true) && view !== 'global') {
             _this62.loadObjects('global', force);
 
@@ -6786,8 +6783,6 @@ var ObjectManager = /*#__PURE__*/function () {
     key: "loadObjects",
     value: function loadObjects(view, force) {
       var _this65 = this;
-
-      console.log('Loading objects', view);
 
       if (typeof force === 'undefined') {
         force = false;

@@ -5634,10 +5634,8 @@ class ObjectManager {
     else {
       if (this.options.views[view].prepped !== true) {
         this.prep(view)
-      }
-      console.log('Running Actions', view)
-      this.executeActions(view).then(() => {    
-        console.log('Actions complete', view)
+      }      
+      this.executeActions(view).then(() => {            
         if ((this.globalObjectsLoaded === false || this.options.alwaysLoadGlobal === true) && view !== 'global') {
           this.loadObjects('global', force)
           this.globalObjectsLoaded = true
@@ -5725,7 +5723,6 @@ class ObjectManager {
     })
   }
   loadObjects (view, force) {
-    console.log('Loading objects', view)
     if (typeof force === 'undefined') {
       force = false
     }
