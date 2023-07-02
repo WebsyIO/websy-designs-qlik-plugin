@@ -6,6 +6,7 @@
   XMLHttpRequest
   WebsyDesigns
   Chart
+  Pie
   Table3
   GeoMap
   Dropdown
@@ -33,6 +34,10 @@ class ObjectManager {
       {
         id: 'chart',
         definition: Chart 
+      },
+      {
+        id: 'pie',
+        definition: Pie
       },
       {
         id: 'map',

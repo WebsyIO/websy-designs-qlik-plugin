@@ -464,12 +464,21 @@ class Chart {
     options.data[y2Axis].min = 0
     options.data[y2Axis].max = 0
     options.data[xAxis].padding = options.padding || 0
+    let colors = this.layout.options.colors || this.chart.options.colors
     options.data.series = this.layout.qHyperCube.qMeasureInfo.map((m, i) => {
       let series = Object.assign({}, m.options)
       series.key = this.createSeriesKey(m.qFallbackTitle)
       series.data = []
       series.type = (m.options || {}).type || options.type || 'bar'      
       series.accumulative = 0
+      series.color = colors[i % colors.length]
+      if (this.options.legendKeys.indexOf(m.qFallbackTitle) === -1) {
+        this.options.legendKeys.push(m.qFallbackTitle)
+        this.options.legendData.push({
+          value: m.qFallbackTitle,
+          color: colors[i % colors.length]
+        })
+      }
       if (m.axis === 'secondary') { // right hand axis
         hasy2Axis = true
         this.addOptions(options.data[y2Axis], m.options || {})

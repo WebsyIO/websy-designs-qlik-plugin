@@ -3,6 +3,7 @@
   WebsyDesigns
   Bookmarks
   Chart
+  Pie
   CurrentSelections
   SimpleSearch
   Table
@@ -16,6 +17,7 @@
 */ 
 include('./components/bookmarks/index.js')
 include('./components/chart/index.js')
+include('./components/pie/index.js')
 include('./components/current-selections/index.js')
 include('./components/datepicker/index.js')
 include('./components/dropdown/index.js')
@@ -30,6 +32,7 @@ if (typeof WebsyDesigns !== 'undefined') {
   WebsyDesigns.QlikPlugins = {
     Bookmarks,
     Chart,
+    Pie,
     CurrentSelections,
     SimpleSearch,
     Table,
@@ -43,6 +46,7 @@ if (typeof WebsyDesigns !== 'undefined') {
   window.WebsyDesignsQlikPlugins = {
     Bookmarks,
     Chart,
+    Pie,
     CurrentSelections,
     SimpleSearch,
     Table,

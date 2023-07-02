@@ -1141,6 +1141,7 @@ var Chart = /*#__PURE__*/function () {
       options.data[y2Axis].min = 0;
       options.data[y2Axis].max = 0;
       options.data[xAxis].padding = options.padding || 0;
+      var colors = this.layout.options.colors || this.chart.options.colors;
       options.data.series = this.layout.qHyperCube.qMeasureInfo.map(function (m, i) {
         var series = _extends({}, m.options);
 
@@ -1148,6 +1149,16 @@ var Chart = /*#__PURE__*/function () {
         series.data = [];
         series.type = (m.options || {}).type || options.type || 'bar';
         series.accumulative = 0;
+        series.color = colors[i % colors.length];
+
+        if (_this10.options.legendKeys.indexOf(m.qFallbackTitle) === -1) {
+          _this10.options.legendKeys.push(m.qFallbackTitle);
+
+          _this10.options.legendData.push({
+            value: m.qFallbackTitle,
+            color: colors[i % colors.length]
+          });
+        }
 
         if (m.axis === 'secondary') {
           // right hand axis
@@ -4415,7 +4426,7 @@ var Table3 = /*#__PURE__*/function () {
           if (effectiveOrder[_i17] >= 0) {
             var dim = this.properties.qHyperCubeDef.qDimensions[effectiveOrder[_i17]];
 
-            if (_i17 < this.pinnedColumns) {
+            if (this.layout.qHyperCube.qIndentMode !== true && _i17 < this.pinnedColumns || _i17 < this.layout.qHyperCube.qNoOfLeftDims) {
               rows.push(dim);
             } else {
               columns.push(dim);
@@ -6168,6 +6179,7 @@ var WebsyDesignsQlikPlugins = {
   XMLHttpRequest
   WebsyDesigns
   Chart
+  Pie
   Table3
   GeoMap
   Dropdown
@@ -6197,6 +6209,9 @@ var ObjectManager = /*#__PURE__*/function () {
     }, {
       id: 'chart',
       definition: Chart
+    }, {
+      id: 'pie',
+      definition: Pie
     }, {
       id: 'map',
       definition: GeoMap

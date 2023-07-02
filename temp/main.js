@@ -3,6 +3,7 @@
   WebsyDesigns
   Bookmarks
   Chart
+  Pie
   CurrentSelections
   SimpleSearch
   Table
@@ -1028,12 +1029,21 @@ class Chart {
     options.data[y2Axis].min = 0
     options.data[y2Axis].max = 0
     options.data[xAxis].padding = options.padding || 0
+    let colors = this.layout.options.colors || this.chart.options.colors
     options.data.series = this.layout.qHyperCube.qMeasureInfo.map((m, i) => {
       let series = Object.assign({}, m.options)
       series.key = this.createSeriesKey(m.qFallbackTitle)
       series.data = []
       series.type = (m.options || {}).type || options.type || 'bar'      
       series.accumulative = 0
+      series.color = colors[i % colors.length]
+      if (this.options.legendKeys.indexOf(m.qFallbackTitle) === -1) {
+        this.options.legendKeys.push(m.qFallbackTitle)
+        this.options.legendData.push({
+          value: m.qFallbackTitle,
+          color: colors[i % colors.length]
+        })
+      }
       if (m.axis === 'secondary') { // right hand axis
         hasy2Axis = true
         this.addOptions(options.data[y2Axis], m.options || {})
@@ -1181,6 +1191,40 @@ class Chart {
       }
     })      
     return matrix
+  }
+}
+
+/* global WebsyDesigns */ 
+class Pie {
+  constructor (elementId, options) {
+    this.elementId = elementId
+    this.options = Object.assign({}, options)
+    this.pie = new WebsyDesigns.WebsyPie(elementId, this.options)
+    this.data = []
+    window.addEventListener('resize', () => this.pie.render(this.data))
+    this.render()
+  }
+  render () {
+    this.options.model.getLayout().then(layout => {
+      this.options = Object.assign({}, this.options, layout.options)
+      this.pie.options = this.options
+      this.layout = layout
+      if (layout.qHyperCube.qDataPages[0]) {
+        this.data = this.transformData(layout.qHyperCube.qDataPages[0].qMatrix)
+        this.pie.render(this.data)
+      }
+    })
+  }
+  transformData (data) {
+    let output = []
+    data.forEach(row => {
+      row[0].label = row[0].qText
+      row[1].value = row[1].qNum
+      output.push(
+        [row[0], row[1]]
+      )
+    })
+    return output
   }
 }
 
@@ -3734,7 +3778,7 @@ class Table3 {
       if (effectiveOrder[i] < this.layout.qHyperCube.qDimensionInfo.length) {
         if (effectiveOrder[i] >= 0) {
           let dim = this.properties.qHyperCubeDef.qDimensions[effectiveOrder[i]]                
-          if (i < this.pinnedColumns) {          
+          if ((this.layout.qHyperCube.qIndentMode !== true && i < this.pinnedColumns) || i < this.layout.qHyperCube.qNoOfLeftDims) {          
             rows.push(dim)          
           }   
           else {
@@ -5169,6 +5213,7 @@ if (typeof WebsyDesigns !== 'undefined') {
   WebsyDesigns.QlikPlugins = {
     Bookmarks,
     Chart,
+    Pie,
     CurrentSelections,
     SimpleSearch,
     Table,
@@ -5182,6 +5227,7 @@ if (typeof WebsyDesigns !== 'undefined') {
   window.WebsyDesignsQlikPlugins = {
     Bookmarks,
     Chart,
+    Pie,
     CurrentSelections,
     SimpleSearch,
     Table,
@@ -5200,6 +5246,7 @@ if (typeof WebsyDesigns !== 'undefined') {
   XMLHttpRequest
   WebsyDesigns
   Chart
+  Pie
   Table3
   GeoMap
   Dropdown
@@ -5227,6 +5274,10 @@ class ObjectManager {
       {
         id: 'chart',
         definition: Chart 
+      },
+      {
+        id: 'pie',
+        definition: Pie
       },
       {
         id: 'map',

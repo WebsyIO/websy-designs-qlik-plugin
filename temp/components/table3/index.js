@@ -229,7 +229,7 @@ class Table3 {
       if (effectiveOrder[i] < this.layout.qHyperCube.qDimensionInfo.length) {
         if (effectiveOrder[i] >= 0) {
           let dim = this.properties.qHyperCubeDef.qDimensions[effectiveOrder[i]]                
-          if (i < this.pinnedColumns) {          
+          if ((this.layout.qHyperCube.qIndentMode !== true && i < this.pinnedColumns) || i < this.layout.qHyperCube.qNoOfLeftDims) {          
             rows.push(dim)          
           }   
           else {

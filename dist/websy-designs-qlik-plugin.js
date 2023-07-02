@@ -31,6 +31,7 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
   WebsyDesigns
   Bookmarks
   Chart
+  Pie
   CurrentSelections
   SimpleSearch
   Table
@@ -1147,6 +1148,7 @@ var Chart = /*#__PURE__*/function () {
       options.data[y2Axis].min = 0;
       options.data[y2Axis].max = 0;
       options.data[xAxis].padding = options.padding || 0;
+      var colors = this.layout.options.colors || this.chart.options.colors;
       options.data.series = this.layout.qHyperCube.qMeasureInfo.map(function (m, i) {
         var series = _extends({}, m.options);
 
@@ -1154,6 +1156,16 @@ var Chart = /*#__PURE__*/function () {
         series.data = [];
         series.type = (m.options || {}).type || options.type || 'bar';
         series.accumulative = 0;
+        series.color = colors[i % colors.length];
+
+        if (_this10.options.legendKeys.indexOf(m.qFallbackTitle) === -1) {
+          _this10.options.legendKeys.push(m.qFallbackTitle);
+
+          _this10.options.legendData.push({
+            value: m.qFallbackTitle,
+            color: colors[i % colors.length]
+          });
+        }
 
         if (m.axis === 'secondary') {
           // right hand axis
@@ -1337,12 +1349,63 @@ var Chart = /*#__PURE__*/function () {
 
   return Chart;
 }();
+/* global WebsyDesigns */
+
+
+var Pie = /*#__PURE__*/function () {
+  function Pie(elementId, options) {
+    var _this11 = this;
+
+    _classCallCheck(this, Pie);
+
+    this.elementId = elementId;
+    this.options = _extends({}, options);
+    this.pie = new WebsyDesigns.WebsyPie(elementId, this.options);
+    this.data = [];
+    window.addEventListener('resize', function () {
+      return _this11.pie.render(_this11.data);
+    });
+    this.render();
+  }
+
+  _createClass(Pie, [{
+    key: "render",
+    value: function render() {
+      var _this12 = this;
+
+      this.options.model.getLayout().then(function (layout) {
+        _this12.options = _extends({}, _this12.options, layout.options);
+        _this12.pie.options = _this12.options;
+        _this12.layout = layout;
+
+        if (layout.qHyperCube.qDataPages[0]) {
+          _this12.data = _this12.transformData(layout.qHyperCube.qDataPages[0].qMatrix);
+
+          _this12.pie.render(_this12.data);
+        }
+      });
+    }
+  }, {
+    key: "transformData",
+    value: function transformData(data) {
+      var output = [];
+      data.forEach(function (row) {
+        row[0].label = row[0].qText;
+        row[1].value = row[1].qNum;
+        output.push([row[0], row[1]]);
+      });
+      return output;
+    }
+  }]);
+
+  return Pie;
+}();
 /* global SelectionBar WebsyDesignsQlikPlugins WebsyDropdown */
 
 
 var CurrentSelections = /*#__PURE__*/function () {
   function CurrentSelections(elementId, options) {
-    var _this11 = this;
+    var _this13 = this;
 
     _classCallCheck(this, CurrentSelections);
 
@@ -1371,10 +1434,10 @@ var CurrentSelections = /*#__PURE__*/function () {
     }
 
     this.options.app.createSessionObject(this.options.def).then(function (model) {
-      model.on('changed', _this11.render.bind(_this11));
-      _this11.options.model = model;
+      model.on('changed', _this13.render.bind(_this13));
+      _this13.options.model = model;
 
-      _this11.render();
+      _this13.render();
     });
   }
 
@@ -1391,13 +1454,13 @@ var CurrentSelections = /*#__PURE__*/function () {
   }, {
     key: "render",
     value: function render() {
-      var _this12 = this;
+      var _this14 = this;
 
       var el = document.getElementById("".concat(this.elementId, "_selections"));
       var noEl = document.getElementById("".concat(this.elementId, "_noselections"));
       this.options.model.getLayout().then(function (layout) {
         console.log(layout);
-        _this12.current = [];
+        _this14.current = [];
 
         if (layout.qSelectionObject.qSelections.length > 0) {
           el.classList.add('active');
@@ -1409,12 +1472,12 @@ var CurrentSelections = /*#__PURE__*/function () {
 
             var id = selection.qField.toLowerCase().replace(/ /g, '_');
 
-            _this12.current.push(id);
+            _this14.current.push(id);
 
-            if (!_this12.dropdowns[id]) {
+            if (!_this14.dropdowns[id]) {
               selection.id = id;
               var newEl = document.createElement('div');
-              newEl.id = "".concat(_this12.elementId, "_").concat(id);
+              newEl.id = "".concat(_this14.elementId, "_").concat(id);
               newEl.classList.add('selection-tabs');
               el.appendChild(newEl);
               var def = {
@@ -1436,21 +1499,21 @@ var CurrentSelections = /*#__PURE__*/function () {
               };
               var additionalOptions = {};
 
-              if (typeof _this12.options.clearIcon !== 'undefined') {
-                additionalOptions.clearIcon = _this12.options.clearIcon;
+              if (typeof _this14.options.clearIcon !== 'undefined') {
+                additionalOptions.clearIcon = _this14.options.clearIcon;
               }
 
-              if (typeof _this12.options.searchIcon !== 'undefined') {
-                additionalOptions.searchIcon = _this12.options.searchIcon;
+              if (typeof _this14.options.searchIcon !== 'undefined') {
+                additionalOptions.searchIcon = _this14.options.searchIcon;
               }
 
-              if (typeof _this12.options.arrowIcon !== 'undefined') {
-                additionalOptions.arrowIcon = _this12.options.arrowIcon;
+              if (typeof _this14.options.arrowIcon !== 'undefined') {
+                additionalOptions.arrowIcon = _this14.options.arrowIcon;
               }
 
-              _this12.options.app.createSessionObject(def).then(function (model) {
-                _this12.dropdowns[id] = {
-                  instance: new WebsyDesignsQlikPlugins.Dropdown("".concat(_this12.elementId, "_").concat(id), _extends({}, additionalOptions, {
+              _this14.options.app.createSessionObject(def).then(function (model) {
+                _this14.dropdowns[id] = {
+                  instance: new WebsyDesignsQlikPlugins.Dropdown("".concat(_this14.elementId, "_").concat(id), _extends({}, additionalOptions, {
                     model: model,
                     multiSelect: true,
                     closeAfterSelection: false // onOpen: this.onDropdownOpen.bind(this),
@@ -1460,7 +1523,7 @@ var CurrentSelections = /*#__PURE__*/function () {
                   model: model
                 };
                 model.on('changed', function () {
-                  _this12.dropdowns[id].instance.render();
+                  _this14.dropdowns[id].instance.render();
                 });
               });
             }
@@ -1471,17 +1534,17 @@ var CurrentSelections = /*#__PURE__*/function () {
         } // Cleanup unused selections
 
 
-        for (var key in _this12.dropdowns) {
-          if (_this12.current.indexOf(key) === -1) {
-            var sEl = document.getElementById("".concat(_this12.elementId, "_").concat(key));
+        for (var key in _this14.dropdowns) {
+          if (_this14.current.indexOf(key) === -1) {
+            var sEl = document.getElementById("".concat(_this14.elementId, "_").concat(key));
 
             if (sEl) {
               sEl.remove();
             }
 
-            _this12.options.app.destroySessionObject(_this12.dropdowns[key].model.id);
+            _this14.options.app.destroySessionObject(_this14.dropdowns[key].model.id);
 
-            delete _this12.dropdowns[key];
+            delete _this14.dropdowns[key];
           }
         }
       });
@@ -1579,23 +1642,23 @@ var DatePicker = /*#__PURE__*/function () {
   _createClass(DatePicker, [{
     key: "checkForData",
     value: function checkForData() {
-      var _this13 = this;
+      var _this15 = this;
 
       return new Promise(function (resolve, reject) {
-        if (_this13.listening === true) {
-          _this13.listening = false;
+        if (_this15.listening === true) {
+          _this15.listening = false;
 
-          _this13.options.model.getListObjectData('/qListObjectDef', [{
+          _this15.options.model.getListObjectData('/qListObjectDef', [{
             qTop: 0,
             qLeft: 0,
             qWidth: 1,
-            qHeight: _this13.options.pageSize
+            qHeight: _this15.options.pageSize
           }]).then(function (pages) {
-            _this13.layout.qListObject.qDataPages = [pages[0]];
-            _this13.listening = true;
+            _this15.layout.qListObject.qDataPages = [pages[0]];
+            _this15.listening = true;
             resolve();
           }, function (err) {
-            _this13.listening = true;
+            _this15.listening = true;
             reject(err);
           });
         }
@@ -1620,16 +1683,16 @@ var DatePicker = /*#__PURE__*/function () {
   }, {
     key: "getField",
     value: function getField(f) {
-      var _this14 = this;
+      var _this16 = this;
 
       return new Promise(function (resolve, reject) {
-        if (_this14.field) {
-          resolve(_this14.field);
+        if (_this16.field) {
+          resolve(_this16.field);
         } else {
-          _this14.options.app.getField(f).then(function (field) {
+          _this16.options.app.getField(f).then(function (field) {
             if (field) {
-              _this14.field = field;
-              resolve(_this14.field);
+              _this16.field = field;
+              resolve(_this16.field);
             }
           }, reject);
         }
@@ -1656,21 +1719,21 @@ var DatePicker = /*#__PURE__*/function () {
   }, {
     key: "onChange",
     value: function onChange(data, isRange, selectedRangeIndex) {
-      var _this15 = this;
+      var _this17 = this;
 
       var start;
       var end;
       this.selectedRangeIndex = selectedRangeIndex;
       var valueList = data.map(function (d) {
-        if (_this15.options.mode === 'date') {
+        if (_this17.options.mode === 'date') {
           if (typeof d === 'number') {
             return d;
           }
 
           return d.getTime(); // return this.toQlikDate(d)
-        } else if (_this15.options.mode === 'monthyear') {
-          if (_this15.monthYearIsDate === true) {
-            return _this15.toQlikDate(d);
+        } else if (_this17.options.mode === 'monthyear') {
+          if (_this17.monthYearIsDate === true) {
+            return _this17.toQlikDate(d);
           } else {
             if (!d.getFullYear) {
               d = new Date(d);
@@ -1717,7 +1780,7 @@ var DatePicker = /*#__PURE__*/function () {
       } else {
         if (this.options.mode === 'date') {
           elemNums = valueList.map(function (d) {
-            return _this15.completeDateList[d].qElemNumber;
+            return _this17.completeDateList[d].qElemNumber;
           });
         } else {
           query = valueList.join(' ');
@@ -1741,7 +1804,7 @@ var DatePicker = /*#__PURE__*/function () {
         }
       } else {
         this.options.model.searchListObjectFor('/qListObjectDef', query).then(function () {
-          _this15.options.model.acceptListObjectSearch('/qListObjectDef', false, _this15.options.softLock);
+          _this17.options.model.acceptListObjectSearch('/qListObjectDef', false, _this17.options.softLock);
         });
       } // })    
       // })    
@@ -1759,12 +1822,12 @@ var DatePicker = /*#__PURE__*/function () {
   }, {
     key: "render",
     value: function render() {
-      var _this16 = this;
+      var _this18 = this;
 
       this.options.model.getLayout().then(function (layout) {
-        _this16.layout = layout;
+        _this18.layout = layout;
 
-        _this16.checkForData().then(function () {
+        _this18.checkForData().then(function () {
           var disabledDates = [];
           var min;
           var max;
@@ -1772,44 +1835,44 @@ var DatePicker = /*#__PURE__*/function () {
           var selectedMax;
           var selectedRange = [];
 
-          if (layout.qListObject.qDataPages[0] && _this16.listening === true) {
+          if (layout.qListObject.qDataPages[0] && _this18.listening === true) {
             // ensure we have a complete calendar
-            _this16.completeDateList = {};
-            _this16.completeQlikDateList = {};
+            _this18.completeDateList = {};
+            _this18.completeQlikDateList = {};
             var oneDay = 1000 * 60 * 60 * 24;
             var start;
             var end;
 
-            if (_this16.options.mode === 'date') {
+            if (_this18.options.mode === 'date') {
               // start = this.fromQlikDate(layout.qListObject.qDataPages[0].qMatrix[0][0].qNum).getTime()
               // end = this.fromQlikDate(layout.qListObject.qDataPages[0].qMatrix[layout.qListObject.qDataPages[0].qMatrix.length - 1][0].qNum).getTime()
               start = layout.qListObject.qDataPages[0].qMatrix[0][0].qNum;
               end = layout.qListObject.qDataPages[0].qMatrix[layout.qListObject.qDataPages[0].qMatrix.length - 1][0].qNum;
-            } else if (_this16.options.mode === 'year') {
+            } else if (_this18.options.mode === 'year') {
               start = layout.qListObject.qDataPages[0].qMatrix[0][0].qNum;
               end = layout.qListObject.qDataPages[0].qMatrix[layout.qListObject.qDataPages[0].qMatrix.length - 1][0].qNum;
 
               if (start > end) {
                 end = layout.qListObject.qDataPages[0].qMatrix[0][0].qNum;
                 start = layout.qListObject.qDataPages[0].qMatrix[layout.qListObject.qDataPages[0].qMatrix.length - 1][0].qNum;
-                _this16.options.sortDirection = 'desc';
-                _this16.picker.options.sortDirection = 'desc';
+                _this18.options.sortDirection = 'desc';
+                _this18.picker.options.sortDirection = 'desc';
               }
 
               min = start;
               max = end;
-              _this16.picker.options.minAllowedYear = start;
-              _this16.picker.options.maxAllowedYear = end;
-            } else if (_this16.options.mode === 'monthyear') {
+              _this18.picker.options.minAllowedYear = start;
+              _this18.picker.options.maxAllowedYear = end;
+            } else if (_this18.options.mode === 'monthyear') {
               start = layout.qListObject.qDataPages[0].qMatrix[0][0];
               end = layout.qListObject.qDataPages[0].qMatrix[layout.qListObject.qDataPages[0].qMatrix.length - 1][0];
 
               if (start.qNum.toString().length === 5) {
-                _this16.monthYearIsDate = true;
-                start = _this16.fromQlikDate(start.qNum);
-                end = _this16.fromQlikDate(end.qNum);
+                _this18.monthYearIsDate = true;
+                start = _this18.fromQlikDate(start.qNum);
+                end = _this18.fromQlikDate(end.qNum);
               } else {
-                _this16.monthYearIsDate = false;
+                _this18.monthYearIsDate = false;
                 var startYear = +start.qNum.toString().substring(0, 4);
                 var startMonth = +start.qNum.toString().substring(4, 6) - 1;
                 var endYear = +end.qNum.toString().substring(0, 4);
@@ -1817,67 +1880,67 @@ var DatePicker = /*#__PURE__*/function () {
                 start = new Date(new Date(new Date(new Date().setDate(1)).setMonth(startMonth)).setFullYear(startYear));
                 end = new Date(new Date(new Date(new Date().setDate(1)).setMonth(endMonth)).setFullYear(endYear));
               }
-            } else if (_this16.options.mode === 'hour') {// 
+            } else if (_this18.options.mode === 'hour') {// 
             }
 
             var diff = end - start; // if (this.options.mode === 'date') {
             //   diff = Math.floor(diff / oneDay)
             // }
 
-            if (_this16.options.mode === 'monthyear') {
+            if (_this18.options.mode === 'monthyear') {
               var yearDiff = (end.getFullYear() - start.getFullYear()) * 12;
               diff = Math.floor(end.getMonth() - start.getMonth()) + yearDiff;
             }
 
             for (var i = 0; i < diff + 1; i++) {
-              if (_this16.options.mode === 'date') {
-                var temp = _this16.fromQlikDate(start + i); // temp.setUTCHours(0, 0, 0)      
+              if (_this18.options.mode === 'date') {
+                var temp = _this18.fromQlikDate(start + i); // temp.setUTCHours(0, 0, 0)      
 
 
-                _this16.completeDateList[temp.getTime()] = {
+                _this18.completeDateList[temp.getTime()] = {
                   qNum: start + i,
                   qState: 'Z'
                 };
-                _this16.completeQlikDateList[start + i] = {
+                _this18.completeQlikDateList[start + i] = {
                   qNum: start + i,
                   qState: 'Z'
                 };
-              } else if (_this16.options.mode === 'year') {
-                _this16.completeDateList[start + i] = {
+              } else if (_this18.options.mode === 'year') {
+                _this18.completeDateList[start + i] = {
                   qNum: start + i,
                   qState: 'Z'
                 };
-              } else if (_this16.options.mode === 'monthyear') {
-                var _temp = _this16.floorDate(new Date(new Date(start.getTime()).setMonth(start.getMonth() + i))); // temp.setUTCHours(0, 0, 0)
+              } else if (_this18.options.mode === 'monthyear') {
+                var _temp = _this18.floorDate(new Date(new Date(start.getTime()).setMonth(start.getMonth() + i))); // temp.setUTCHours(0, 0, 0)
 
 
-                _this16.completeDateList[_temp.getTime()] = {
-                  qNum: _this16.monthYearIsDate === true ? _this16.toQlikDateNum(_temp) : "".concat(_temp.getFullYear()).concat(_temp.getMonth() < 9 ? '0' : '').concat(_temp.getMonth() + 1),
+                _this18.completeDateList[_temp.getTime()] = {
+                  qNum: _this18.monthYearIsDate === true ? _this18.toQlikDateNum(_temp) : "".concat(_temp.getFullYear()).concat(_temp.getMonth() < 9 ? '0' : '').concat(_temp.getMonth() + 1),
                   qState: 'Z'
                 };
-              } else if (_this16.options.mode === 'hour') {// 
+              } else if (_this18.options.mode === 'hour') {// 
               }
             }
 
             var hours = [];
             layout.qListObject.qDataPages[0].qMatrix.forEach(function (r, i, arr) {
-              if (_this16.options.mode === 'date') {
-                if (_this16.completeDateList[_this16.fromQlikDate(r[0].qNum).getTime()]) {
-                  _this16.completeDateList[_this16.fromQlikDate(r[0].qNum).getTime()] = r[0];
+              if (_this18.options.mode === 'date') {
+                if (_this18.completeDateList[_this18.fromQlikDate(r[0].qNum).getTime()]) {
+                  _this18.completeDateList[_this18.fromQlikDate(r[0].qNum).getTime()] = r[0];
                 }
 
-                if (_this16.completeQlikDateList[r[0].qNum]) {
-                  _this16.completeQlikDateList[r[0].qNum] = r[0];
+                if (_this18.completeQlikDateList[r[0].qNum]) {
+                  _this18.completeQlikDateList[r[0].qNum] = r[0];
                 }
 
                 if (i === 0) {
-                  min = _this16.fromQlikDate(r[0].qNum);
+                  min = _this18.fromQlikDate(r[0].qNum);
                 } else if (i === arr.length - 1) {
-                  max = _this16.fromQlikDate(r[0].qNum);
+                  max = _this18.fromQlikDate(r[0].qNum);
                 }
-              } else if (_this16.options.mode === 'year') {
-                if (_this16.completeDateList[r[0].qNum]) {
-                  _this16.completeDateList[r[0].qNum] = r[0];
+              } else if (_this18.options.mode === 'year') {
+                if (_this18.completeDateList[r[0].qNum]) {
+                  _this18.completeDateList[r[0].qNum] = r[0];
                 } // if (i === 0) {
                 //   min = r[0].qNum
                 // }
@@ -1885,20 +1948,20 @@ var DatePicker = /*#__PURE__*/function () {
                 //   max = r[0].qNum
                 // } 
 
-              } else if (_this16.options.mode === 'monthyear') {
-                if (_this16.monthYearIsDate === true) {
-                  if (_this16.completeDateList[_this16.fromQlikDate(r[0].qNum).getTime()]) {
-                    _this16.completeDateList[_this16.fromQlikDate(r[0].qNum).getTime()] = r[0];
+              } else if (_this18.options.mode === 'monthyear') {
+                if (_this18.monthYearIsDate === true) {
+                  if (_this18.completeDateList[_this18.fromQlikDate(r[0].qNum).getTime()]) {
+                    _this18.completeDateList[_this18.fromQlikDate(r[0].qNum).getTime()] = r[0];
                   }
 
-                  if (_this16.completeQlikDateList[r[0].qNum]) {
-                    _this16.completeQlikDateList[r[0].qNum] = r[0];
+                  if (_this18.completeQlikDateList[r[0].qNum]) {
+                    _this18.completeQlikDateList[r[0].qNum] = r[0];
                   }
 
                   if (i === 0) {
-                    min = _this16.fromQlikDate(r[0].qNum);
+                    min = _this18.fromQlikDate(r[0].qNum);
                   } else if (i === arr.length - 1) {
-                    max = _this16.fromQlikDate(r[0].qNum);
+                    max = _this18.fromQlikDate(r[0].qNum);
                   }
                 } else {
                   var d = r[0];
@@ -1907,10 +1970,10 @@ var DatePicker = /*#__PURE__*/function () {
 
                   var _startMonth = +d.qNum.toString().substring(4, 6) - 1;
 
-                  d = _this16.floorDate(new Date(new Date(new Date(new Date().setDate(1)).setMonth(_startMonth)).setFullYear(_startYear)));
+                  d = _this18.floorDate(new Date(new Date(new Date(new Date().setDate(1)).setMonth(_startMonth)).setFullYear(_startYear)));
 
-                  if (_this16.completeDateList[d.getTime()]) {
-                    _this16.completeDateList[d.getTime()] = r[0];
+                  if (_this18.completeDateList[d.getTime()]) {
+                    _this18.completeDateList[d.getTime()] = r[0];
                   }
 
                   if (i === 0) {
@@ -1919,39 +1982,39 @@ var DatePicker = /*#__PURE__*/function () {
                     max = d;
                   }
                 }
-              } else if (_this16.options.mode === 'hour') {
+              } else if (_this18.options.mode === 'hour') {
                 hours.push(_extends({}, r[0], {
                   text: r[0].qText,
                   num: r[0].qNum
                 }));
               }
             });
-            var completeDateListArr = Object.values(_this16.completeDateList);
+            var completeDateListArr = Object.values(_this18.completeDateList);
 
-            if (_this16.options.mode === 'hour') {
+            if (_this18.options.mode === 'hour') {
               completeDateListArr = hours;
             }
 
             completeDateListArr.forEach(function (d) {
               if (['S', 'L', 'XS', 'XL'].indexOf(d.qState) !== -1) {
-                if (_this16.options.mode === 'date') {
-                  selectedRange.push(_this16.fromQlikDate(d.qNum));
-                } else if (_this16.options.mode === 'monthyear') {
-                  if (_this16.monthYearIsDate === true) {
-                    selectedRange.push(_this16.fromQlikDate(d.qNum));
+                if (_this18.options.mode === 'date') {
+                  selectedRange.push(_this18.fromQlikDate(d.qNum));
+                } else if (_this18.options.mode === 'monthyear') {
+                  if (_this18.monthYearIsDate === true) {
+                    selectedRange.push(_this18.fromQlikDate(d.qNum));
                   } else {
                     var year = +d.qNum.toString().substring(0, 4);
                     var month = +d.qNum.toString().substring(4, 6) - 1;
-                    d = _this16.floorDate(new Date(new Date(new Date(new Date().setDate(1)).setMonth(month)).setFullYear(year)));
+                    d = _this18.floorDate(new Date(new Date(new Date(new Date().setDate(1)).setMonth(month)).setFullYear(year)));
                     selectedRange.push(d);
                   }
-                } else if (_this16.options.mode === 'hour') {
-                  var hourIndex = _this16.hourList.indexOf(d.qText);
+                } else if (_this18.options.mode === 'hour') {
+                  var hourIndex = _this18.hourList.indexOf(d.qText);
 
                   if (hourIndex !== -1) {
                     selectedRange.push(hourIndex);
                   } else {
-                    hourIndex = _this16.altHourList.indexOf(d.qText);
+                    hourIndex = _this18.altHourList.indexOf(d.qText);
 
                     if (hourIndex !== -1) {
                       selectedRange.push(hourIndex);
@@ -1964,15 +2027,15 @@ var DatePicker = /*#__PURE__*/function () {
 
 
               if (['Z'].indexOf(d.qState) !== -1) {
-                if (_this16.options.mode === 'date') {
-                  disabledDates.push(_this16.fromQlikDate(d.qNum));
-                } else if (_this16.options.mode === 'monthyear') {
-                  if (_this16.monthYearIsDate === true) {
-                    disabledDates.push(_this16.fromQlikDate(d.qNum));
+                if (_this18.options.mode === 'date') {
+                  disabledDates.push(_this18.fromQlikDate(d.qNum));
+                } else if (_this18.options.mode === 'monthyear') {
+                  if (_this18.monthYearIsDate === true) {
+                    disabledDates.push(_this18.fromQlikDate(d.qNum));
                   } else {
                     disabledDates.push(d.qNum);
                   }
-                } else if (_this16.options.mode === 'hour') {
+                } else if (_this18.options.mode === 'hour') {
                   disabledDates.push(d.qText);
                 } else {
                   disabledDates.push(d.qNum);
@@ -1980,33 +2043,33 @@ var DatePicker = /*#__PURE__*/function () {
               }
             });
 
-            if (_this16.options.minAllowedDate || _this16.options.maxAllowedDate) {
-              min = _this16.options.minAllowedDate;
-              max = _this16.options.maxAllowedDate;
+            if (_this18.options.minAllowedDate || _this18.options.maxAllowedDate) {
+              min = _this18.options.minAllowedDate;
+              max = _this18.options.maxAllowedDate;
             }
 
-            if (_this16.options.mode === 'hour') {
-              _this16.picker.options.hours = completeDateListArr;
+            if (_this18.options.mode === 'hour') {
+              _this18.picker.options.hours = completeDateListArr;
             }
 
-            _this16.picker.setDateBounds([min, max]);
+            _this18.picker.setDateBounds([min, max]);
 
-            if (_this16.selectedRangeIndex < 0) {
+            if (_this18.selectedRangeIndex < 0) {
               if (selectedRange.length === layout.qListObject.qDataPages[0].qMatrix.length) {// do nothing because all values are selected
               } else if (selectedRange.length > 0) {
-                _this16.picker.selectCustomRange(selectedRange);
+                _this18.picker.selectCustomRange(selectedRange);
               } else if (selectedRange.length === 0) {
-                _this16.picker.selectRange(0, false);
+                _this18.picker.selectRange(0, false);
               }
             } else if (selectedRange.length !== layout.qListObject.qDataPages[0].qMatrix.length && selectedRange.length > 0) {
-              _this16.picker.selectCustomRange(selectedRange);
-            } else if (_this16.selectedRangeIndex === 0 && selectedRange.length === 0) {
-              _this16.picker.selectRange(0, false);
+              _this18.picker.selectCustomRange(selectedRange);
+            } else if (_this18.selectedRangeIndex === 0 && selectedRange.length === 0) {
+              _this18.picker.selectRange(0, false);
             }
 
-            _this16.picker.render(disabledDates);
+            _this18.picker.render(disabledDates);
 
-            _this16.listening = true;
+            _this18.listening = true;
           }
         });
       });
@@ -2023,7 +2086,7 @@ var DatePicker = /*#__PURE__*/function () {
 
 var Dropdown = /*#__PURE__*/function () {
   function Dropdown(elementId, options) {
-    var _this17 = this;
+    var _this19 = this;
 
     _classCallCheck(this, Dropdown);
 
@@ -2053,36 +2116,36 @@ var Dropdown = /*#__PURE__*/function () {
       customActions: [{
         label: 'Clear All',
         fn: function fn() {
-          _this17.options.model.clearSelections("/".concat(_this17.options.path, "/qListObjectDef").replace(/\/\//g, '/')).then(function () {
-            _this17.render();
+          _this19.options.model.clearSelections("/".concat(_this19.options.path, "/qListObjectDef").replace(/\/\//g, '/')).then(function () {
+            _this19.render();
           });
         }
       }, {
         label: 'Select All',
         fn: function fn() {
-          _this17.options.model.selectListObjectAll("/".concat(_this17.options.path, "/qListObjectDef").replace(/\/\//g, '/')).then(function () {
-            _this17.render();
+          _this19.options.model.selectListObjectAll("/".concat(_this19.options.path, "/qListObjectDef").replace(/\/\//g, '/')).then(function () {
+            _this19.render();
           });
         }
       }, {
         label: 'Select Possible',
         fn: function fn() {
-          _this17.options.model.selectListObjectPossible("/".concat(_this17.options.path, "/qListObjectDef").replace(/\/\//g, '/')).then(function () {
-            _this17.render();
+          _this19.options.model.selectListObjectPossible("/".concat(_this19.options.path, "/qListObjectDef").replace(/\/\//g, '/')).then(function () {
+            _this19.render();
           });
         }
       }, {
         label: 'Select Alternative',
         fn: function fn() {
-          _this17.options.model.selectListObjectAlternative("/".concat(_this17.options.path, "/qListObjectDef").replace(/\/\//g, '/')).then(function () {
-            _this17.render();
+          _this19.options.model.selectListObjectAlternative("/".concat(_this19.options.path, "/qListObjectDef").replace(/\/\//g, '/')).then(function () {
+            _this19.render();
           });
         }
       }, {
         label: 'Select Excluded',
         fn: function fn() {
-          _this17.options.model.selectListObjectExcluded("/".concat(_this17.options.path, "/qListObjectDef").replace(/\/\//g, '/')).then(function () {
-            _this17.render();
+          _this19.options.model.selectListObjectExcluded("/".concat(_this19.options.path, "/qListObjectDef").replace(/\/\//g, '/')).then(function () {
+            _this19.render();
           });
         }
       }]
@@ -2099,40 +2162,40 @@ var Dropdown = /*#__PURE__*/function () {
   }, {
     key: "checkForData",
     value: function checkForData() {
-      var _this18 = this;
+      var _this20 = this;
 
       return new Promise(function (resolve, reject) {
-        if (_this18.busy === false) {
-          _this18.busy = true;
+        if (_this20.busy === false) {
+          _this20.busy = true;
 
-          _this18.options.model.getListObjectData("/".concat(_this18.options.path, "/qListObjectDef").replace(/\/\//g, '/'), [{
-            qTop: _this18.rowsLoaded,
+          _this20.options.model.getListObjectData("/".concat(_this20.options.path, "/qListObjectDef").replace(/\/\//g, '/'), [{
+            qTop: _this20.rowsLoaded,
             qLeft: 0,
             qWidth: 1,
-            qHeight: _this18.options.pageSize
+            qHeight: _this20.options.pageSize
           }]).then(function (pages) {
-            if (_this18.options.path !== '') {
-              _this18.layout[_this18.options.path].qListObject.qDataPages[0].qMatrix = _this18.layout[_this18.options.path].qListObject.qDataPages[0].qMatrix.concat((pages[0] || {
+            if (_this20.options.path !== '') {
+              _this20.layout[_this20.options.path].qListObject.qDataPages[0].qMatrix = _this20.layout[_this20.options.path].qListObject.qDataPages[0].qMatrix.concat((pages[0] || {
                 qMatrix: []
               }).qMatrix);
-              _this18.rowsLoaded = _this18.layout[_this18.options.path].qListObject.qDataPages[0].qMatrix.length;
+              _this20.rowsLoaded = _this20.layout[_this20.options.path].qListObject.qDataPages[0].qMatrix.length;
             } else {
-              if (!_this18.layout.qListObject.qDataPages[0]) {
-                _this18.layout.qListObject.qDataPages[0] = {
+              if (!_this20.layout.qListObject.qDataPages[0]) {
+                _this20.layout.qListObject.qDataPages[0] = {
                   qMatrix: []
                 };
               }
 
-              _this18.layout.qListObject.qDataPages[0].qMatrix = _this18.layout.qListObject.qDataPages[0].qMatrix.concat((pages[0] || {
+              _this20.layout.qListObject.qDataPages[0].qMatrix = _this20.layout.qListObject.qDataPages[0].qMatrix.concat((pages[0] || {
                 qMatrix: []
               }).qMatrix);
-              _this18.rowsLoaded = _this18.layout.qListObject.qDataPages[0].qMatrix.length;
+              _this20.rowsLoaded = _this20.layout.qListObject.qDataPages[0].qMatrix.length;
             }
 
-            _this18.busy = false;
+            _this20.busy = false;
             resolve();
           }, function (err) {
-            _this18.busy = false;
+            _this20.busy = false;
             reject(err);
           });
         }
@@ -2141,11 +2204,11 @@ var Dropdown = /*#__PURE__*/function () {
   }, {
     key: "checkForVariable",
     value: function checkForVariable() {
-      var _this19 = this;
+      var _this21 = this;
 
       return new Promise(function (resolve, reject) {
-        if (_this19.options.useVariable === true && _this19.options.variable && _this19.options.app) {
-          _this19.options.app.getVariableByName(_this19.options.variable).then(function (v) {
+        if (_this21.options.useVariable === true && _this21.options.variable && _this21.options.app) {
+          _this21.options.app.getVariableByName(_this21.options.variable).then(function (v) {
             v.getLayout().then(function (layout) {
               resolve(layout);
             });
@@ -2163,50 +2226,50 @@ var Dropdown = /*#__PURE__*/function () {
   }, {
     key: "onClose",
     value: function onClose(elementId) {
-      var _this20 = this;
+      var _this22 = this;
 
       this.options.model.endSelections(true).then(function () {
-        if (_this20.options.onClose) {
-          _this20.options.onClose(elementId);
+        if (_this22.options.onClose) {
+          _this22.options.onClose(elementId);
         }
       });
     }
   }, {
     key: "handleScroll",
     value: function handleScroll(event) {
-      var _this21 = this;
+      var _this23 = this;
 
       if (event.target.scrollTop / (event.target.scrollHeight - event.target.clientHeight) > 0.7) {
         this.checkForData().then(function () {
-          _this21.dropdown.data = _this21.transformData();
+          _this23.dropdown.data = _this23.transformData();
         });
       }
     }
   }, {
     key: "itemSelected",
     value: function itemSelected(item, selectedIndexes, items) {
-      var _this22 = this;
+      var _this24 = this;
 
       if (this.options.useVariable === true && this.options.variable && this.options.app) {
         this.options.app.getVariableByName(this.options.variable).then(function (v) {
           if (item.qNum === 'NaN') {
             v.setStringValue(item.qText).then(function () {
-              if (_this22.options.onItemSelected) {
-                _this22.options.onItemSelected(item, selectedIndexes, items);
+              if (_this24.options.onItemSelected) {
+                _this24.options.onItemSelected(item, selectedIndexes, items);
               }
             });
           } else {
             v.setNumValue(item.qNum).then(function () {
-              if (_this22.options.onItemSelected) {
-                _this22.options.onItemSelected(item, selectedIndexes, items);
+              if (_this24.options.onItemSelected) {
+                _this24.options.onItemSelected(item, selectedIndexes, items);
               }
             });
           }
         });
       } else {
         this.options.model.selectListObjectValues("/".concat(this.options.path, "/qListObjectDef").replace(/\/\//g, '/'), [item.qElemNumber], this.dropdown.options.multiSelect === true).then(function () {
-          if (_this22.options.onItemSelected) {
-            _this22.options.onItemSelected(item, selectedIndexes, items);
+          if (_this24.options.onItemSelected) {
+            _this24.options.onItemSelected(item, selectedIndexes, items);
           }
         });
       }
@@ -2225,7 +2288,7 @@ var Dropdown = /*#__PURE__*/function () {
   }, {
     key: "render",
     value: function render() {
-      var _this23 = this;
+      var _this25 = this;
 
       if (!this.options.model) {
         return;
@@ -2233,10 +2296,10 @@ var Dropdown = /*#__PURE__*/function () {
 
       this.rowsLoaded = 0;
       this.options.model.getLayout().then(function (layout) {
-        _this23.layout = layout;
+        _this25.layout = layout;
 
-        _this23.checkForVariable().then(function (variableValue) {
-          var listObject = _this23.options.path !== '' ? _this23.layout[_this23.options.path].qListObject : _this23.layout.qListObject;
+        _this25.checkForVariable().then(function (variableValue) {
+          var listObject = _this25.options.path !== '' ? _this25.layout[_this25.options.path].qListObject : _this25.layout.qListObject;
 
           if (!listObject.qDataPages || listObject.qDataPages.length === 0) {
             listObject.qDataPages = [{
@@ -2245,17 +2308,17 @@ var Dropdown = /*#__PURE__*/function () {
           }
 
           if (listObject.qDimensionInfo.qLocked) {
-            _this23.dropdown.options.allowClear = false;
+            _this25.dropdown.options.allowClear = false;
           } else {
-            _this23.dropdown.options.allowClear = typeof _this23.options.allowClear === 'undefined' ? true : _this23.options.allowClear;
+            _this25.dropdown.options.allowClear = typeof _this25.options.allowClear === 'undefined' ? true : _this25.options.allowClear;
           }
 
-          _this23.rowsLoaded = listObject.qDataPages[0].qMatrix.length;
+          _this25.rowsLoaded = listObject.qDataPages[0].qMatrix.length;
 
-          _this23.checkForData().then(function () {
+          _this25.checkForData().then(function () {
             if (listObject.qDataPages[0]) {
-              _this23.dropdown.options.label = listObject.qDimensionInfo.qFallbackTitle;
-              _this23.dropdown.data = _this23.transformData(variableValue);
+              _this25.dropdown.options.label = listObject.qDimensionInfo.qFallbackTitle;
+              _this25.dropdown.data = _this25.transformData(variableValue);
             }
           });
         });
@@ -2347,33 +2410,33 @@ var KPI = /*#__PURE__*/function () {
   }, {
     key: "render",
     value: function render() {
-      var _this24 = this;
+      var _this26 = this;
 
       this.options.model.getLayout().then(function (layout) {
         var decimals = 2;
         var v = layout.kpi.qHyperCube.qDataPages[0].qMatrix[0][0].qText;
-        _this24.kpiOptions.value = {
+        _this26.kpiOptions.value = {
           value: v
         };
-        _this24.kpiOptions.label = {
+        _this26.kpiOptions.label = {
           value: layout.kpi.qHyperCube.qMeasureInfo[0].qFallbackTitle
         };
 
         if (layout.icon) {
-          _this24.kpiOptions.icon = "".concat(window.location.origin, "/resources/svg/").concat(layout.icon, ".svg");
+          _this26.kpiOptions.icon = "".concat(window.location.origin, "/resources/svg/").concat(layout.icon, ".svg");
         }
 
         if (layout.tooltip && layout.tooltip.value) {
-          _this24.kpiOptions.tooltip = {
+          _this26.kpiOptions.tooltip = {
             value: layout.tooltip.value
           };
 
           if (layout.tooltip.classes) {
-            _this24.kpiOptions.tooltip.classes = layout.tooltip.classes;
+            _this26.kpiOptions.tooltip.classes = layout.tooltip.classes;
           }
         }
 
-        _this24.kpiOptions.subValue = {
+        _this26.kpiOptions.subValue = {
           value: ''
         };
 
@@ -2385,12 +2448,12 @@ var KPI = /*#__PURE__*/function () {
           }
 
           var v1 = layout.kpi.qHyperCube.qDataPages[0].qMatrix[0][1].qText;
-          _this24.kpiOptions.subValue = {
+          _this26.kpiOptions.subValue = {
             value: "".concat(layout.kpi.qHyperCube.qMeasureInfo[1].qFallbackTitle, " ").concat(v1)
           };
         }
 
-        _this24.kpi.render(_this24.kpiOptions);
+        _this26.kpi.render(_this26.kpiOptions);
       });
     }
   }, {
@@ -2407,7 +2470,7 @@ var KPI = /*#__PURE__*/function () {
 
 var GeoMap = /*#__PURE__*/function () {
   function GeoMap(elementId, options) {
-    var _this25 = this;
+    var _this27 = this;
 
     _classCallCheck(this, GeoMap);
 
@@ -2421,11 +2484,11 @@ var GeoMap = /*#__PURE__*/function () {
 
     if (this.options.geoJSON && typeof this.options.geoJSON === 'string') {
       WebsyDesigns.service.get(this.options.geoJSON).then(function (geoJSON) {
-        _this25.geoJSON = geoJSON;
-        delete _this25.options.geoJSON;
-        _this25.map = new WebsyDesigns.WebsyMap(elementId, _this25.options);
+        _this27.geoJSON = geoJSON;
+        delete _this27.options.geoJSON;
+        _this27.map = new WebsyDesigns.WebsyMap(elementId, _this27.options);
 
-        _this25.render();
+        _this27.render();
       });
     } else {
       this.map = new WebsyDesigns.WebsyMap(elementId, this.options);
@@ -2447,7 +2510,7 @@ var GeoMap = /*#__PURE__*/function () {
   }, {
     key: "render",
     value: function render() {
-      var _this26 = this;
+      var _this28 = this;
 
       var el = document.getElementById(this.elementId);
 
@@ -2457,21 +2520,21 @@ var GeoMap = /*#__PURE__*/function () {
 
       this.options.model.getLayout().then(function (layout) {
         if (layout.options) {
-          _this26.options = _extends({}, _this26.options, layout.options); // this.map.options = Object.assign({}, this.options, this.map.options, layout.options)
+          _this28.options = _extends({}, _this28.options, layout.options); // this.map.options = Object.assign({}, this.options, this.map.options, layout.options)
         }
 
         if (layout.qHyperCube.qDataPages[0]) {
-          if (_this26.geoJSON) {
+          if (_this28.geoJSON) {
             var geoJSON = {
               type: 'FeatureCollection',
               features: []
             };
             layout.qHyperCube.qDataPages[0].qMatrix.forEach(function (r) {
-              var p = _this26.findGeoJsonByProperty(r[0].qText);
+              var p = _this28.findGeoJsonByProperty(r[0].qText);
 
               if (p) {
-                if (_this26.options.geoAutoFill === true) {
-                  p.fillColor = _this26.options.geoFillColor;
+                if (_this28.options.geoAutoFill === true) {
+                  p.fillColor = _this28.options.geoFillColor;
                   p.fillOpacity = 0.4 + r[1].qNum / layout.qHyperCube.qMeasureInfo[0].qMax * 0.6;
                 }
 
@@ -2479,7 +2542,7 @@ var GeoMap = /*#__PURE__*/function () {
                   p.fillColor = r[1].qAttrExps.qValues[0].qText;
                 }
 
-                if (_this26.options.geoShowTooltip === true) {
+                if (_this28.options.geoShowTooltip === true) {
                   p.tooltip = "".concat(r[1].qText, "<br>").concat(p.properties.label);
                   p.tooltipClass = 'websy-map-tooltip';
                 }
@@ -2487,7 +2550,7 @@ var GeoMap = /*#__PURE__*/function () {
                 geoJSON.features.push(p);
               }
             });
-            _this26.map.options.geoJSON = geoJSON;
+            _this28.map.options.geoJSON = geoJSON;
           }
 
           var data = {};
@@ -2518,13 +2581,13 @@ var GeoMap = /*#__PURE__*/function () {
               }
             });
           });
-          _this26.map.options.data = data;
+          _this28.map.options.data = data;
 
           if (el.parentElement) {
             el.parentElement.classList.remove('loading');
           }
 
-          _this26.map.render();
+          _this28.map.render();
         }
       });
     }
@@ -2567,30 +2630,30 @@ var SimpleSearch = /*#__PURE__*/function () {
   }, {
     key: "handleSearchSubmit",
     value: function handleSearchSubmit(text) {
-      var _this27 = this;
+      var _this29 = this;
 
       this.searchText = text;
       this.paused = true;
       this.options.model.searchListObjectFor('/qListObjectDef', "*".concat(text, "*")).then(function (response) {
-        _this27.options.model.acceptListObjectSearch('/qListObjectDef', false).then(function () {
-          _this27.paused = false;
+        _this29.options.model.acceptListObjectSearch('/qListObjectDef', false).then(function () {
+          _this29.paused = false;
 
-          _this27.render();
+          _this29.render();
         });
       });
     }
   }, {
     key: "render",
     value: function render() {
-      var _this28 = this;
+      var _this30 = this;
 
       if (this.paused === true) {
         return;
       }
 
       this.options.model.getLayout().then(function (layout) {
-        if (_this28.options.onResults) {
-          _this28.options.onResults(_this28.searchText.length === 0 || layout.qListObject.qDimensionInfo.qStateCounts.qSelected !== 0 && _this28.searchText.length > 0);
+        if (_this30.options.onResults) {
+          _this30.options.onResults(_this30.searchText.length === 0 || layout.qListObject.qDimensionInfo.qStateCounts.qSelected !== 0 && _this30.searchText.length > 0);
         }
       });
     }
@@ -2641,15 +2704,15 @@ var Table = /*#__PURE__*/function () {
   }, {
     key: "getData",
     value: function getData(callbackFn) {
-      var _this29 = this;
+      var _this31 = this;
 
       if (this.busy === false) {
         this.busy = true;
 
         if (this.options.getAllData === true) {
           getAllData('qHyperCube', this.options.model, this.layout, function (layout) {
-            _this29.rowCount = layout.qHyperCube.qDataPages[0].qMatrix.length;
-            _this29.busy = false;
+            _this31.rowCount = layout.qHyperCube.qDataPages[0].qMatrix.length;
+            _this31.busy = false;
 
             if (callbackFn) {
               callbackFn(layout.qHyperCube.qDataPages[0].qMatrix);
@@ -2672,24 +2735,24 @@ var Table = /*#__PURE__*/function () {
 
             this.options.model[method]('/qHyperCubeDef', pageDefs).then(function (pages) {
               if (pages && pages[0]) {
-                if (_this29.layout.qHyperCube.qMode === 'P') {
-                  _this29.layout.qHyperCube.qPivotDataPages.push(pages[0]);
+                if (_this31.layout.qHyperCube.qMode === 'P') {
+                  _this31.layout.qHyperCube.qPivotDataPages.push(pages[0]);
 
-                  _this29.rowCount += pages[0].qData.length;
+                  _this31.rowCount += pages[0].qData.length;
                 } else {
                   pages[0].qMatrix = pages[0].qMatrix.filter(function (r) {
                     return r[0].qText !== '-';
                   });
 
-                  _this29.layout.qHyperCube.qDataPages.push(pages[0]);
+                  _this31.layout.qHyperCube.qDataPages.push(pages[0]);
 
-                  _this29.rowCount += pages[0].qMatrix.length;
+                  _this31.rowCount += pages[0].qMatrix.length;
                 }
 
-                _this29.busy = false;
+                _this31.busy = false;
 
                 if (callbackFn) {
-                  if (_this29.layout.qHyperCube.qMode === 'P') {
+                  if (_this31.layout.qHyperCube.qMode === 'P') {
                     callbackFn(pages[0]);
                   } else {
                     callbackFn(pages[0].qMatrix);
@@ -2699,12 +2762,12 @@ var Table = /*#__PURE__*/function () {
             }, function (err) {
               var e = err;
 
-              if (_this29.errorCount < 50) {
-                _this29.errorCount++;
-                console.log('error getting data, attempt', _this29.errorCount);
-                clearTimeout(_this29.retryFn);
-                _this29.retryFn = setTimeout(function () {
-                  _this29.getData(callbackFn);
+              if (_this31.errorCount < 50) {
+                _this31.errorCount++;
+                console.log('error getting data, attempt', _this31.errorCount);
+                clearTimeout(_this31.retryFn);
+                _this31.retryFn = setTimeout(function () {
+                  _this31.getData(callbackFn);
                 }, 300);
               } // callbackFn({err})
 
@@ -2753,11 +2816,11 @@ var Table = /*#__PURE__*/function () {
   }, {
     key: "handleScroll",
     value: function handleScroll(event) {
-      var _this30 = this;
+      var _this32 = this;
 
       if (event.target.scrollTop / (event.target.scrollHeight - event.target.clientHeight) > 0.7) {
         this.getData(function (page) {
-          _this30.appendRows(_this30.transformData(page));
+          _this32.appendRows(_this32.transformData(page));
         });
       }
     }
@@ -2782,7 +2845,7 @@ var Table = /*#__PURE__*/function () {
   }, {
     key: "render",
     value: function render() {
-      var _this31 = this;
+      var _this33 = this;
 
       var pageNum = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
       this.table.showLoading({
@@ -2790,38 +2853,38 @@ var Table = /*#__PURE__*/function () {
       });
       this.options.model.getLayout().then(function (layout) {
         console.log(layout);
-        _this31.layout = layout;
-        _this31.rowCount = pageNum * _this31.options.pageSize;
-        _this31.errorCount = 0;
-        _this31.pageNum = pageNum;
-        _this31.pageCount = Math.ceil(layout.qHyperCube.qSize.qcy / _this31.options.pageSize);
-        _this31.table.options.pageNum = _this31.pageNum;
-        _this31.table.options.pageCount = _this31.pageCount;
+        _this33.layout = layout;
+        _this33.rowCount = pageNum * _this33.options.pageSize;
+        _this33.errorCount = 0;
+        _this33.pageNum = pageNum;
+        _this33.pageCount = Math.ceil(layout.qHyperCube.qSize.qcy / _this33.options.pageSize);
+        _this33.table.options.pageNum = _this33.pageNum;
+        _this33.table.options.pageCount = _this33.pageCount;
 
         if (layout.qHyperCube.qError && layout.qHyperCube.qCalcCondMsg) {
-          _this31.table.hideLoading();
+          _this33.table.hideLoading();
 
-          _this31.table.showError({
-            message: _this31.options.customError || layout.qHyperCube.qCalcCondMsg
+          _this33.table.showError({
+            message: _this33.options.customError || layout.qHyperCube.qCalcCondMsg
           });
 
           return;
         }
 
-        _this31.dataWidth = _this31.layout.qHyperCube.qSize.qcx;
-        _this31.columnOrder = _this31.layout.qHyperCube.qColumnOrder;
+        _this33.dataWidth = _this33.layout.qHyperCube.qSize.qcx;
+        _this33.columnOrder = _this33.layout.qHyperCube.qColumnOrder;
 
-        if (typeof _this31.columnOrder === 'undefined') {
-          _this31.columnOrder = new Array(_this31.layout.qHyperCube.qSize.qcx).fill({}).map(function (r, i) {
+        if (typeof _this33.columnOrder === 'undefined') {
+          _this33.columnOrder = new Array(_this33.layout.qHyperCube.qSize.qcx).fill({}).map(function (r, i) {
             return i;
           });
         }
 
-        var columns = _this31.layout.qHyperCube.qDimensionInfo.concat(_this31.layout.qHyperCube.qMeasureInfo);
+        var columns = _this33.layout.qHyperCube.qDimensionInfo.concat(_this33.layout.qHyperCube.qMeasureInfo);
 
-        var activeSort = _this31.layout.qHyperCube.qEffectiveInterColumnSortOrder[0];
+        var activeSort = _this33.layout.qHyperCube.qEffectiveInterColumnSortOrder[0];
         columns = columns.map(function (c, i) {
-          c.colIndex = _this31.columnOrder.indexOf(i);
+          c.colIndex = _this33.columnOrder.indexOf(i);
           c.name = c.qFallbackTitle;
 
           if (c.tooltip) {
@@ -2843,31 +2906,31 @@ var Table = /*#__PURE__*/function () {
           return a.colIndex - b.colIndex;
         });
 
-        _this31.getData(function (page) {
-          _this31.table.options.columns = columns;
-          _this31.table.options.activeSort = activeSort;
+        _this33.getData(function (page) {
+          _this33.table.options.columns = columns;
+          _this33.table.options.activeSort = activeSort;
 
-          _this31.table.hideLoading();
+          _this33.table.hideLoading();
 
-          _this31.table.render();
+          _this33.table.render();
 
           if (page.err) {
-            var tableEl = document.getElementById("".concat(_this31.elementId, "_foot"));
+            var tableEl = document.getElementById("".concat(_this33.elementId, "_foot"));
             tableEl.innerHTML = "\n            <div class='request-abort-error'>Could not fetch data. Click <strong class='table-try-again'>here</strong> to try again</div>\n          ";
           } else {
-            _this31.appendRows(_this31.transformData(page));
+            _this33.appendRows(_this33.transformData(page));
           }
         });
       }, function (err) {
         // try again      
         var e = err;
 
-        if (_this31.errorCount < 50) {
-          _this31.errorCount++;
-          console.log('error getting layout, attempt', _this31.errorCount);
-          clearTimeout(_this31.retryFn);
-          _this31.retryFn = setTimeout(function () {
-            _this31.render();
+        if (_this33.errorCount < 50) {
+          _this33.errorCount++;
+          console.log('error getting layout, attempt', _this33.errorCount);
+          clearTimeout(_this33.retryFn);
+          _this33.retryFn = setTimeout(function () {
+            _this33.render();
           }, 300);
         }
       });
@@ -2886,14 +2949,14 @@ var Table = /*#__PURE__*/function () {
   }, {
     key: "transformData",
     value: function transformData(page) {
-      var _this32 = this;
+      var _this34 = this;
 
       console.log('page', page);
 
       if (this.layout.qHyperCube.qMode === 'S') {
         return page.map(function (r) {
           return r.map(function (c, i) {
-            if (_this32.table.options.columns[i].showAsLink === true || _this32.table.options.columns[i].showAsNavigatorLink === true) {
+            if (_this34.table.options.columns[i].showAsLink === true || _this34.table.options.columns[i].showAsNavigatorLink === true) {
               if (c.qAttrExps && c.qAttrExps.qValues && c.qAttrExps.qValues[0].qText) {
                 c.value = c.qAttrExps.qValues[0].qText;
 
@@ -2913,16 +2976,16 @@ var Table = /*#__PURE__*/function () {
               var t = 'qDimensionInfo';
               var tIndex = i;
 
-              if (i > _this32.layout.qHyperCube.qDimensionInfo.length - 1) {
+              if (i > _this34.layout.qHyperCube.qDimensionInfo.length - 1) {
                 t = 'qMeasureInfo';
-                tIndex -= _this32.layout.qHyperCube.qDimensionInfo.length;
+                tIndex -= _this34.layout.qHyperCube.qDimensionInfo.length;
               }
 
               c.qAttrExps.qValues.forEach(function (a, aI) {
                 if (a.qText && a.qText !== '') {
-                  if (_this32.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                  if (_this34.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                     c.color = a.qText;
-                  } else if (_this32.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                  } else if (_this34.layout.qHyperCube[t][tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                     c.backgroundColor = a.qText;
                   }
                 }
@@ -3298,15 +3361,15 @@ var Table2 = /*#__PURE__*/function () {
   }, {
     key: "getData",
     value: function getData(callbackFn) {
-      var _this33 = this;
+      var _this35 = this;
 
       if (this.busy === false) {
         this.busy = true;
 
         if (this.options.getAllData === true) {
           getAllData('qHyperCube', this.options.model, this.layout, function (layout) {
-            _this33.rowCount = layout.qHyperCube.qDataPages[0].qMatrix.length;
-            _this33.busy = false;
+            _this35.rowCount = layout.qHyperCube.qDataPages[0].qMatrix.length;
+            _this35.busy = false;
 
             if (callbackFn) {
               callbackFn(layout.qHyperCube.qDataPages[0].qMatrix);
@@ -3329,24 +3392,24 @@ var Table2 = /*#__PURE__*/function () {
 
             this.options.model[method]('/qHyperCubeDef', pageDefs).then(function (pages) {
               if (pages && pages[0]) {
-                if (_this33.layout.qHyperCube.qMode === 'P') {
-                  _this33.layout.qHyperCube.qPivotDataPages.push(pages[0]);
+                if (_this35.layout.qHyperCube.qMode === 'P') {
+                  _this35.layout.qHyperCube.qPivotDataPages.push(pages[0]);
 
-                  _this33.rowCount += pages[0].qData.length;
+                  _this35.rowCount += pages[0].qData.length;
                 } else {
                   pages[0].qMatrix = pages[0].qMatrix.filter(function (r) {
                     return r[0].qText !== '-';
                   });
 
-                  _this33.layout.qHyperCube.qDataPages.push(pages[0]);
+                  _this35.layout.qHyperCube.qDataPages.push(pages[0]);
 
-                  _this33.rowCount += pages[0].qMatrix.length;
+                  _this35.rowCount += pages[0].qMatrix.length;
                 }
 
-                _this33.busy = false;
+                _this35.busy = false;
 
                 if (callbackFn) {
-                  if (_this33.layout.qHyperCube.qMode === 'P') {
+                  if (_this35.layout.qHyperCube.qMode === 'P') {
                     callbackFn(pages[0]);
                   } else {
                     callbackFn(pages[0].qMatrix);
@@ -3356,12 +3419,12 @@ var Table2 = /*#__PURE__*/function () {
             }, function (err) {
               var e = err;
 
-              if (_this33.errorCount < 50) {
-                _this33.errorCount++;
-                console.log('error getting data, attempt', _this33.errorCount);
-                clearTimeout(_this33.retryFn);
-                _this33.retryFn = setTimeout(function () {
-                  _this33.getData(callbackFn);
+              if (_this35.errorCount < 50) {
+                _this35.errorCount++;
+                console.log('error getting data, attempt', _this35.errorCount);
+                clearTimeout(_this35.retryFn);
+                _this35.retryFn = setTimeout(function () {
+                  _this35.getData(callbackFn);
                 }, 300);
               } // callbackFn({err})
 
@@ -3410,11 +3473,11 @@ var Table2 = /*#__PURE__*/function () {
   }, {
     key: "handleScroll",
     value: function handleScroll(event) {
-      var _this34 = this;
+      var _this36 = this;
 
       if (event.target.scrollTop / (event.target.scrollHeight - event.target.clientHeight) > 0.7) {
         this.getData(function (page) {
-          _this34.appendRows(_this34.transformData(page));
+          _this36.appendRows(_this36.transformData(page));
         });
       }
     }
@@ -3491,7 +3554,7 @@ var Table2 = /*#__PURE__*/function () {
   }, {
     key: "prepDropdowns",
     value: function prepDropdowns() {
-      var _this35 = this;
+      var _this37 = this;
 
       // this.table.options.columns.forEach((c, i) => {
       //   if (c.searchable === true && c.searchField && this.layout[c.searchField] && this.layout[c.searchField].qListObject) {
@@ -3502,13 +3565,13 @@ var Table2 = /*#__PURE__*/function () {
       //   }
       // })
       this.layout.qHyperCube.qDimensionInfo.forEach(function (d, i) {
-        if (!_this35.dropdowns["dim".concat(i)]) {
-          _this35.dropdowns["dim".concat(i)] = new WebsyDesignsQlikPlugins.Dropdown("".concat(_this35.elementId, "_columnSearch_").concat(i), {
-            model: _this35.options.model,
+        if (!_this37.dropdowns["dim".concat(i)]) {
+          _this37.dropdowns["dim".concat(i)] = new WebsyDesignsQlikPlugins.Dropdown("".concat(_this37.elementId, "_columnSearch_").concat(i), {
+            model: _this37.options.model,
             multiSelect: true,
             closeAfterSelection: false,
             path: "dim".concat(i),
-            onClose: _this35.handleCloseSearch
+            onClose: _this37.handleCloseSearch
           });
         }
       });
@@ -3516,7 +3579,7 @@ var Table2 = /*#__PURE__*/function () {
   }, {
     key: "prepSearch",
     value: function prepSearch() {
-      var _this36 = this;
+      var _this38 = this;
 
       this.busy = true;
       this.options.model.getProperties().then(function (props) {
@@ -3540,18 +3603,18 @@ var Table2 = /*#__PURE__*/function () {
           });
         });
 
-        _this36.options.model.applyPatches(patches, true).then(function () {
-          _this36.busy = false;
-          _this36.searchPrepped = true;
+        _this38.options.model.applyPatches(patches, true).then(function () {
+          _this38.busy = false;
+          _this38.searchPrepped = true;
 
-          _this36.render();
+          _this38.render();
         });
       });
     }
   }, {
     key: "render",
     value: function render() {
-      var _this37 = this;
+      var _this39 = this;
 
       var pageNum = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
 
@@ -3564,83 +3627,83 @@ var Table2 = /*#__PURE__*/function () {
         message: 'Loading...'
       });
       this.options.model.getLayout().then(function (layout) {
-        _this37.layout = layout;
-        _this37.rowCount = pageNum * _this37.options.pageSize;
+        _this39.layout = layout;
+        _this39.rowCount = pageNum * _this39.options.pageSize;
 
-        if (_this37.layout.qHyperCube.qPivotDataPages[0]) {
-          _this37.layout.qHyperCube.qPivotDataPages = [];
+        if (_this39.layout.qHyperCube.qPivotDataPages[0]) {
+          _this39.layout.qHyperCube.qPivotDataPages = [];
         }
 
-        _this37.errorCount = 0;
-        _this37.pageNum = pageNum;
-        _this37.pageCount = Math.ceil(layout.qHyperCube.qSize.qcy / _this37.options.pageSize);
-        _this37.table.options.pageNum = _this37.pageNum;
+        _this39.errorCount = 0;
+        _this39.pageNum = pageNum;
+        _this39.pageCount = Math.ceil(layout.qHyperCube.qSize.qcy / _this39.options.pageSize);
+        _this39.table.options.pageNum = _this39.pageNum;
 
-        if (_this37.layout.qHyperCube.qNoOfLeftDims) {
-          _this37.table.options.leftColumns = _this37.options.freezeColumns || _this37.layout.qHyperCube.qNoOfLeftDims;
+        if (_this39.layout.qHyperCube.qNoOfLeftDims) {
+          _this39.table.options.leftColumns = _this39.options.freezeColumns || _this39.layout.qHyperCube.qNoOfLeftDims;
         }
 
-        _this37.table.options.pageCount = _this37.pageCount;
+        _this39.table.options.pageCount = _this39.pageCount;
 
         if (layout.qHyperCube.qError && layout.qHyperCube.qCalcCondMsg) {
-          _this37.table.hideLoading();
+          _this39.table.hideLoading();
 
-          _this37.table.showError({
-            message: _this37.options.customError || layout.qHyperCube.qCalcCondMsg
+          _this39.table.showError({
+            message: _this39.options.customError || layout.qHyperCube.qCalcCondMsg
           });
 
           return;
         }
 
-        _this37.table.hideError();
+        _this39.table.hideError();
 
-        _this37.dataWidth = _this37.layout.qHyperCube.qSize.qcx;
-        _this37.columnOrder = _this37.layout.qHyperCube.qColumnOrder;
+        _this39.dataWidth = _this39.layout.qHyperCube.qSize.qcx;
+        _this39.columnOrder = _this39.layout.qHyperCube.qColumnOrder;
 
-        if (typeof _this37.columnOrder === 'undefined') {
-          _this37.columnOrder = new Array(_this37.layout.qHyperCube.qSize.qcx).fill({}).map(function (r, i) {
+        if (typeof _this39.columnOrder === 'undefined') {
+          _this39.columnOrder = new Array(_this39.layout.qHyperCube.qSize.qcx).fill({}).map(function (r, i) {
             return i;
           });
         }
 
-        _this37.layout.qHyperCube.qDimensionInfo = _this37.layout.qHyperCube.qDimensionInfo.map(function (c, i) {
+        _this39.layout.qHyperCube.qDimensionInfo = _this39.layout.qHyperCube.qDimensionInfo.map(function (c, i) {
           c.searchable = true;
 
-          if (_this37.options.columnOverrides[i]) {
+          if (_this39.options.columnOverrides[i]) {
             c = _objectSpread(_objectSpread({}, c), {}, {
-              onSearch: _this37.handleSearch.bind(_this37),
-              onCloseSearch: _this37.handleCloseSearch.bind(_this37)
-            }, _this37.options.columnOverrides[i]);
+              onSearch: _this39.handleSearch.bind(_this39),
+              onCloseSearch: _this39.handleCloseSearch.bind(_this39)
+            }, _this39.options.columnOverrides[i]);
           }
 
           c.searchField = "dim".concat(i);
           return c;
         });
-        _this37.layout.qHyperCube.qMeasureInfo = _this37.layout.qHyperCube.qMeasureInfo.map(function (c, i) {
-          if (_this37.options.columnOverrides[_this37.layout.qHyperCube.qDimensionInfo.length + i]) {
-            c = _objectSpread(_objectSpread({}, c), _this37.options.columnOverrides[_this37.layout.qHyperCube.qDimensionInfo.length + i]);
+        _this39.layout.qHyperCube.qMeasureInfo = _this39.layout.qHyperCube.qMeasureInfo.map(function (c, i) {
+          if (_this39.options.columnOverrides[_this39.layout.qHyperCube.qDimensionInfo.length + i]) {
+            c = _objectSpread(_objectSpread({}, c), _this39.options.columnOverrides[_this39.layout.qHyperCube.qDimensionInfo.length + i]);
           }
 
           return c;
         });
 
-        var columns = _this37.layout.qHyperCube.qDimensionInfo.concat(_this37.layout.qHyperCube.qMeasureInfo);
+        var columns = _this39.layout.qHyperCube.qDimensionInfo.concat(_this39.layout.qHyperCube.qMeasureInfo);
 
-        _this37.orderedColumns = columns.map(function (c, i, a) {
-          return a[_this37.columnOrder[i]];
+        _this39.orderedColumns = columns.map(function (c, i, a) {
+          return a[_this39.columnOrder[i]];
         }).filter(function (c) {
           return !c.qError;
         });
-        _this37.dimensions = _this37.layout.qHyperCube.qDimensionInfo.filter(function (d) {
+        _this39.dimensions = _this39.layout.qHyperCube.qDimensionInfo.filter(function (d) {
           return !d.qError;
         });
-        _this37.measures = _this37.layout.qHyperCube.qMeasureInfo.filter(function (d) {
+        _this39.measures = _this39.layout.qHyperCube.qMeasureInfo.filter(function (d) {
           return !d.qError;
         });
-        var activeSort = _this37.layout.qHyperCube.qEffectiveInterColumnSortOrder[0];
+        var activeSort = _this39.layout.qHyperCube.qEffectiveInterColumnSortOrder[0];
         columns = columns.map(function (c, i) {
-          c.colIndex = _this37.columnOrder.indexOf(i);
-          c.sortIndex = _this37.columnOrder.indexOf(i);
+          c.colIndex = _this39.columnOrder.indexOf(i);
+          c.sortIndex = _this39.columnOrder.indexOf(i);
           c.name = c.qFallbackTitle;
 
           if (c.tooltip) {
@@ -3650,7 +3713,7 @@ var Table2 = /*#__PURE__*/function () {
           c.reverseSort = activeSort === c.colIndex && c.qReverseSort !== true;
           c.activeSort = activeSort === c.colIndex;
 
-          if (_this37.layout.qHyperCube.qMode === 'S') {
+          if (_this39.layout.qHyperCube.qMode === 'S') {
             if (c.qSortIndicator === 'A') {
               c.sort = 'asc';
             } else if (c.qSortIndicator === 'D') {
@@ -3663,7 +3726,7 @@ var Table2 = /*#__PURE__*/function () {
 
           if (c.searchable === true) {
             if (!c.onSearch) {
-              c.onSearch = _this37.handleSearch.bind(_this37);
+              c.onSearch = _this39.handleSearch.bind(_this39);
             }
           }
 
@@ -3673,79 +3736,79 @@ var Table2 = /*#__PURE__*/function () {
           return a.colIndex - b.colIndex;
         });
 
-        if (_this37.layout.qHyperCube.qMode === 'P') {
+        if (_this39.layout.qHyperCube.qMode === 'P') {
           columns = columns.filter(function (c, i) {
-            return i < _this37.layout.qHyperCube.qNoOfLeftDims;
+            return i < _this39.layout.qHyperCube.qNoOfLeftDims;
           });
         }
 
         columns = columns.filter(function (c) {
           return !c.qError;
         });
-        _this37.table.options.columns = columns;
+        _this39.table.options.columns = columns;
 
-        var activeDimensions = _this37.layout.qHyperCube.qDimensionInfo.filter(function (c) {
+        var activeDimensions = _this39.layout.qHyperCube.qDimensionInfo.filter(function (c) {
           return !c.qError;
         });
 
         var columnParamValues = activeDimensions.filter(function (c, i) {
-          return _this37.layout.qHyperCube.qMode === 'S' || i < _this37.layout.qHyperCube.qNoOfLeftDims;
+          return _this39.layout.qHyperCube.qMode === 'S' || i < _this39.layout.qHyperCube.qNoOfLeftDims;
         }).map(function (c, i) {
           return {
-            value: new Array(Math.max(c.qApprMaxGlyphCount, _this37.layout.qHyperCube.qDimensionInfo[i].qFallbackTitle.length)).fill('X').join(''),
+            value: new Array(Math.max(c.qApprMaxGlyphCount, _this39.layout.qHyperCube.qDimensionInfo[i].qFallbackTitle.length)).fill('X').join(''),
             width: c.width || null
           };
         });
         var measureLabel = activeDimensions.pop(); // const maxMValue = this.layout.qHyperCube.qMeasureInfo.reduce((a, b) => a.qApprMaxGlyphCount > b.qApprMaxGlyphCount ? a : b)
         // columnParamValues.push({ value: new Array(maxMValue.qApprMaxGlyphCount).fill('x').join(''), width)
 
-        columnParamValues = columnParamValues.concat(_this37.layout.qHyperCube.qMeasureInfo.filter(function (c) {
+        columnParamValues = columnParamValues.concat(_this39.layout.qHyperCube.qMeasureInfo.filter(function (c) {
           return !c.qError;
         }).map(function (c) {
           return {
-            value: new Array(_this37.layout.qHyperCube.qMode === 'S' ? c.qApprMaxGlyphCount : Math.max(c.qApprMaxGlyphCount, measureLabel.qApprMaxGlyphCount)).fill('X').join(''),
-            width: _this37.layout.qHyperCube.qMode === 'S' ? c.width || null : c.width || measureLabel.width || null
+            value: new Array(_this39.layout.qHyperCube.qMode === 'S' ? c.qApprMaxGlyphCount : Math.max(c.qApprMaxGlyphCount, measureLabel.qApprMaxGlyphCount)).fill('X').join(''),
+            width: _this39.layout.qHyperCube.qMode === 'S' ? c.width || null : c.width || measureLabel.width || null
           };
         }));
-        _this37.columnParams = _this37.table.getColumnParameters(columnParamValues);
+        _this39.columnParams = _this39.table.getColumnParameters(columnParamValues);
 
         for (var i = 0; i < columns.length; i++) {
-          columns[i].width = "".concat(_this37.columnParams.cellWidths[i] || _this37.columnParams.cellWidths[_this37.columnParams.cellWidths.length - 1], "px");
+          columns[i].width = "".concat(_this39.columnParams.cellWidths[i] || _this39.columnParams.cellWidths[_this39.columnParams.cellWidths.length - 1], "px");
         } // this.columnsToRender = Math.ceil(this.columnParams.availableWidth / this.columnParams.cellWidth)
 
 
-        _this37.rowsToRender = Math.ceil(_this37.columnParams.availableHeight / _this37.columnParams.cellHeight);
+        _this39.rowsToRender = Math.ceil(_this39.columnParams.availableHeight / _this39.columnParams.cellHeight);
 
-        _this37.getData(function (page) {
-          _this37.table.options.activeSort = activeSort;
+        _this39.getData(function (page) {
+          _this39.table.options.activeSort = activeSort;
 
-          _this37.table.hideLoading();
+          _this39.table.hideLoading();
 
-          if (_this37.layout.qHyperCube.qMode === 'S') {
-            _this37.table.render();
+          if (_this39.layout.qHyperCube.qMode === 'S') {
+            _this39.table.render();
 
-            _this37.prepDropdowns();
+            _this39.prepDropdowns();
           }
 
           if (page.err) {
-            var tableEl = document.getElementById("".concat(_this37.elementId, "_foot"));
+            var tableEl = document.getElementById("".concat(_this39.elementId, "_foot"));
             tableEl.innerHTML = "\n            <div class='request-abort-error'>Could not fetch data. Click <strong class='table-try-again'>here</strong> to try again</div>\n          ";
           } else {
-            _this37.fullData = page;
+            _this39.fullData = page;
 
-            _this37.resize();
+            _this39.resize();
           }
         });
       }, function (err) {
         // try again      
         var e = err;
 
-        if (_this37.errorCount < 50) {
-          _this37.errorCount++;
-          console.log('error getting layout, attempt', _this37.errorCount);
-          clearTimeout(_this37.retryFn);
-          _this37.retryFn = setTimeout(function () {
-            _this37.render();
+        if (_this39.errorCount < 50) {
+          _this39.errorCount++;
+          console.log('error getting layout, attempt', _this39.errorCount);
+          clearTimeout(_this39.retryFn);
+          _this39.retryFn = setTimeout(function () {
+            _this39.render();
           }, 300);
         }
       });
@@ -3769,12 +3832,12 @@ var Table2 = /*#__PURE__*/function () {
   }, {
     key: "transformData",
     value: function transformData(page) {
-      var _this38 = this;
+      var _this40 = this;
 
       if (this.layout.qHyperCube.qMode === 'S') {
         return page.map(function (r) {
           return r.map(function (c, i) {
-            if (_this38.table.options.columns[i].showAsLink === true) {
+            if (_this40.table.options.columns[i].showAsLink === true) {
               if (c.qAttrExps && c.qAttrExps.qValues && c.qAttrExps.qValues[0].qText) {
                 c.value = c.qAttrExps.qValues[0].qText;
 
@@ -3799,9 +3862,9 @@ var Table2 = /*#__PURE__*/function () {
 
               c.qAttrExps.qValues.forEach(function (a, aI) {
                 if (a.qText && a.qText !== '') {
-                  if (_this38.orderedColumns[tIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                  if (_this40.orderedColumns[tIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                     c.color = a.qText;
-                  } else if (_this38.orderedColumns[tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                  } else if (_this40.orderedColumns[tIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                     c.backgroundColor = a.qText;
                   }
                 }
@@ -3873,7 +3936,7 @@ var Table2 = /*#__PURE__*/function () {
   }, {
     key: "transformPivotTable",
     value: function transformPivotTable(page) {
-      var _this39 = this;
+      var _this41 = this;
 
       var output = [];
       var leftNodes = [];
@@ -3895,7 +3958,7 @@ var Table2 = /*#__PURE__*/function () {
       }
 
       leftNodes[0] && leftNodes[0].forEach(function (c, i) {
-        c.width = _this39.columnParams.cellWidths[i];
+        c.width = _this41.columnParams.cellWidths[i];
       });
       var scrollableColumns = this.layout.qHyperCube.qSize.qcx; // - (this.options.freezeColumns || this.layout.qHyperCube.qNoOfLeftDims)
 
@@ -3917,7 +3980,7 @@ var Table2 = /*#__PURE__*/function () {
         left: 0
       });
       topNodesTransposed[topNodesTransposed.length - 1].forEach(function (c, i) {
-        c.width = "".concat(_this39.columnParams.cellWidths[(_this39.options.freezeColumns || _this39.layout.qHyperCube.qNoOfLeftDims) + i] || _this39.columnParams.cellWidths[_this39.columnParams.cellWidths.length - 1], "px");
+        c.width = "".concat(_this41.columnParams.cellWidths[(_this41.options.freezeColumns || _this41.layout.qHyperCube.qNoOfLeftDims) + i] || _this41.columnParams.cellWidths[_this41.columnParams.cellWidths.length - 1], "px");
       });
 
       for (var r = 0; r < page.qData.length; r++) {
@@ -3980,7 +4043,7 @@ var Table2 = /*#__PURE__*/function () {
             }).map(function (d, dI) {
               return _extends({}, d, {
                 name: d.qFallbackTitle,
-                width: "".concat(_this39.columnParams.cellWidths[dI] || _this39.columnParams.cellWidths[_this39.columnParams.cellWidths.length - 1], "px")
+                width: "".concat(_this41.columnParams.cellWidths[dI] || _this41.columnParams.cellWidths[_this41.columnParams.cellWidths.length - 1], "px")
               });
             }).concat(topNodesTransposed[_i12]);
           } else {
@@ -4174,7 +4237,7 @@ var Table2 = /*#__PURE__*/function () {
 
 var Table3 = /*#__PURE__*/function () {
   function Table3(elementId, options) {
-    var _this40 = this;
+    var _this42 = this;
 
     _classCallCheck(this, Table3);
 
@@ -4264,27 +4327,27 @@ var Table3 = /*#__PURE__*/function () {
           group: this.elementId,
           items: [],
           onItemAdded: function onItemAdded() {
-            _this40.updatePivotStructure();
+            _this42.updatePivotStructure();
           }
         });
         this.columnList = new WebsyDesigns.DragDrop("".concat(this.elementId, "_pivotColumns"), {
           group: this.elementId,
           items: [],
           onItemAdded: function onItemAdded() {
-            _this40.updatePivotStructure();
+            _this42.updatePivotStructure();
           }
         });
       }
 
       el.addEventListener('click', this.handleClick.bind(this));
       window.addEventListener('resize', function () {
-        if (_this40.resizeTimeoutFn) {
-          clearTimeout(_this40.resizeTimeoutFn);
+        if (_this42.resizeTimeoutFn) {
+          clearTimeout(_this42.resizeTimeoutFn);
         }
 
-        _this40.resizeTimeoutFn = setTimeout(function () {
-          _this40.resize();
-        }, _this40.options.resizeTimeout);
+        _this42.resizeTimeoutFn = setTimeout(function () {
+          _this42.resize();
+        }, _this42.options.resizeTimeout);
       });
       this.render();
     }
@@ -4293,12 +4356,12 @@ var Table3 = /*#__PURE__*/function () {
   _createClass(Table3, [{
     key: "abortModal",
     value: function abortModal() {
-      var _this41 = this;
+      var _this43 = this;
 
       return new Promise(function (resolve, reject) {
-        if (_this41.options.app) {
-          _this41.options.app.abortModal(true).then(function () {
-            _this41.selectedCells = [];
+        if (_this43.options.app) {
+          _this43.options.app.abortModal(true).then(function () {
+            _this43.selectedCells = [];
             resolve();
           });
         } else {
@@ -4314,16 +4377,16 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "beginSelections",
     value: function beginSelections() {
-      var _this42 = this;
+      var _this44 = this;
 
       return new Promise(function (resolve, reject) {
-        if (_this42.inSelections === true) {
+        if (_this44.inSelections === true) {
           resolve();
         } else {
-          _this42.inSelections = true;
+          _this44.inSelections = true;
 
-          _this42.abortModal().then(function () {
-            _this42.options.model.beginSelections(['/qHyperCubeDef']).then(function () {
+          _this44.abortModal().then(function () {
+            _this44.options.model.beginSelections(['/qHyperCubeDef']).then(function () {
               resolve();
             });
           });
@@ -4333,7 +4396,7 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "buildPivotColumns",
     value: function buildPivotColumns() {
-      var _this43 = this;
+      var _this45 = this;
 
       if (!this.layout.qHyperCube.qPivotDataPages[0]) {
         return;
@@ -4421,7 +4484,7 @@ var Table3 = /*#__PURE__*/function () {
           if (effectiveOrder[_i17] >= 0) {
             var dim = this.properties.qHyperCubeDef.qDimensions[effectiveOrder[_i17]];
 
-            if (_i17 < this.pinnedColumns) {
+            if (this.layout.qHyperCube.qIndentMode !== true && _i17 < this.pinnedColumns || _i17 < this.layout.qHyperCube.qNoOfLeftDims) {
               rows.push(dim);
             } else {
               columns.push(dim);
@@ -4497,12 +4560,12 @@ var Table3 = /*#__PURE__*/function () {
             isQlikPlugin: true,
             dim: dim,
             dimId: dimId,
-            options: _extends({}, _this43.options.dropdownOptions)
+            options: _extends({}, _this45.options.dropdownOptions)
           };
         });
         this.rowList.render();
         this.rowList.options.items.forEach(function (d, i) {
-          if (!_this43.dropdowns[d.dimId]) {
+          if (!_this45.dropdowns[d.dimId]) {
             var ddDef = {
               qInfo: {
                 qType: 'table-dropdown'
@@ -4515,13 +4578,13 @@ var Table3 = /*#__PURE__*/function () {
               qSortByNumeric: 1
             }];
 
-            _this43.options.app.createSessionObject(ddDef).then(function (model) {
-              _this43.dropdowns[d.dimId] = model;
+            _this45.options.app.createSessionObject(ddDef).then(function (model) {
+              _this45.dropdowns[d.dimId] = model;
               d.instance.options.model = model;
               d.instance.render();
             });
           } else {
-            d.instance.options.model = _this43.dropdowns[d.dimId];
+            d.instance.options.model = _this45.dropdowns[d.dimId];
             d.instance.render();
           }
         });
@@ -4532,12 +4595,12 @@ var Table3 = /*#__PURE__*/function () {
             isQlikPlugin: true,
             dim: dim,
             dimId: dimId,
-            options: _extends({}, _this43.options.dropdownOptions)
+            options: _extends({}, _this45.options.dropdownOptions)
           };
         });
         this.columnList.render();
         this.columnList.options.items.forEach(function (d, i) {
-          if (!_this43.dropdowns[d.dimId]) {
+          if (!_this45.dropdowns[d.dimId]) {
             if (!d.dim.qDef) {
               d.dim.qDef = {};
             }
@@ -4559,13 +4622,13 @@ var Table3 = /*#__PURE__*/function () {
               qSortByNumeric: 1
             }];
 
-            _this43.options.app.createSessionObject(ddDef).then(function (model) {
-              _this43.dropdowns[d.dimId] = model;
+            _this45.options.app.createSessionObject(ddDef).then(function (model) {
+              _this45.dropdowns[d.dimId] = model;
               d.instance.options.model = model;
               d.instance.render();
             });
           } else {
-            d.instance.options.model = _this43.dropdowns[d.dimId];
+            d.instance.options.model = _this45.dropdowns[d.dimId];
             d.instance.render();
           }
         });
@@ -4580,7 +4643,7 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "buildStraightColumnsAndTotals",
     value: function buildStraightColumnsAndTotals() {
-      var _this44 = this;
+      var _this46 = this;
 
       // used for straight tables
       this.columns = this.layout.qHyperCube.qDimensionInfo.concat(this.layout.qHyperCube.qMeasureInfo.map(function (m) {
@@ -4589,11 +4652,11 @@ var Table3 = /*#__PURE__*/function () {
       })); // append the column definitions
 
       this.properties.qHyperCubeDef.qDimensions.concat(this.properties.qHyperCubeDef.qMeasures).forEach(function (cDef, i) {
-        _this44.columns[i].def = cDef;
+        _this46.columns[i].def = cDef;
       });
       var activeSort = this.layout.qHyperCube.qEffectiveInterColumnSortOrder[0];
       this.columns = this.columns.map(function (c, i) {
-        c.colIndex = _this44.columnOrder.indexOf(i);
+        c.colIndex = _this46.columnOrder.indexOf(i);
         c.classes = ["".concat(c.isMeasure ? 'measure' : 'dimension')];
         c.name = c.qFallbackTitle;
 
@@ -4604,7 +4667,7 @@ var Table3 = /*#__PURE__*/function () {
         c.reverseSort = activeSort === i && c.qReverseSort !== true;
         c.activeSort = activeSort === i;
 
-        if (_this44.layout.qHyperCube.qMode === 'S') {
+        if (_this46.layout.qHyperCube.qMode === 'S') {
           if (c.qSortIndicator === 'A') {
             c.sort = 'asc';
           } else if (c.qSortIndicator === 'D') {
@@ -4615,15 +4678,15 @@ var Table3 = /*#__PURE__*/function () {
         // }
 
 
-        if (c.searchable !== false && i < _this44.layout.qHyperCube.qDimensionInfo.length) {
+        if (c.searchable !== false && i < _this46.layout.qHyperCube.qDimensionInfo.length) {
           c.searchable = true;
 
           if (!c.onSearch) {
             c.isExternalSearch = true;
             var dimId = c.def.qLibraryId || c.def.qDef.qFieldLabels[0] || c.def.qDef.qFieldDefs[0];
             c.dimId = c.cId || dimId;
-            c.onSearch = _this44.handleSearch.bind(_this44);
-            c.onCloseSearch = _this44.handleCloseSearch.bind(_this44);
+            c.onSearch = _this46.handleSearch.bind(_this46);
+            c.onCloseSearch = _this46.handleCloseSearch.bind(_this46);
           }
         }
 
@@ -4665,7 +4728,7 @@ var Table3 = /*#__PURE__*/function () {
         return !c.qError;
       });
       this.columnParamValues = activeDimensions.filter(function (c, i) {
-        return _this44.layout.qHyperCube.qMode === 'S' || i < _this44.pinnedColumns;
+        return _this46.layout.qHyperCube.qMode === 'S' || i < _this46.pinnedColumns;
       }).map(function (c, i) {
         return {
           value: new Array(Math.max(c.showAsLink ? 0 : c.qApprMaxGlyphCount, activeDimensions[i].qFallbackTitle.length)).fill('X').join(''),
@@ -4700,7 +4763,7 @@ var Table3 = /*#__PURE__*/function () {
       this.columns.forEach(function (c, i) {
         if (c.searchable !== false) {
           if (c.isExternalSearch === true) {
-            if (!_this44.dropdowns[c.dimId]) {
+            if (!_this46.dropdowns[c.dimId]) {
               var ddDef = {
                 qInfo: {
                   qType: 'table-dropdown'
@@ -4713,16 +4776,16 @@ var Table3 = /*#__PURE__*/function () {
                 qSortByNumeric: 1
               }];
 
-              _this44.options.app.createSessionObject(ddDef).then(function (model) {
-                _this44.dropdowns[c.dimId] = new WebsyDesignsQlikPlugins.Dropdown("".concat(_this44.elementId, "_tableContainer_columnSearch_").concat(c.dimId || i), {
-                  app: _this44.options.app,
+              _this46.options.app.createSessionObject(ddDef).then(function (model) {
+                _this46.dropdowns[c.dimId] = new WebsyDesignsQlikPlugins.Dropdown("".concat(_this46.elementId, "_tableContainer_columnSearch_").concat(c.dimId || i), {
+                  app: _this46.options.app,
                   model: model,
                   multiSelect: true,
                   closeAfterSelection: false,
-                  onClose: _this44.handleCloseSearch
+                  onClose: _this46.handleCloseSearch
                 });
                 model.on('changed', function () {
-                  _this44.dropdowns[c.dimId].render();
+                  _this46.dropdowns[c.dimId].render();
                 }); // d.instance.options.model = model
                 // d.instance.render()
               });
@@ -4765,37 +4828,37 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "checkDataExists",
     value: function checkDataExists(start, end) {
-      var _this45 = this;
+      var _this47 = this;
 
       return new Promise(function (resolve, reject) {
-        if (_this45.layout.qHyperCube.qMode === 'P' && _this45.layout.qHyperCube.qIndentMode !== true) {
-          _this45.getData(start, function () {
+        if (_this47.layout.qHyperCube.qMode === 'P' && _this47.layout.qHyperCube.qIndentMode !== true) {
+          _this47.getData(start, function () {
             resolve();
           });
         } else {
           var top = -1;
 
           for (var i = start; i < end; i++) {
-            if (_this45.rowIndexList.indexOf(i) === -1) {
+            if (_this47.rowIndexList.indexOf(i) === -1) {
               top = i;
               break;
             }
           } // console.log('slicing pre', top)
 
 
-          _this45.buildEmptyRows(top);
+          _this47.buildEmptyRows(top);
 
           if (top < end && top !== -1) {
             console.log('get data 1');
 
-            _this45.getData(top, function () {
+            _this47.getData(top, function () {
               // console.log('if callback for', top)
               resolve();
             }, true);
           } else if (top !== -1) {
             console.log('get data 2');
 
-            _this45.getData(top, function () {
+            _this47.getData(top, function () {
               // console.log('else if callback for', top)
               resolve();
             }, true);
@@ -4810,14 +4873,14 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "confirmCancelSelections",
     value: function confirmCancelSelections(confirm) {
-      var _this46 = this;
+      var _this48 = this;
 
       this.inSelections = false;
       this.options.model.endSelections(confirm).then(function () {
-        var maskEl = document.getElementById("".concat(_this46.elementId, "_cellSelectMask"));
-        var maskLeftEl = document.getElementById("".concat(_this46.elementId, "_cellSelectMaskLeft"));
-        var maskRightEl = document.getElementById("".concat(_this46.elementId, "_cellSelectMaskRight"));
-        var maskButtonsEl = document.getElementById("".concat(_this46.elementId, "_cellSelectButtons"));
+        var maskEl = document.getElementById("".concat(_this48.elementId, "_cellSelectMask"));
+        var maskLeftEl = document.getElementById("".concat(_this48.elementId, "_cellSelectMaskLeft"));
+        var maskRightEl = document.getElementById("".concat(_this48.elementId, "_cellSelectMaskRight"));
+        var maskButtonsEl = document.getElementById("".concat(_this48.elementId, "_cellSelectButtons"));
 
         if (maskEl) {
           maskEl.classList.remove('active');
@@ -4836,14 +4899,14 @@ var Table3 = /*#__PURE__*/function () {
         } // if (this.options.forceRenderAfterSelect === true) {
 
 
-        _this46.render(); // }
+        _this48.render(); // }
 
       });
     }
   }, {
     key: "getData",
     value: function getData() {
-      var _this47 = this;
+      var _this49 = this;
 
       var top = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
       var callbackFn = arguments.length > 1 ? arguments[1] : undefined;
@@ -4855,7 +4918,7 @@ var Table3 = /*#__PURE__*/function () {
         if (this.options.getAllData === true) {
           getAllData('qHyperCube', this.options.model, this.layout, function (layout) {
             // this.rowCount = layout.qHyperCube.qDataPages[0].qMatrix.length
-            _this47.busy = false;
+            _this49.busy = false;
 
             if (callbackFn) {
               callbackFn(layout.qHyperCube.qDataPages[0].qMatrix);
@@ -4884,12 +4947,12 @@ var Table3 = /*#__PURE__*/function () {
 
             this.options.model[method]('/qHyperCubeDef', pageDefs).then(function (pages) {
               if (pages) {
-                _this47.qlikTop = pages[0].qArea.qTop;
+                _this49.qlikTop = pages[0].qArea.qTop;
 
-                if (_this47.layout.qHyperCube.qMode === 'P') {
-                  _this47.layout.qHyperCube.qPivotDataPages = pages;
+                if (_this49.layout.qHyperCube.qMode === 'P') {
+                  _this49.layout.qHyperCube.qPivotDataPages = pages;
 
-                  var pData = _this47.transformPivotTable(pages[0]);
+                  var pData = _this49.transformPivotTable(pages[0]);
 
                   pages[0].qMatrix = pData.data; // this.fullData.push(pages[0])
                   // this.rowCount += pages[0].qData.length
@@ -4897,31 +4960,31 @@ var Table3 = /*#__PURE__*/function () {
                 // pages[0].qMatrix = pages[0].qMatrix.filter(r => r[0].qText !== '-')              
 
 
-                if (_this47.layout.qHyperCube.qMode === 'S' || _this47.layout.qHyperCube.qIndentMode === true) {
-                  var _this47$fullData;
+                if (_this49.layout.qHyperCube.qMode === 'S' || _this49.layout.qHyperCube.qIndentMode === true) {
+                  var _this49$fullData;
 
-                  (_this47$fullData = _this47.fullData).splice.apply(_this47$fullData, [pages[0].qArea.qTop, pages[0].qArea.qHeight].concat(_toConsumableArray(pages[0].qMatrix)));
+                  (_this49$fullData = _this49.fullData).splice.apply(_this49$fullData, [pages[0].qArea.qTop, pages[0].qArea.qHeight].concat(_toConsumableArray(pages[0].qMatrix)));
 
-                  _this47.rowsLoaded = Math.max(_this47.rowsLoaded, pages[0].qArea.qTop + pages[0].qArea.qHeight);
+                  _this49.rowsLoaded = Math.max(_this49.rowsLoaded, pages[0].qArea.qTop + pages[0].qArea.qHeight);
 
                   for (var i = 0; i < pages[0].qArea.qHeight; i++) {
-                    if (_this47.rowIndexList.indexOf(pages[0].qArea.qTop + i) === -1) {
-                      _this47.rowIndexList.push(pages[0].qArea.qTop + i);
+                    if (_this49.rowIndexList.indexOf(pages[0].qArea.qTop + i) === -1) {
+                      _this49.rowIndexList.push(pages[0].qArea.qTop + i);
                     }
                   }
 
-                  _this47.rowIndexList.sort(function (a, b) {
+                  _this49.rowIndexList.sort(function (a, b) {
                     return a - b;
                   });
                 } else {
-                  _this47.fullData = pages[0].qMatrix;
+                  _this49.fullData = pages[0].qMatrix;
                 } // }
 
 
-                _this47.busy = false;
+                _this49.busy = false;
 
                 if (callbackFn) {
-                  if (_this47.layout.qHyperCube.qMode === 'P') {
+                  if (_this49.layout.qHyperCube.qMode === 'P') {
                     callbackFn(pages[0]);
                   } else {
                     callbackFn(pages[0].qMatrix);
@@ -4967,7 +5030,7 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "handleCellSelect",
     value: function handleCellSelect(event, data) {
-      var _this48 = this;
+      var _this50 = this;
 
       if (this.options.allowCellSelections === true) {
         var elemNum = -1;
@@ -4993,10 +5056,10 @@ var Table3 = /*#__PURE__*/function () {
 
 
         this.beginSelections().then(function () {
-          var maskEl = document.getElementById("".concat(_this48.elementId, "_cellSelectMask"));
-          var maskLeftEl = document.getElementById("".concat(_this48.elementId, "_cellSelectMaskLeft"));
-          var maskRightEl = document.getElementById("".concat(_this48.elementId, "_cellSelectMaskRight"));
-          var maskButtonsEl = document.getElementById("".concat(_this48.elementId, "_cellSelectButtons"));
+          var maskEl = document.getElementById("".concat(_this50.elementId, "_cellSelectMask"));
+          var maskLeftEl = document.getElementById("".concat(_this50.elementId, "_cellSelectMaskLeft"));
+          var maskRightEl = document.getElementById("".concat(_this50.elementId, "_cellSelectMaskRight"));
+          var maskButtonsEl = document.getElementById("".concat(_this50.elementId, "_cellSelectButtons"));
           var cellEl = null;
 
           if (event.target.classList.contains('websy-table-cell')) {
@@ -5030,7 +5093,7 @@ var Table3 = /*#__PURE__*/function () {
             maskButtonsEl.style.top = '0px';
             maskButtonsEl.style.left = "".concat(cellEl.offsetLeft, "px");
             maskButtonsEl.style.width = "".concat(cellEl.offsetWidth, "px");
-            maskButtonsEl.style.height = "".concat(_this48.table.sizes.header.height, "px");
+            maskButtonsEl.style.height = "".concat(_this50.table.sizes.header.height, "px");
           } // cellEl.classList.add('websy-cell-selected')   
           // let rowIndex = +cellEl.getAttribute('data-row-index')
 
@@ -5039,23 +5102,23 @@ var Table3 = /*#__PURE__*/function () {
           var cellIndex = +cellEl.getAttribute('data-cell-index');
           var colIndex = +cellEl.getAttribute('data-col-index');
 
-          if (_this48.layout.qHyperCube.qMode === 'P') {
+          if (_this50.layout.qHyperCube.qMode === 'P') {
             var cellRef = "".concat(data.cell.pos === 'Left' ? 'L' : 'T', "_").concat(colIndex, "_").concat(rowIndex);
 
-            var cellRefIndex = _this48.selectedCells.indexOf(cellRef);
+            var cellRefIndex = _this50.selectedCells.indexOf(cellRef);
 
-            if (_this48.layout.qHyperCube.qIndentMode !== true) {
-              rowIndex -= _this48.startRow;
+            if (_this50.layout.qHyperCube.qIndentMode !== true) {
+              rowIndex -= _this50.startRow;
             }
 
             if (cellRefIndex === -1) {
-              if (_this48.fullData && _this48.fullData[rowIndex] && _this48.fullData[rowIndex][cellIndex]) {
-                if (!_this48.fullData[rowIndex][cellIndex].classes) {
-                  _this48.fullData[rowIndex][cellIndex].classes = [];
+              if (_this50.fullData && _this50.fullData[rowIndex] && _this50.fullData[rowIndex][cellIndex]) {
+                if (!_this50.fullData[rowIndex][cellIndex].classes) {
+                  _this50.fullData[rowIndex][cellIndex].classes = [];
                 }
 
-                if (_this48.fullData[rowIndex][cellIndex].classes.indexOf('websy-cell-selected') === -1) {
-                  _this48.fullData[rowIndex][cellIndex].classes.push('websy-cell-selected');
+                if (_this50.fullData[rowIndex][cellIndex].classes.indexOf('websy-cell-selected') === -1) {
+                  _this50.fullData[rowIndex][cellIndex].classes.push('websy-cell-selected');
 
                   if (!cellEl.classList.contains('websy-cell-selected')) {
                     cellEl.classList.add('websy-cell-selected');
@@ -5063,17 +5126,17 @@ var Table3 = /*#__PURE__*/function () {
                 }
               }
 
-              _this48.selectedCells.push(cellRef);
+              _this50.selectedCells.push(cellRef);
             } else {
-              if (_this48.fullData && _this48.fullData[rowIndex] && _this48.fullData[rowIndex][cellIndex]) {
-                if (!_this48.fullData[rowIndex][cellIndex].classes) {
-                  _this48.fullData[rowIndex][cellIndex].classes = [];
+              if (_this50.fullData && _this50.fullData[rowIndex] && _this50.fullData[rowIndex][cellIndex]) {
+                if (!_this50.fullData[rowIndex][cellIndex].classes) {
+                  _this50.fullData[rowIndex][cellIndex].classes = [];
                 }
 
-                var classIndex = _this48.fullData[rowIndex][cellIndex].classes.indexOf('websy-cell-selected');
+                var classIndex = _this50.fullData[rowIndex][cellIndex].classes.indexOf('websy-cell-selected');
 
                 if (classIndex !== -1) {
-                  _this48.fullData[rowIndex][cellIndex].classes.splice(classIndex, 1);
+                  _this50.fullData[rowIndex][cellIndex].classes.splice(classIndex, 1);
 
                   if (cellEl.classList.contains('websy-cell-selected')) {
                     cellEl.classList.remove('websy-cell-selected');
@@ -5081,11 +5144,11 @@ var Table3 = /*#__PURE__*/function () {
                 }
               }
 
-              _this48.selectedCells.splice(cellRefIndex, 1);
+              _this50.selectedCells.splice(cellRefIndex, 1);
             }
 
-            if (_this48.selectedCells.length > 0) {
-              _this48.options.model.selectPivotCells('/qHyperCubeDef', _this48.selectedCells.map(function (c) {
+            if (_this50.selectedCells.length > 0) {
+              _this50.options.model.selectPivotCells('/qHyperCubeDef', _this50.selectedCells.map(function (c) {
                 return {
                   qType: c.split('_')[0],
                   qCol: +c.split('_')[1],
@@ -5093,19 +5156,19 @@ var Table3 = /*#__PURE__*/function () {
                 };
               }));
             } else {
-              _this48.options.model.clearSelections('/qHyperCubeDef', [colIndex]);
+              _this50.options.model.clearSelections('/qHyperCubeDef', [colIndex]);
             }
           } else {
-            var _cellRefIndex = _this48.selectedCells.indexOf(rowIndex);
+            var _cellRefIndex = _this50.selectedCells.indexOf(rowIndex);
 
             if (_cellRefIndex === -1) {
-              if (_this48.fullData && _this48.fullData[rowIndex] && _this48.fullData[rowIndex][cellIndex]) {
-                if (!_this48.fullData[rowIndex][cellIndex].classes) {
-                  _this48.fullData[rowIndex][cellIndex].classes = [];
+              if (_this50.fullData && _this50.fullData[rowIndex] && _this50.fullData[rowIndex][cellIndex]) {
+                if (!_this50.fullData[rowIndex][cellIndex].classes) {
+                  _this50.fullData[rowIndex][cellIndex].classes = [];
                 }
 
-                if (_this48.fullData[rowIndex][cellIndex].classes.indexOf('websy-cell-selected') === -1) {
-                  _this48.fullData[rowIndex][cellIndex].classes.push('websy-cell-selected');
+                if (_this50.fullData[rowIndex][cellIndex].classes.indexOf('websy-cell-selected') === -1) {
+                  _this50.fullData[rowIndex][cellIndex].classes.push('websy-cell-selected');
 
                   if (!cellEl.classList.contains('websy-cell-selected')) {
                     cellEl.classList.add('websy-cell-selected');
@@ -5113,17 +5176,17 @@ var Table3 = /*#__PURE__*/function () {
                 }
               }
 
-              _this48.selectedCells.push(+data.rowIndex);
+              _this50.selectedCells.push(+data.rowIndex);
             } else {
-              if (_this48.fullData && _this48.fullData[rowIndex] && _this48.fullData[rowIndex][cellIndex]) {
-                if (!_this48.fullData[rowIndex][cellIndex].classes) {
-                  _this48.fullData[rowIndex][cellIndex].classes = [];
+              if (_this50.fullData && _this50.fullData[rowIndex] && _this50.fullData[rowIndex][cellIndex]) {
+                if (!_this50.fullData[rowIndex][cellIndex].classes) {
+                  _this50.fullData[rowIndex][cellIndex].classes = [];
                 }
 
-                var _classIndex = _this48.fullData[rowIndex][cellIndex].classes.indexOf('websy-cell-selected');
+                var _classIndex = _this50.fullData[rowIndex][cellIndex].classes.indexOf('websy-cell-selected');
 
                 if (_classIndex !== -1) {
-                  _this48.fullData[rowIndex][cellIndex].classes.splice(_classIndex, 1);
+                  _this50.fullData[rowIndex][cellIndex].classes.splice(_classIndex, 1);
 
                   if (cellEl.classList.contains('websy-cell-selected')) {
                     cellEl.classList.remove('websy-cell-selected');
@@ -5131,13 +5194,13 @@ var Table3 = /*#__PURE__*/function () {
                 }
               }
 
-              _this48.selectedCells.splice(_cellRefIndex, 1);
+              _this50.selectedCells.splice(_cellRefIndex, 1);
             }
 
-            if (_this48.selectedCells.length > 0) {
-              _this48.options.model.selectHyperCubeCells('/qHyperCubeDef', _this48.selectedCells, [colIndex]);
+            if (_this50.selectedCells.length > 0) {
+              _this50.options.model.selectHyperCubeCells('/qHyperCubeDef', _this50.selectedCells, [colIndex]);
             } else {
-              _this48.options.model.clearSelections('/qHyperCubeDef', [colIndex]);
+              _this50.options.model.clearSelections('/qHyperCubeDef', [colIndex]);
             }
           }
         });
@@ -5182,7 +5245,7 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "handleScroll",
     value: function handleScroll(direction, startRow, endRow, startCol, endCol) {
-      var _this49 = this;
+      var _this51 = this;
 
       this.startCol = startCol;
       this.endCol = endCol; // if (this.layout.qHyperCube.qMode === 'P' && this.layout.qHyperCube.qIndentMode !== true) {
@@ -5192,22 +5255,22 @@ var Table3 = /*#__PURE__*/function () {
 
       this.startRow = startRow;
       this.checkDataExists(startRow, endRow).then(function () {
-        if (_this49.columns && _this49.columns.length > 0) {
-          if (_this49.layout.qHyperCube.qMode === 'S') {
-            var columnsInView = _this49.columns.filter(function (c, i) {
-              return i < _this49.pinnedColumns || i >= startCol && i <= endCol;
+        if (_this51.columns && _this51.columns.length > 0) {
+          if (_this51.layout.qHyperCube.qMode === 'S') {
+            var columnsInView = _this51.columns.filter(function (c, i) {
+              return i < _this51.pinnedColumns || i >= startCol && i <= endCol;
             });
 
-            _this49.table.columns = [columnsInView];
+            _this51.table.columns = [columnsInView];
           } else {
-            var _columnsInView = _this49.columns.map(function (cP) {
+            var _columnsInView = _this51.columns.map(function (cP) {
               var acc = 0;
               var adjAcc = 0;
               var firstColTrimmed = false;
               var newRow = cP.map(function (cC, i) {
                 var c = _extends({}, cC);
 
-                if (i < _this49.pinnedColumns) {
+                if (i < _this51.pinnedColumns) {
                   acc += c.colspan || 1;
                   adjAcc += c.colspan || 1;
                   c.inView = true;
@@ -5233,7 +5296,7 @@ var Table3 = /*#__PURE__*/function () {
                     c.inView = false;
                   }
                 } else {
-                  c.inView = i >= startCol + _this49.pinnedColumns && i <= endCol + _this49.pinnedColumns;
+                  c.inView = i >= startCol + _this51.pinnedColumns && i <= endCol + _this51.pinnedColumns;
                 }
 
                 acc += cC.colspan || 1;
@@ -5245,33 +5308,33 @@ var Table3 = /*#__PURE__*/function () {
               });
             });
 
-            _this49.table.columns = _columnsInView;
+            _this51.table.columns = _columnsInView;
           }
         }
 
-        if (_this49.totals && _this49.totals.length > 0) {
-          var totalsInView = _this49.totals.filter(function (c, i) {
-            return i < _this49.pinnedColumns || i >= startCol && i <= endCol;
+        if (_this51.totals && _this51.totals.length > 0) {
+          var totalsInView = _this51.totals.filter(function (c, i) {
+            return i < _this51.pinnedColumns || i >= startCol && i <= endCol;
           });
 
-          _this49.table.totals = totalsInView;
+          _this51.table.totals = totalsInView;
         }
 
-        var start = _this49.layout.qHyperCube.qMode === 'S' || _this49.layout.qHyperCube.qIndentMode === true ? startRow : 0;
-        var end = _this49.layout.qHyperCube.qMode === 'S' || _this49.layout.qHyperCube.qIndentMode === true ? endRow : endRow - startRow;
+        var start = _this51.layout.qHyperCube.qMode === 'S' || _this51.layout.qHyperCube.qIndentMode === true ? startRow : 0;
+        var end = _this51.layout.qHyperCube.qMode === 'S' || _this51.layout.qHyperCube.qIndentMode === true ? endRow : endRow - startRow;
 
-        _this49.appendRows(_this49.transformData(_toConsumableArray(_this49.fullData).slice(start, end + 1).map(function (row) {
+        _this51.appendRows(_this51.transformData(_toConsumableArray(_this51.fullData).slice(start, end + 1).map(function (row) {
           // console.log(row)
           return row.filter(function (c, i) {
-            if (_this49.layout.qHyperCube.qMode === 'P' && _this49.layout.qHyperCube.qIndentMode !== true) {
-              return c.level < _this49.pinnedColumns || c.dataIndex >= startCol - (_this49.layout.qHyperCube.qNoOfLeftDims - _this49.pinnedColumns) && c.dataIndex <= endCol - (_this49.layout.qHyperCube.qNoOfLeftDims - _this49.pinnedColumns); // return c.level < this.pinnedColumns || (c.level >= startCol && c.level <= endCol)
+            if (_this51.layout.qHyperCube.qMode === 'P' && _this51.layout.qHyperCube.qIndentMode !== true) {
+              return c.level < _this51.pinnedColumns || c.dataIndex >= startCol - (_this51.layout.qHyperCube.qNoOfLeftDims - _this51.pinnedColumns) && c.dataIndex <= endCol - (_this51.layout.qHyperCube.qNoOfLeftDims - _this51.pinnedColumns); // return c.level < this.pinnedColumns || (c.level >= startCol && c.level <= endCol)
             } else {
-              return i < _this49.pinnedColumns || i >= startCol + _this49.pinnedColumns && i <= endCol + _this49.pinnedColumns;
+              return i < _this51.pinnedColumns || i >= startCol + _this51.pinnedColumns && i <= endCol + _this51.pinnedColumns;
             }
           }).map(function (c, i, arr) {
-            if (_this49.layout.qHyperCube.qMode === 'P') {
+            if (_this51.layout.qHyperCube.qMode === 'P') {
               // && this.layout.qHyperCube.qIndentMode !== true) {            
-              c.level = c.level > _this49.pinnedColumns - 1 ? _this49.table.options.columns[_this49.table.options.columns.length - 1].length - (arr.length - i) : c.level;
+              c.level = c.level > _this51.pinnedColumns - 1 ? _this51.table.options.columns[_this51.table.options.columns.length - 1].length - (arr.length - i) : c.level;
             }
 
             return c;
@@ -5282,13 +5345,13 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "handleNativeScroll",
     value: function handleNativeScroll(scrollTop) {
-      var _this50 = this;
+      var _this52 = this;
 
       var rowsRendered = Math.floor(scrollTop / this.table.sizes.cellHeight);
 
       if (rowsRendered + this.table.sizes.rowsToRender * 2 > this.rowsLoaded && this.rowsLoaded < this.layout.qHyperCube.qSize.qcy) {
         this.getData(this.rowsLoaded, function (page) {
-          _this50.appendRows(_this50.transformData(page.qMatrix));
+          _this52.appendRows(_this52.transformData(page.qMatrix));
         });
       }
     }
@@ -5409,7 +5472,7 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "render",
     value: function render() {
-      var _this51 = this;
+      var _this53 = this;
 
       var pageNum = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
       // if (this.searchPrepped === false) {
@@ -5429,73 +5492,73 @@ var Table3 = /*#__PURE__*/function () {
       }
 
       this.options.model.getLayout().then(function (layout) {
-        _this51.layout = layout;
-        _this51.qlikTop = 0;
-        _this51.startRow = 0;
+        _this53.layout = layout;
+        _this53.qlikTop = 0;
+        _this53.startRow = 0;
 
-        if (_this51.inSelections === true) {
+        if (_this53.inSelections === true) {
           if (layout.qSelectionInfo.qInSelections === true) {
             return;
           } else {
-            _this51.confirmCancelSelections(true);
+            _this53.confirmCancelSelections(true);
           }
         }
 
-        _this51.dataWidth = _this51.layout.qHyperCube.qSize.qcx;
-        _this51.columnOrder = _this51.layout.qHyperCube.qColumnOrder;
-        _this51.pageNum = pageNum;
+        _this53.dataWidth = _this53.layout.qHyperCube.qSize.qcx;
+        _this53.columnOrder = _this53.layout.qHyperCube.qColumnOrder;
+        _this53.pageNum = pageNum;
 
-        _this51.getData(0, function (page) {
-          _this51.layout.qHyperCube.qDataPages = [page];
+        _this53.getData(0, function (page) {
+          _this53.layout.qHyperCube.qDataPages = [page];
 
           if (layout.qHyperCube.qError && layout.qHyperCube.qCalcCondMsg) {
-            _this51.table.hideLoading();
+            _this53.table.hideLoading();
 
-            _this51.table.showError({
-              message: _this51.options.customError || layout.qHyperCube.qCalcCondMsg
+            _this53.table.showError({
+              message: _this53.options.customError || layout.qHyperCube.qCalcCondMsg
             });
 
             return;
           }
 
-          if (_this51.options.forcedRowLimit && layout.qHyperCube.qSize.qcy > _this51.options.forcedRowLimit) {
-            _this51.table.hideLoading();
+          if (_this53.options.forcedRowLimit && layout.qHyperCube.qSize.qcy > _this53.options.forcedRowLimit) {
+            _this53.table.hideLoading();
 
-            _this51.table.showError({
-              message: _this51.options.forcedRowLimitError || _this51.options.customError || layout.qHyperCube.qCalcCondMsg
+            _this53.table.showError({
+              message: _this53.options.forcedRowLimitError || _this53.options.customError || layout.qHyperCube.qCalcCondMsg
             });
 
             return;
           }
 
-          if (_this51.options.forcedColLimit && layout.qHyperCube.qSize.qcx > _this51.options.forcedColLimit) {
-            _this51.table.hideLoading();
+          if (_this53.options.forcedColLimit && layout.qHyperCube.qSize.qcx > _this53.options.forcedColLimit) {
+            _this53.table.hideLoading();
 
-            _this51.table.showError({
-              message: _this51.options.forcedColLimitError || _this51.options.customError || layout.qHyperCube.qCalcCondMsg
+            _this53.table.showError({
+              message: _this53.options.forcedColLimitError || _this53.options.customError || layout.qHyperCube.qCalcCondMsg
             });
 
             return;
           }
 
-          _this51.table.hideError();
+          _this53.table.hideError();
 
-          _this51.options.model.getEffectiveProperties().then(function (props) {
-            _this51.properties = props;
+          _this53.options.model.getEffectiveProperties().then(function (props) {
+            _this53.properties = props;
 
-            if (_this51.options.onUpdate) {
-              _this51.options.onUpdate(props, layout);
+            if (_this53.options.onUpdate) {
+              _this53.options.onUpdate(props, layout);
             }
 
-            _this51.endCol = layout.qHyperCube.qSize.qcx + (_this51.pinnedColumns || layout.qHyperCube.qNoOfLeftDims); // this.layout = layout
+            _this53.endCol = layout.qHyperCube.qSize.qcx + (_this53.pinnedColumns || layout.qHyperCube.qNoOfLeftDims); // this.layout = layout
 
-            if (_this51.layout.qHyperCube.qMode === 'P') {
-              _this51.qlikColumnOrder = _this51.layout.qHyperCube.qEffectiveInterColumnSortOrder;
+            if (_this53.layout.qHyperCube.qMode === 'P') {
+              _this53.qlikColumnOrder = _this53.layout.qHyperCube.qEffectiveInterColumnSortOrder;
             } else {
-              _this51.qlikColumnOrder = _this51.layout.qHyperCube.qColumnOrder;
+              _this53.qlikColumnOrder = _this53.layout.qHyperCube.qColumnOrder;
             }
 
-            _this51.resize();
+            _this53.resize();
           });
         });
       }, function (err) {
@@ -5505,7 +5568,7 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "resize",
     value: function resize() {
-      var _this52 = this;
+      var _this54 = this;
 
       this.buildDataStructure(); // this.rowCount = pageNum * this.options.pageSize
       // if (this.layout.qHyperCube.qPivotDataPages[0]) {
@@ -5527,16 +5590,16 @@ var Table3 = /*#__PURE__*/function () {
       this.layout.qHyperCube.qDimensionInfo = this.layout.qHyperCube.qDimensionInfo.map(function (c, i) {
         c.searchable = true;
 
-        if (_this52.options.columnOverrides[i]) {
-          c = _objectSpread(_objectSpread({}, c), _this52.options.columnOverrides[i]);
+        if (_this54.options.columnOverrides[i]) {
+          c = _objectSpread(_objectSpread({}, c), _this54.options.columnOverrides[i]);
         }
 
         c.searchField = "dim".concat(i);
         return c;
       });
       this.layout.qHyperCube.qMeasureInfo = this.layout.qHyperCube.qMeasureInfo.map(function (c, i) {
-        if (_this52.options.columnOverrides[_this52.layout.qHyperCube.qDimensionInfo.length + i]) {
-          c = _objectSpread(_objectSpread({}, c), _this52.options.columnOverrides[_this52.layout.qHyperCube.qDimensionInfo.length + i]);
+        if (_this54.options.columnOverrides[_this54.layout.qHyperCube.qDimensionInfo.length + i]) {
+          c = _objectSpread(_objectSpread({}, c), _this54.options.columnOverrides[_this54.layout.qHyperCube.qDimensionInfo.length + i]);
         }
 
         return c;
@@ -5554,29 +5617,29 @@ var Table3 = /*#__PURE__*/function () {
       }
 
       this.getData(this.startRow, function (page) {
-        if (_this52.layout.qHyperCube.qPivotDataPages && _this52.layout.qHyperCube.qPivotDataPages[0] && _this52.layout.qHyperCube.qPivotDataPages[0].qData.length !== _this52.layout.qHyperCube.qSize.qcx) {
-          _this52.buildPivotColumns();
+        if (_this54.layout.qHyperCube.qPivotDataPages && _this54.layout.qHyperCube.qPivotDataPages[0] && _this54.layout.qHyperCube.qPivotDataPages[0].qData.length !== _this54.layout.qHyperCube.qSize.qcx) {
+          _this54.buildPivotColumns();
         }
 
-        _this52.table.hideLoading(); // if (this.layout.qHyperCube.qMode === 'S') {
+        _this54.table.hideLoading(); // if (this.layout.qHyperCube.qMode === 'S') {
 
 
-        _this52.table.render([], false);
+        _this54.table.render([], false);
 
-        _this52.prepDropdowns(); // }        
+        _this54.prepDropdowns(); // }        
 
 
         if (!page || page.err) {
-          var tableEl = document.getElementById("".concat(_this52.elementId, "_foot"));
+          var tableEl = document.getElementById("".concat(_this54.elementId, "_foot"));
 
-          if (_this52.tableEl) {
+          if (_this54.tableEl) {
             tableEl.innerHTML = "\n            <div class='request-abort-error'>Could not fetch data. Click <strong class='table-try-again'>here</strong> to try again</div>\n          ";
           }
         } else {
-          if (_this52.options.virtualScroll === true) {
-            _this52.appendRows(_this52.transformData(_this52.fullData));
+          if (_this54.options.virtualScroll === true) {
+            _this54.appendRows(_this54.transformData(_this54.fullData));
           } else {
-            _this52.appendRows(_this52.transformData(_this52.fullData.slice(0, _this52.rowsLoaded)));
+            _this54.appendRows(_this54.transformData(_this54.fullData.slice(0, _this54.rowsLoaded)));
           }
         }
       });
@@ -5595,15 +5658,15 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "transformData",
     value: function transformData(page) {
-      var _this53 = this;
+      var _this55 = this;
 
       return page.map(function (r) {
         return r.map(function (c, i) {
-          if (_this53.layout.qHyperCube.qMode === 'S') {
+          if (_this55.layout.qHyperCube.qMode === 'S') {
             c.level = i;
           }
 
-          if (_this53.table.options.columns[_this53.table.options.columns.length - 1][i] && (_this53.table.options.columns[_this53.table.options.columns.length - 1][i].showAsLink === true || _this53.table.options.columns[_this53.table.options.columns.length - 1][i].showAsNavigatorLink === true)) {
+          if (_this55.table.options.columns[_this55.table.options.columns.length - 1][i] && (_this55.table.options.columns[_this55.table.options.columns.length - 1][i].showAsLink === true || _this55.table.options.columns[_this55.table.options.columns.length - 1][i].showAsNavigatorLink === true)) {
             if (c.qAttrExps && c.qAttrExps.qValues && c.qAttrExps.qValues[0].qText) {
               c.value = c.qAttrExps.qValues[0].qText;
 
@@ -5620,21 +5683,21 @@ var Table3 = /*#__PURE__*/function () {
           }
 
           if (c.qAttrExps && c.qAttrExps.qValues) {
-            var tIndex = i + (_this53.startCol || 0);
+            var tIndex = i + (_this55.startCol || 0);
             c.qAttrExps.qValues.forEach(function (a, aI) {
               if (a.qText && a.qText !== '') {
-                if (c.level < _this53.layout.qHyperCube.qDimensionInfo.length) {
-                  if (_this53.layout.qHyperCube.qDimensionInfo[c.level] && _this53.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo && _this53.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI] && _this53.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                if (c.level < _this55.layout.qHyperCube.qDimensionInfo.length) {
+                  if (_this55.layout.qHyperCube.qDimensionInfo[c.level] && _this55.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo && _this55.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI] && _this55.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                     c.color = a.qText;
-                  } else if (_this53.layout.qHyperCube.qDimensionInfo[c.level] && _this53.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo && _this53.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI] && _this53.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                  } else if (_this55.layout.qHyperCube.qDimensionInfo[c.level] && _this55.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo && _this55.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI] && _this55.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                     c.backgroundColor = a.qText;
                   }
                 } else {
-                  var measureIndex = (c.level - _this53.layout.qHyperCube.qDimensionInfo.length) % _this53.layout.qHyperCube.qMeasureInfo.length;
+                  var measureIndex = (c.level - _this55.layout.qHyperCube.qDimensionInfo.length) % _this55.layout.qHyperCube.qMeasureInfo.length;
 
-                  if (_this53.layout.qHyperCube.qMeasureInfo[measureIndex] && _this53.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && _this53.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && _this53.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                  if (_this55.layout.qHyperCube.qMeasureInfo[measureIndex] && _this55.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && _this55.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && _this55.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                     c.color = a.qText;
-                  } else if (_this53.layout.qHyperCube.qMeasureInfo[measureIndex] && _this53.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && _this53.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && _this53.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                  } else if (_this55.layout.qHyperCube.qMeasureInfo[measureIndex] && _this55.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && _this55.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && _this55.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                     c.backgroundColor = a.qText;
                   }
                 }
@@ -5649,7 +5712,7 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "transformPivotTable",
     value: function transformPivotTable(page) {
-      var _this54 = this;
+      var _this56 = this;
 
       var output = [];
       var leftNodes = [];
@@ -5676,7 +5739,7 @@ var Table3 = /*#__PURE__*/function () {
       this.pinnedColumns = Math.min(this.validPivotLeft + 1, visibleLeftCount);
       leftNodes = leftNodes.map(function (n) {
         return n.map(function (c, i) {
-          if (c.level >= _this54.pinnedColumns && c.qElemNo === -4) {
+          if (c.level >= _this56.pinnedColumns && c.qElemNo === -4) {
             c.level = -1;
           }
 
@@ -5697,25 +5760,25 @@ var Table3 = /*#__PURE__*/function () {
 
           row[c].dataIndex = c; // row[c].level = this.pinnedColumns
 
-          if (_this54.layout.qHyperCube.qIndentMode !== true) {
-            row[c].level = _this54.pinnedColumns + c;
+          if (_this56.layout.qHyperCube.qIndentMode !== true) {
+            row[c].level = _this56.pinnedColumns + c;
           }
 
           if (row[c].qAttrExps && row[c].qAttrExps.qValues) {
             row[c].qAttrExps.qValues.forEach(function (a, aI) {
               if (a.qText && a.qText !== '') {
-                if (row[c].level < _this54.layout.qHyperCube.qDimensionInfo.length) {
-                  if (_this54.layout.qHyperCube.qDimensionInfo[row[c].level] && _this54.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo && _this54.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo[aI] && _this54.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                if (row[c].level < _this56.layout.qHyperCube.qDimensionInfo.length) {
+                  if (_this56.layout.qHyperCube.qDimensionInfo[row[c].level] && _this56.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo && _this56.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo[aI] && _this56.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                     row[c].color = a.qText;
-                  } else if (_this54.layout.qHyperCube.qDimensionInfo[row[c].level] && _this54.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo && _this54.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo[aI] && _this54.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                  } else if (_this56.layout.qHyperCube.qDimensionInfo[row[c].level] && _this56.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo && _this56.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo[aI] && _this56.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                     row[c].backgroundColor = a.qText;
                   }
                 } else {
-                  var measureIndex = c % _this54.layout.qHyperCube.qMeasureInfo.length;
+                  var measureIndex = c % _this56.layout.qHyperCube.qMeasureInfo.length;
 
-                  if (_this54.layout.qHyperCube.qMeasureInfo[measureIndex] && _this54.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && _this54.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && _this54.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                  if (_this56.layout.qHyperCube.qMeasureInfo[measureIndex] && _this56.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && _this56.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && _this56.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                     row[c].color = a.qText;
-                  } else if (_this54.layout.qHyperCube.qMeasureInfo[measureIndex] && _this54.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && _this54.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && _this54.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                  } else if (_this56.layout.qHyperCube.qMeasureInfo[measureIndex] && _this56.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && _this56.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && _this56.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                     row[c].backgroundColor = a.qText;
                   }
                 }
@@ -5795,13 +5858,13 @@ var Table3 = /*#__PURE__*/function () {
         for (var _i24 = 0; _i24 < topNodesTransposed.length; _i24++) {
           if (_i24 === topNodesTransposed.length - 1 && this.layout.qHyperCube.qMode === 'P' && this.layout.qHyperCube.qIndentMode !== true) {
             (function () {
-              var columns = _this54.layout.qHyperCube.qDimensionInfo.filter(function (d) {
+              var columns = _this56.layout.qHyperCube.qDimensionInfo.filter(function (d) {
                 return !d.qError;
               });
 
               var labelledTopCells = additionalTopCells.map(function (d, i) {
                 d.name = (columns[i] || {}).qFallbackTitle || '';
-                d.show = i <= _this54.validPivotLeft;
+                d.show = i <= _this56.validPivotLeft;
                 return d;
               });
               topNodesTransposed[_i24] = labelledTopCells.concat(topNodesTransposed[_i24]);
@@ -6157,6 +6220,7 @@ if (typeof WebsyDesigns !== 'undefined') {
   WebsyDesigns.QlikPlugins = {
     Bookmarks: Bookmarks,
     Chart: Chart,
+    Pie: Pie,
     CurrentSelections: CurrentSelections,
     SimpleSearch: SimpleSearch,
     Table: Table,
@@ -6170,6 +6234,7 @@ if (typeof WebsyDesigns !== 'undefined') {
   window.WebsyDesignsQlikPlugins = {
     Bookmarks: Bookmarks,
     Chart: Chart,
+    Pie: Pie,
     CurrentSelections: CurrentSelections,
     SimpleSearch: SimpleSearch,
     Table: Table,
@@ -6188,6 +6253,7 @@ if (typeof WebsyDesigns !== 'undefined') {
   XMLHttpRequest
   WebsyDesigns
   Chart
+  Pie
   Table3
   GeoMap
   Dropdown
@@ -6197,7 +6263,7 @@ if (typeof WebsyDesigns !== 'undefined') {
 
   var ObjectManager = /*#__PURE__*/function () {
     function ObjectManager(options) {
-      var _this55 = this;
+      var _this57 = this;
 
       _classCallCheck(this, ObjectManager);
 
@@ -6217,6 +6283,9 @@ if (typeof WebsyDesigns !== 'undefined') {
       }, {
         id: 'chart',
         definition: Chart
+      }, {
+        id: 'pie',
+        definition: Pie
       }, {
         id: 'map',
         definition: GeoMap
@@ -6242,7 +6311,7 @@ if (typeof WebsyDesigns !== 'undefined') {
         });
         defaultVisualisationPlugins.forEach(function (p) {
           if (visKeys.indexOf(p.id) === -1) {
-            _this55.options.visualisationPlugins.push(p);
+            _this57.options.visualisationPlugins.push(p);
           }
         });
       } else {
@@ -6276,7 +6345,7 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "mergeObjects",
       value: function mergeObjects() {
-        var _this56 = this;
+        var _this58 = this;
 
         // Variables
         var extended = {};
@@ -6294,7 +6363,7 @@ if (typeof WebsyDesigns !== 'undefined') {
             if (obj.hasOwnProperty(prop)) {
               if (deep && Object.prototype.toString.call(obj[prop]) === '[object Object]') {
                 // If we're doing a deep merge and the property is an object
-                extended[prop] = _this56.mergeObjects(extended, extended[prop], obj[prop]);
+                extended[prop] = _this58.mergeObjects(extended, extended[prop], obj[prop]);
               } else {
                 // Otherwise, do a regular merge
                 if (Array.isArray(extended[prop]) && Array.isArray(obj[prop])) {
@@ -6326,14 +6395,14 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "init",
       value: function init() {
-        var _this57 = this;
+        var _this59 = this;
 
         return new Promise(function (resolve, reject) {
-          _this57.prep('global');
+          _this59.prep('global');
 
-          _this57.connectToApp().then(function () {
-            _this57.executeAction(0, _this57.options.initialActions, function () {
-              _this57.selectFromUrl(function () {
+          _this59.connectToApp().then(function () {
+            _this59.executeAction(0, _this59.options.initialActions, function () {
+              _this59.selectFromUrl(function () {
                 resolve();
               });
             });
@@ -6414,7 +6483,7 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "prep",
       value: function prep(view) {
-        var _this58 = this;
+        var _this60 = this;
 
         // for (let view in this.options.views) {
         // sort out the elements in each view
@@ -6436,31 +6505,31 @@ if (typeof WebsyDesigns !== 'undefined') {
 
 
         var _loop3 = function _loop3(a) {
-          var el = document.getElementById(_this58.options.actions[a].elementId);
+          var el = document.getElementById(_this60.options.actions[a].elementId);
 
           if (el) {
-            el.addEventListener(_this58.options.actions[a].event, function () {
+            el.addEventListener(_this60.options.actions[a].event, function () {
               var _loop4 = function _loop4(i) {
-                var item = _this58.options.actions[a].items[i];
+                var item = _this60.options.actions[a].items[i];
 
                 if (typeof item.params === 'undefined') {
                   item.params = [];
                 }
 
                 if (item.field) {
-                  _this58.app.getField(item.field, item.state || '$').then(function (field) {
+                  _this60.app.getField(item.field, item.state || '$').then(function (field) {
                     field[item.method].apply(field, _toConsumableArray(item.params));
                   });
                 } else if (item.fn) {
                   item.fn();
                 } else {
-                  var _this58$app;
+                  var _this60$app;
 
-                  (_this58$app = _this58.app)[item.method].apply(_this58$app, _toConsumableArray(item.params));
+                  (_this60$app = _this60.app)[item.method].apply(_this60$app, _toConsumableArray(item.params));
                 }
               };
 
-              for (var i = 0; i < _this58.options.actions[a].items.length; i++) {
+              for (var i = 0; i < _this60.options.actions[a].items.length; i++) {
                 _loop4(i);
               }
             });
@@ -6476,14 +6545,14 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "connectToApp",
       value: function connectToApp() {
-        var _this59 = this;
+        var _this61 = this;
 
         return new Promise(function (resolve, reject) {
           // check for enigma.js      
-          var originalId = _this59.options.enigmaConfig.app;
+          var originalId = _this61.options.enigmaConfig.app;
 
-          if (_this59.options.enigmaConfig.app) {
-            _this59.options.enigmaConfig.app = _this59.normalizeId(_this59.options.enigmaConfig.app);
+          if (_this61.options.enigmaConfig.app) {
+            _this61.options.enigmaConfig.app = _this61.normalizeId(_this61.options.enigmaConfig.app);
           }
 
           if (typeof enigma === 'undefined') {
@@ -6493,28 +6562,28 @@ if (typeof WebsyDesigns !== 'undefined') {
             return;
           }
 
-          if (typeof _this59.options.enigmaSchema === 'undefined') {
+          if (typeof _this61.options.enigmaSchema === 'undefined') {
             reject({
               error: 'enigmaSchema property not found.'
             });
             return;
           }
 
-          var url = _this59.options.enigmaConfig.url;
+          var url = _this61.options.enigmaConfig.url;
 
-          if (_this59.options.enigmaConfig.ticket) {
+          if (_this61.options.enigmaConfig.ticket) {
             if (url.indexOf('?') === -1) {
               url += '?';
             } else {
               url += '&';
             }
 
-            url += "qlikTicket=".concat(_this59.options.enigmaConfig.ticket);
+            url += "qlikTicket=".concat(_this61.options.enigmaConfig.ticket);
           }
 
           var MAX_RETRIES = 5;
           var config = {
-            schema: _this59.options.enigmaSchema,
+            schema: _this61.options.enigmaSchema,
             url: url,
             onRejected: function onRejected(sessionReference, request, error) {
               if (error.code === this.options.enigmaSchema.enums.LocalizedErrorCode.LOCERR_GENERIC_ABORTED) {
@@ -6529,16 +6598,16 @@ if (typeof WebsyDesigns !== 'undefined') {
             }
           };
           var session = enigma.create(config);
-          _this59.session = session;
+          _this61.session = session;
           session.open().then(function (global) {
-            _this59.global = global;
+            _this61.global = global;
             global.getActiveDoc().then(function (app) {
               if (app) {
                 app.abortModal(true).then(function () {
-                  _this59.app = app;
+                  _this61.app = app;
 
-                  if (_this59.options.views.global) {
-                    _this59.executeActions('global').then(function () {
+                  if (_this61.options.views.global) {
+                    _this61.executeActions('global').then(function () {
                       resolve();
                     });
                   } else {
@@ -6546,7 +6615,7 @@ if (typeof WebsyDesigns !== 'undefined') {
                   }
                 });
               } else {
-                return _this59.openApp(originalId).then(function () {
+                return _this61.openApp(originalId).then(function () {
                   resolve();
                 });
               }
@@ -6554,10 +6623,10 @@ if (typeof WebsyDesigns !== 'undefined') {
               var e = err;
 
               if (originalId) {
-                return _this59.openApp(originalId).then(function () {
+                return _this61.openApp(originalId).then(function () {
                   resolve();
                 }, function (err) {
-                  _this59.sessionOnNotification({
+                  _this61.sessionOnNotification({
                     err: err
                   });
                 });
@@ -6566,40 +6635,40 @@ if (typeof WebsyDesigns !== 'undefined') {
               }
             });
 
-            if (_this59.options.keepAlive === true) {
-              _this59.keepAlive();
+            if (_this61.options.keepAlive === true) {
+              _this61.keepAlive();
             }
           }, function (err) {
             reject(err);
           });
           session.on('traffic:received', function (data) {
             if (typeof data.suspend !== 'undefined') {
-              _this59.sessionSuspended();
+              _this61.sessionSuspended();
             }
           });
           session.on('notification:*', function (eventName, data) {
             if (eventName === 'OnAuthenticationInformation') {
               if (data.mustAuthenticate === true) {
-                if (_this59.options.enigmaConfig.authUrl) {
-                  window.location = _this59.options.enigmaConfig.authUrl + window.location.search.replace('?', '%3F').replace('=', '%3D');
-                } else if (_this59.options.enigmaConfig.onMustAuthenticate) {
-                  _this59.options.enigmaConfig.onMustAuthenticate();
+                if (_this61.options.enigmaConfig.authUrl) {
+                  window.location = _this61.options.enigmaConfig.authUrl + window.location.search.replace('?', '%3F').replace('=', '%3D');
+                } else if (_this61.options.enigmaConfig.onMustAuthenticate) {
+                  _this61.options.enigmaConfig.onMustAuthenticate();
                 } else if (data.loginUri) {
                   window.location = data.loginUri;
                 }
               } else if (data.mustAuthenticate === false) {
-                _this59.user = {
+                _this61.user = {
                   userDirectory: data.userDirectory,
                   userId: data.userId
                 };
               }
             } else {
-              _this59.sessionOnNotification(data, eventName);
+              _this61.sessionOnNotification(data, eventName);
             }
           });
-          session.on('suspended', _this59.sessionSuspended.bind(_this59));
-          session.on('resumed', _this59.sessionResumed.bind(_this59));
-          session.on('closed', _this59.sessionClosed.bind(_this59));
+          session.on('suspended', _this61.sessionSuspended.bind(_this61));
+          session.on('resumed', _this61.sessionResumed.bind(_this61));
+          session.on('closed', _this61.sessionClosed.bind(_this61));
         });
       }
     }, {
@@ -6620,25 +6689,25 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "keepAlive",
       value: function keepAlive() {
-        var _this60 = this;
+        var _this62 = this;
 
         this.global.engineVersion();
         setTimeout(function () {
-          _this60.keepAlive();
+          _this62.keepAlive();
         }, 59000);
       }
     }, {
       key: "openApp",
       value: function openApp(appId) {
-        var _this61 = this;
+        var _this63 = this;
 
         return new Promise(function (resolve, reject) {
-          _this61.global.openDoc(appId).then(function (app) {
+          _this63.global.openDoc(appId).then(function (app) {
             app.abortModal(true).then(function () {
-              _this61.app = app;
+              _this63.app = app;
 
-              if (_this61.options.views.global) {
-                _this61.executeActions('global').then(function () {
+              if (_this63.options.views.global) {
+                _this63.executeActions('global').then(function () {
                   resolve();
                 });
               } else {
@@ -6653,7 +6722,7 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "loadView",
       value: function loadView(view, force) {
-        var _this62 = this;
+        var _this64 = this;
 
         if (typeof force === 'undefined') {
           force = false;
@@ -6673,23 +6742,23 @@ if (typeof WebsyDesigns !== 'undefined') {
 
         if (this.options.views[view].controller && this.options.views[view].initialized !== true) {
           this.options.views[view].controller.init(function () {
-            _this62.options.views[view].initialized = true;
+            _this64.options.views[view].initialized = true;
 
-            if (_this62.options.views[view].prepped !== true) {
-              _this62.prep(view);
+            if (_this64.options.views[view].prepped !== true) {
+              _this64.prep(view);
             }
 
-            _this62.executeActions(view).then(function () {
-              if ((_this62.globalObjectsLoaded === false || _this62.options.alwaysLoadGlobal === true) && view !== 'global') {
-                _this62.loadObjects('global', force);
+            _this64.executeActions(view).then(function () {
+              if ((_this64.globalObjectsLoaded === false || _this64.options.alwaysLoadGlobal === true) && view !== 'global') {
+                _this64.loadObjects('global', force);
 
-                _this62.globalObjectsLoaded = true;
+                _this64.globalObjectsLoaded = true;
               }
 
-              _this62.loadObjects(view, force);
+              _this64.loadObjects(view, force);
 
               if (view === 'global') {
-                _this62.globalObjectsLoaded = true;
+                _this64.globalObjectsLoaded = true;
               }
             });
           });
@@ -6699,16 +6768,16 @@ if (typeof WebsyDesigns !== 'undefined') {
           }
 
           this.executeActions(view).then(function () {
-            if ((_this62.globalObjectsLoaded === false || _this62.options.alwaysLoadGlobal === true) && view !== 'global') {
-              _this62.loadObjects('global', force);
+            if ((_this64.globalObjectsLoaded === false || _this64.options.alwaysLoadGlobal === true) && view !== 'global') {
+              _this64.loadObjects('global', force);
 
-              _this62.globalObjectsLoaded = true;
+              _this64.globalObjectsLoaded = true;
             }
 
-            _this62.loadObjects(view, force);
+            _this64.loadObjects(view, force);
 
             if (view === 'global') {
-              _this62.globalObjectsLoaded = true;
+              _this64.globalObjectsLoaded = true;
             }
           });
         }
@@ -6716,7 +6785,7 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "executeAction",
       value: function executeAction(index, actionList, callbackFn) {
-        var _this63 = this;
+        var _this65 = this;
 
         var item = actionList[index];
 
@@ -6731,7 +6800,7 @@ if (typeof WebsyDesigns !== 'undefined') {
 
         if (item.field) {
           this.app.getField(item.field, item.state || '$').then(function (field) {
-            if (_this63.options.router) {
+            if (_this65.options.router) {
               if (item.method === 'unlock') {// need to think how we do this
               }
             }
@@ -6744,7 +6813,7 @@ if (typeof WebsyDesigns !== 'undefined') {
                   if (index === actionList.length) {
                     callbackFn();
                   } else {
-                    _this63.executeAction(index, actionList, callbackFn);
+                    _this65.executeAction(index, actionList, callbackFn);
                   }
                 });
               } else {
@@ -6753,7 +6822,7 @@ if (typeof WebsyDesigns !== 'undefined') {
                 if (index === actionList.length) {
                   callbackFn();
                 } else {
-                  _this63.executeAction(index, actionList, callbackFn);
+                  _this65.executeAction(index, actionList, callbackFn);
                 }
               }
             });
@@ -6781,7 +6850,7 @@ if (typeof WebsyDesigns !== 'undefined') {
             if (index === actionList.length) {
               callbackFn();
             } else {
-              _this63.executeAction(index, actionList, callbackFn);
+              _this65.executeAction(index, actionList, callbackFn);
             }
           });
         }
@@ -6789,20 +6858,20 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "executeActions",
       value: function executeActions(view) {
-        var _this64 = this;
+        var _this66 = this;
 
         return new Promise(function (resolve, reject) {
-          if (!_this64.options.views[view] || !_this64.options.views[view].actions || _this64.options.views[view].actions.length === 0) {
+          if (!_this66.options.views[view] || !_this66.options.views[view].actions || _this66.options.views[view].actions.length === 0) {
             resolve();
           }
 
-          _this64.executeAction(0, _this64.options.views[view].actions, resolve);
+          _this66.executeAction(0, _this66.options.views[view].actions, resolve);
         });
       }
     }, {
       key: "loadObjects",
       value: function loadObjects(view, force) {
-        var _this65 = this;
+        var _this67 = this;
 
         if (typeof force === 'undefined') {
           force = false;
@@ -6826,16 +6895,16 @@ if (typeof WebsyDesigns !== 'undefined') {
               }
             } else if (objList[i].definition) {
               if (typeof objList[i].definition === 'string' && objList[i].definition.toLowerCase().indexOf('.json') !== -1) {
-                _this65.request('GET', objList[i].definition).then(function (def) {
+                _this67.request('GET', objList[i].definition).then(function (def) {
                   objList[i].definition = def;
 
-                  _this65.createObjectFromDefinition(objList[i]);
+                  _this67.createObjectFromDefinition(objList[i]);
                 });
               } else {
-                _this65.createObjectFromDefinition(objList[i]);
+                _this67.createObjectFromDefinition(objList[i]);
               }
             } else {
-              _this65.createObjectFromDefinition(objList[i]);
+              _this67.createObjectFromDefinition(objList[i]);
             }
           };
 
@@ -6896,7 +6965,7 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "createObjectFromDefinition",
       value: function createObjectFromDefinition(objectConfig) {
-        var _this66 = this;
+        var _this68 = this;
 
         if (objectConfig.retries) {
           objectConfig.retries = 0;
@@ -6921,16 +6990,16 @@ if (typeof WebsyDesigns !== 'undefined') {
             objectConfig.attached = true;
             var chartType = objectConfig.type || objectConfig.definition.qInfo.qType;
 
-            if (_this66.supportedChartTypes.indexOf(chartType) !== -1) {
+            if (_this68.supportedChartTypes.indexOf(chartType) !== -1) {
               var options = _extends({}, objectConfig.options, {
                 model: model,
                 def: objectConfig.definition,
-                app: _this66.app
+                app: _this68.app
               });
 
-              objectConfig.vis = new _this66.chartLibrary[chartType]("".concat(objectConfig.elementId, "_vis"), options);
+              objectConfig.vis = new _this68.chartLibrary[chartType]("".concat(objectConfig.elementId, "_vis"), options);
               model.on('changed', function () {
-                if (objectConfig.attached === true && _this66.paused === false) {
+                if (objectConfig.attached === true && _this68.paused === false) {
                   objectConfig.vis.render();
                 }
               });
@@ -6940,7 +7009,7 @@ if (typeof WebsyDesigns !== 'undefined') {
               objectConfig.model = model;
               objectConfig.render(objectConfig, model);
               model.on('changed', function () {
-                if (objectConfig.attached === true && _this66.paused === false) {
+                if (objectConfig.attached === true && _this68.paused === false) {
                   objectConfig.render(objectConfig, model);
                 }
               });
@@ -6948,11 +7017,11 @@ if (typeof WebsyDesigns !== 'undefined') {
           }, function (err) {
             console.log('Error creating object', err);
 
-            if (objectConfig.retries < _this66.options.retryCount) {
+            if (objectConfig.retries < _this68.options.retryCount) {
               console.log('retrying');
               objectConfig.retries++;
 
-              _this66.createObjectFromDefinition(objectConfig);
+              _this68.createObjectFromDefinition(objectConfig);
             } else {
               console.log('Max retries reached.');
             }
@@ -7101,7 +7170,7 @@ if (typeof WebsyDesigns !== 'undefined') {
     }, {
       key: "select",
       value: function select(index, selections, locks, callbackFn) {
-        var _this67 = this;
+        var _this69 = this;
 
         if (index === selections.length) {
           this.play();
@@ -7139,19 +7208,19 @@ if (typeof WebsyDesigns !== 'undefined') {
                 f.lock().then(function () {
                   index++;
 
-                  _this67.select(index, selections, locks, callbackFn);
+                  _this69.select(index, selections, locks, callbackFn);
                 });
               } else {
                 index++;
 
-                _this67.select(index, selections, locks, callbackFn);
+                _this69.select(index, selections, locks, callbackFn);
               }
             });
           }, function (err) {
             console.log('field for selection not found', err);
             index++;
 
-            _this67.select(index, selections, locks, callbackFn);
+            _this69.select(index, selections, locks, callbackFn);
           });
         }
       }
