@@ -76,12 +76,53 @@
       }
     }
   }
+  .websy-dragdrop-item-inner {
+    border: 1px solid #555555;
+    border-radius: 3px;
+    padding: 0 5px;
+    .websy-dropdown-header {
+      color: #555555;
+      .arrow, .clear {
+        display: none;
+      }
+      svg {
+        path, line {
+          stroke: #555555!important;
+        }
+      }
+    }
+  }
+  .websy-dragdrop-item.empty {
+    .websy-drop-zone:before {
+      padding: 0 5px;
+    }
+  }
 }
 .websy-cell-select-mask, .websy-cell-select-mask-side, .websy-cell-select-buttons {
   display: none;
   position: absolute;
   &.active {
     display: block;
+  }
+}
+.websy-expand-collapse-all-container {
+  display: none;
+  height: 40px;
+  padding: 5px 0;
+  box-sizing: border-box;
+  justify-content: end;
+  &.active {
+    display: flex;
+  }
+  button {
+    background-color: transparent;
+    outline: none;
+    border: 1px solid #555555;
+    border-radius: 3px;
+    height: 30px;
+    padding: 0 15px;
+    box-sizing: border-box;
+    margin-left: 5px;
   }
 }
 .websy-cell-select-mask {

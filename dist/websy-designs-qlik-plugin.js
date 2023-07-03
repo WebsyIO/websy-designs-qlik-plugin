@@ -4248,6 +4248,7 @@ var Table3 = /*#__PURE__*/function () {
       columnOverrides: [],
       maxColWidth: '50%',
       allowPivoting: false,
+      allowExpandCollapseAll: false,
       pivotPanel: 'docked',
       pivotButtonText: 'Pivot',
       dropdownOptions: {},
@@ -4294,20 +4295,21 @@ var Table3 = /*#__PURE__*/function () {
 
     if (el) {
       var html = '';
-      var tableStyle = 'height: 100%';
+      var tableHeight = this.calculateTableHeight();
 
       if (this.options.allowPivoting === true) {
-        if (this.options.pivotPanel === 'docked') {
-          tableStyle = 'height: calc(100% - 100px);';
-        } else {
-          tableStyle = 'height: calc(100% - 30px);';
+        if (this.options.pivotPanel !== 'docked') {
           html += "\n            <div class=\"pivot-button-container\">\n              <button class=\"toggle-pivot-panel\">".concat(this.options.pivotButtonText, "</button>\n            </div>\n          ");
         }
 
         html += "\n          <div id='".concat(this.elementId, "_pivotContainer' class='websy-designs-pivot-container ").concat(this.options.pivotPanel, "'>\n            <div>\n              <h3>Rows</h3>\n              <div id='").concat(this.elementId, "_pivotRows'></div>\n            </div>\n            <div>\n              <h3>Columns</h3>\n              <div id='").concat(this.elementId, "_pivotColumns'></div>\n            </div>\n          </div>       \n        ");
       }
 
-      html += "\n        <div id='".concat(this.elementId, "_cellSelectMask' class='websy-cell-select-mask'></div>\n        <div id='").concat(this.elementId, "_tableContainer' style='").concat(tableStyle, "'></div>        \n        <div id='").concat(this.elementId, "_cellSelectMaskLeft' class='websy-cell-select-mask-side'></div>\n        <div id='").concat(this.elementId, "_cellSelectMaskRight' class='websy-cell-select-mask-side'></div>\n        <div id='").concat(this.elementId, "_cellSelectButtons' class='websy-cell-select-buttons'>\n          <div class='websy-cell-select-cancel'>\n            ").concat(this.options.cancelIcon, "\n          </div>\n          <div class='websy-cell-select-confirm'>\n            ").concat(this.options.confirmIcon, "\n          </div>\n        </div>\n      ");
+      if (this.options.allowExpandCollapseAll) {
+        html += "\n          <div id='".concat(this.elementId, "_expandCollapseAllContainer' class='websy-expand-collapse-all-container'>\n            <button class='expand-all'>Expand All</button>\n            <button class='collapse-all'>Collapse All</button>\n          </div>\n        ");
+      }
+
+      html += "\n        <div id='".concat(this.elementId, "_cellSelectMask' class='websy-cell-select-mask'></div>\n        <div id='").concat(this.elementId, "_tableContainer' style='height: ").concat(tableHeight, ";'></div>        \n        <div id='").concat(this.elementId, "_cellSelectMaskLeft' class='websy-cell-select-mask-side'></div>\n        <div id='").concat(this.elementId, "_cellSelectMaskRight' class='websy-cell-select-mask-side'></div>\n        <div id='").concat(this.elementId, "_cellSelectButtons' class='websy-cell-select-buttons'>\n          <div class='websy-cell-select-cancel'>\n            ").concat(this.options.cancelIcon, "\n          </div>\n          <div class='websy-cell-select-confirm'>\n            ").concat(this.options.confirmIcon, "\n          </div>\n        </div>\n      ");
       el.innerHTML = html;
       this.table = new WebsyDesigns.WebsyTable3("".concat(this.elementId, "_tableContainer"), _extends({}, {
         onClick: this.handleClick.bind(this),
@@ -4826,6 +4828,33 @@ var Table3 = /*#__PURE__*/function () {
       }
     }
   }, {
+    key: "calculateTableHeight",
+    value: function calculateTableHeight() {
+      var tableHeight = '100%';
+
+      if (this.options.allowPivoting === true) {
+        if (this.options.pivotPanel === 'docked') {
+          if (this.options.allowExpandCollapseAll && this.isPivot()) {
+            tableHeight = 'calc(100% - 140px)';
+          } else {
+            tableHeight = 'calc(100% - 100px)';
+          }
+        } else {
+          if (this.options.allowExpandCollapseAll && this.isPivot()) {
+            tableHeight = 'calc(100% - 70px)';
+          } else {
+            tableHeight = 'calc(100% - 30px)';
+          }
+        }
+      } else if (this.options.allowExpandCollapseAll) {
+        if (this.isPivot()) {
+          tableHeight = 'calc(100% - 30px)';
+        }
+      }
+
+      return tableHeight;
+    }
+  }, {
     key: "checkDataExists",
     value: function checkDataExists(start, end) {
       var _this47 = this;
@@ -5220,6 +5249,10 @@ var Table3 = /*#__PURE__*/function () {
           event.target.classList.toggle('active');
           el.classList.toggle('active');
         }
+      } else if (event.target.classList.contains('expand-all')) {
+        this.options.model.expandLeft('/qHyperCubeDef', 0, 0, true);
+      } else if (event.target.classList.contains('collapse-all')) {
+        this.options.model.collapseLeft('/qHyperCubeDef', 0, 0, true);
       } else if (event.target.classList.contains('websy-cell-select-mask')) {
         this.confirmCancelSelections(true);
       } else if (event.target.classList.contains('.websy-cell-select-mask-side')) {
@@ -5327,7 +5360,8 @@ var Table3 = /*#__PURE__*/function () {
           // console.log(row)
           return row.filter(function (c, i) {
             if (_this51.layout.qHyperCube.qMode === 'P' && _this51.layout.qHyperCube.qIndentMode !== true) {
-              return c.level < _this51.pinnedColumns || c.dataIndex >= startCol - (_this51.layout.qHyperCube.qNoOfLeftDims - _this51.pinnedColumns) && c.dataIndex <= endCol - (_this51.layout.qHyperCube.qNoOfLeftDims - _this51.pinnedColumns); // return c.level < this.pinnedColumns || (c.level >= startCol && c.level <= endCol)
+              // return c.level < this.pinnedColumns || (c.dataIndex >= (startCol - (this.layout.qHyperCube.qNoOfLeftDims - this.pinnedColumns)) && c.dataIndex <= (endCol - (this.layout.qHyperCube.qNoOfLeftDims - this.pinnedColumns)))
+              return c.level < _this51.pinnedColumns || c.dataIndex >= startCol && c.dataIndex <= endCol;
             } else {
               return i < _this51.pinnedColumns || i >= startCol + _this51.pinnedColumns && i <= endCol + _this51.pinnedColumns;
             }
@@ -5425,6 +5459,11 @@ var Table3 = /*#__PURE__*/function () {
       this.resize();
     }
   }, {
+    key: "isPivot",
+    value: function isPivot() {
+      return this.layout && this.layout.qHyperCube.qMode === 'P';
+    }
+  }, {
     key: "prepDropdowns",
     value: function prepDropdowns() {// this.table.options.columns.forEach((c, i) => {
       //   if (c.searchable === true && c.searchField && this.layout[c.searchField] && this.layout[c.searchField].qListObject) {
@@ -5496,6 +5535,27 @@ var Table3 = /*#__PURE__*/function () {
         _this53.qlikTop = 0;
         _this53.startRow = 0;
 
+        if (layout.qHyperCube.qLastExpandedPos && layout.qHyperCube.qLastExpandedPos.qy && layout.qHyperCube.qLastExpandedPos.qy > 0) {
+          _this53.startRow = layout.qHyperCube.qLastExpandedPos.qy;
+          _this53.table.startRow = _this53.startRow;
+
+          if (_this53.tableSizes && _this53.tableSizes.rowsToRender) {
+            _this53.endRow = _this53.startRow + _this53.tableSizes.rowsToRender;
+            _this53.table.endRow = _this53.endRow;
+          }
+        }
+
+        var containerEl = document.getElementById("".concat(_this53.elementId, "_tableContainer"));
+
+        if (containerEl) {
+          if (_this53.options.allowExpandCollapseAll && _this53.isPivot()) {
+            var ecEl = document.getElementById("".concat(_this53.elementId, "_expandCollapseAllContainer"));
+            ecEl.classList.add('active');
+          }
+
+          containerEl.style.height = _this53.calculateTableHeight();
+        }
+
         if (_this53.inSelections === true) {
           if (layout.qSelectionInfo.qInSelections === true) {
             return;
@@ -5508,7 +5568,7 @@ var Table3 = /*#__PURE__*/function () {
         _this53.columnOrder = _this53.layout.qHyperCube.qColumnOrder;
         _this53.pageNum = pageNum;
 
-        _this53.getData(0, function (page) {
+        _this53.getData(_this53.startRow, function (page) {
           _this53.layout.qHyperCube.qDataPages = [page];
 
           if (layout.qHyperCube.qError && layout.qHyperCube.qCalcCondMsg) {
@@ -5737,6 +5797,7 @@ var Table3 = /*#__PURE__*/function () {
       }
 
       this.pinnedColumns = Math.min(this.validPivotLeft + 1, visibleLeftCount);
+      this.table.pinnedColumns = this.pinnedColumns;
       leftNodes = leftNodes.map(function (n) {
         return n.map(function (c, i) {
           if (c.level >= _this56.pinnedColumns && c.qElemNo === -4) {
@@ -5863,7 +5924,7 @@ var Table3 = /*#__PURE__*/function () {
               });
 
               var labelledTopCells = additionalTopCells.map(function (d, i) {
-                d.name = (columns[i] || {}).qFallbackTitle || '';
+                d.name = _this56.options.allowPivoting !== true ? (columns[i] || {}).qFallbackTitle || '' : '';
                 d.show = i <= _this56.validPivotLeft;
                 return d;
               });

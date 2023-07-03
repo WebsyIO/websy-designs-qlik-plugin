@@ -3557,6 +3557,7 @@ class Table3 {
       columnOverrides: [],
       maxColWidth: '50%',
       allowPivoting: false,
+      allowExpandCollapseAll: false,
       pivotPanel: 'docked',
       pivotButtonText: 'Pivot',
       dropdownOptions: {},
@@ -3602,13 +3603,9 @@ class Table3 {
     const el = document.getElementById(this.elementId)
     if (el) {
       let html = ''
-      let tableStyle = 'height: 100%'
+      let tableHeight = this.calculateTableHeight()
       if (this.options.allowPivoting === true) {
-        if (this.options.pivotPanel === 'docked') {
-          tableStyle = 'height: calc(100% - 100px);' 
-        }
-        else {
-          tableStyle = 'height: calc(100% - 30px);' 
+        if (this.options.pivotPanel !== 'docked') {          
           html += `
             <div class="pivot-button-container">
               <button class="toggle-pivot-panel">${this.options.pivotButtonText}</button>
@@ -3627,10 +3624,18 @@ class Table3 {
             </div>
           </div>       
         `
-      }             
+      }        
+      if (this.options.allowExpandCollapseAll) {
+        html += `
+          <div id='${this.elementId}_expandCollapseAllContainer' class='websy-expand-collapse-all-container'>
+            <button class='expand-all'>Expand All</button>
+            <button class='collapse-all'>Collapse All</button>
+          </div>
+        `
+      }     
       html += `
         <div id='${this.elementId}_cellSelectMask' class='websy-cell-select-mask'></div>
-        <div id='${this.elementId}_tableContainer' style='${tableStyle}'></div>        
+        <div id='${this.elementId}_tableContainer' style='height: ${tableHeight};'></div>        
         <div id='${this.elementId}_cellSelectMaskLeft' class='websy-cell-select-mask-side'></div>
         <div id='${this.elementId}_cellSelectMaskRight' class='websy-cell-select-mask-side'></div>
         <div id='${this.elementId}_cellSelectButtons' class='websy-cell-select-buttons'>
@@ -4051,6 +4056,33 @@ class Table3 {
       }
     }    
   }
+  calculateTableHeight () {
+    let tableHeight = '100%'
+    if (this.options.allowPivoting === true) {
+      if (this.options.pivotPanel === 'docked') {
+        if (this.options.allowExpandCollapseAll && this.isPivot()) {
+          tableHeight = 'calc(100% - 140px)' 
+        }
+        else {
+          tableHeight = 'calc(100% - 100px)' 
+        }
+      }
+      else {
+        if (this.options.allowExpandCollapseAll && this.isPivot()) {
+          tableHeight = 'calc(100% - 70px)' 
+        }
+        else {
+          tableHeight = 'calc(100% - 30px)' 
+        }        
+      }
+    }
+    else if (this.options.allowExpandCollapseAll) {
+      if (this.isPivot()) {
+        tableHeight = 'calc(100% - 30px)'
+      }
+    }
+    return tableHeight
+  }
   checkDataExists (start, end) {
     return new Promise((resolve, reject) => {
       if (this.layout.qHyperCube.qMode === 'P' && this.layout.qHyperCube.qIndentMode !== true) {
@@ -4371,6 +4403,12 @@ class Table3 {
         el.classList.toggle('active')
       }
     }
+    else if (event.target.classList.contains('expand-all')) {
+      this.options.model.expandLeft('/qHyperCubeDef', 0, 0, true)
+    }
+    else if (event.target.classList.contains('collapse-all')) {
+      this.options.model.collapseLeft('/qHyperCubeDef', 0, 0, true)
+    }
     else if (event.target.classList.contains('websy-cell-select-mask')) {
       this.confirmCancelSelections(true)
     }
@@ -4464,8 +4502,8 @@ class Table3 {
         // console.log(row)
         return row.filter((c, i) => {  
           if (this.layout.qHyperCube.qMode === 'P' && this.layout.qHyperCube.qIndentMode !== true) {
-            return c.level < this.pinnedColumns || (c.dataIndex >= (startCol - (this.layout.qHyperCube.qNoOfLeftDims - this.pinnedColumns)) && c.dataIndex <= (endCol - (this.layout.qHyperCube.qNoOfLeftDims - this.pinnedColumns)))
-            // return c.level < this.pinnedColumns || (c.level >= startCol && c.level <= endCol)
+            // return c.level < this.pinnedColumns || (c.dataIndex >= (startCol - (this.layout.qHyperCube.qNoOfLeftDims - this.pinnedColumns)) && c.dataIndex <= (endCol - (this.layout.qHyperCube.qNoOfLeftDims - this.pinnedColumns)))
+            return c.level < this.pinnedColumns || (c.dataIndex >= startCol && c.dataIndex <= endCol)
           }        
           else {
             return i < this.pinnedColumns || (i >= startCol + this.pinnedColumns && i <= endCol + this.pinnedColumns)
@@ -4544,6 +4582,9 @@ class Table3 {
     // console.log('col', startPoint / withoutScroll, realLeft, this.totalWidth, this.leftDataCol)
     this.resize()
   }  
+  isPivot () {
+    return this.layout && this.layout.qHyperCube.qMode === 'P'
+  }
   prepDropdowns () {
     // this.table.options.columns.forEach((c, i) => {
     //   if (c.searchable === true && c.searchField && this.layout[c.searchField] && this.layout[c.searchField].qListObject) {
@@ -4603,6 +4644,22 @@ class Table3 {
       this.layout = layout
       this.qlikTop = 0
       this.startRow = 0
+      if (layout.qHyperCube.qLastExpandedPos && layout.qHyperCube.qLastExpandedPos.qy && layout.qHyperCube.qLastExpandedPos.qy > 0) {
+        this.startRow = layout.qHyperCube.qLastExpandedPos.qy
+        this.table.startRow = this.startRow
+        if (this.tableSizes && this.tableSizes.rowsToRender) {
+          this.endRow = this.startRow + this.tableSizes.rowsToRender 
+          this.table.endRow = this.endRow
+        }                
+      }
+      const containerEl = document.getElementById(`${this.elementId}_tableContainer`)
+      if (containerEl) {
+        if (this.options.allowExpandCollapseAll && this.isPivot()) {
+          const ecEl = document.getElementById(`${this.elementId}_expandCollapseAllContainer`)
+          ecEl.classList.add('active')
+        }
+        containerEl.style.height = this.calculateTableHeight()
+      }      
       if (this.inSelections === true) {
         if (layout.qSelectionInfo.qInSelections === true) {
           return
@@ -4614,7 +4671,7 @@ class Table3 {
       this.dataWidth = this.layout.qHyperCube.qSize.qcx
       this.columnOrder = this.layout.qHyperCube.qColumnOrder   
       this.pageNum = pageNum         
-      this.getData(0, page => {
+      this.getData(this.startRow, page => {
         this.layout.qHyperCube.qDataPages = [page]  
         if (layout.qHyperCube.qError && layout.qHyperCube.qCalcCondMsg) {
           this.table.hideLoading()
@@ -4801,6 +4858,7 @@ class Table3 {
       expandTop.call(this, page.qTop[i], 0, i)
     }
     this.pinnedColumns = Math.min(this.validPivotLeft + 1, visibleLeftCount)
+    this.table.pinnedColumns = this.pinnedColumns
     leftNodes = leftNodes.map(n => {
       return n.map((c, i) => {
         if (c.level >= this.pinnedColumns && c.qElemNo === -4) {
@@ -4899,7 +4957,7 @@ class Table3 {
         if (i === topNodesTransposed.length - 1 && this.layout.qHyperCube.qMode === 'P' && this.layout.qHyperCube.qIndentMode !== true) {  
           let columns = this.layout.qHyperCube.qDimensionInfo.filter(d => !d.qError)
           let labelledTopCells = additionalTopCells.map((d, i) => {
-            d.name = (columns[i] || {}).qFallbackTitle || ''
+            d.name = this.options.allowPivoting !== true ? (columns[i] || {}).qFallbackTitle || '' : ''
             d.show = i <= this.validPivotLeft
             return d
           })
