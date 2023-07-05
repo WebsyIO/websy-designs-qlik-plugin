@@ -4145,6 +4145,9 @@ class Table3 {
             if (pages) {
               this.qlikTop = pages[0].qArea.qTop
               if (this.layout.qHyperCube.qMode === 'P') {
+                if (this.layout.qHyperCube.qIndentMode !== true) {
+                  this.startRow = this.qlikTop
+                }
                 this.layout.qHyperCube.qPivotDataPages = pages
                 let pData = this.transformPivotTable(pages[0])                                
                 pages[0].qMatrix = pData.data                                
@@ -4611,7 +4614,7 @@ class Table3 {
       this.layout = layout
       this.qlikTop = 0
       this.startRow = 0
-      if (layout.qHyperCube.qLastExpandedPos && layout.qHyperCube.qLastExpandedPos.qy && layout.qHyperCube.qLastExpandedPos.qy > 0) {
+      if (layout.qHyperCube.qLastExpandedPos && typeof layout.qHyperCube.qLastExpandedPos.qy !== 'undefined') {
         this.startRow = layout.qHyperCube.qLastExpandedPos.qy
         this.table.startRow = this.startRow
         if (this.tableSizes && this.tableSizes.rowsToRender) {
@@ -4824,16 +4827,38 @@ class Table3 {
     for (let i = 0; i < page.qTop.length; i++) {
       expandTop.call(this, page.qTop[i], 0, i)
     }
-    this.pinnedColumns = Math.min(this.validPivotLeft + 1, visibleLeftCount)
+    // this.pinnedColumns = Math.min(this.validPivotLeft + 1, visibleLeftCount)
+    this.pinnedColumns = visibleLeftCount
     this.table.pinnedColumns = this.pinnedColumns
-    leftNodes = leftNodes.map(n => {
-      return n.map((c, i) => {
-        if (c.level >= this.pinnedColumns && c.qElemNo === -4) {
-          c.level = -1
-        }
-        return c
-      })
-    })
+    for (let i = 0; i < leftNodes.length; i++) {
+      // if (this.layout.qHyperCube.qIndentMode !== true) {
+      //   if (leftNodes[i].length < this.pinnedColumns) {
+      //     let start = leftNodes[i].length
+      //     for (let c = start; c < this.pinnedColumns; c++) {            
+      //       leftNodes[i].push({
+      //         rowspan: 1,
+      //         colspan: 1,
+      //         level: c,
+      //         qText: '-',
+      //         value: '-',
+      //         qType: 'U',
+      //         qElemNo: -4
+      //       })
+      //     }
+      //   }
+      // } 
+      if (leftNodes[i].level >= this.pinnedColumns && leftNodes[i].qElemNo === -4) {
+        leftNodes[i].level = -1
+      }           
+    }
+    // leftNodes = leftNodes.map(n => {
+    //   return n.map((c, i) => {
+    //     if (c.level >= this.pinnedColumns && c.qElemNo === -4) {
+    //       c.level = -1
+    //     }
+    //     return c
+    //   })
+    // })
     for (let r = 0; r < page.qData.length; r++) {
       let row = page.qData[r]      
       for (let c = 0; c < row.length; c++) {

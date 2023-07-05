@@ -4921,6 +4921,10 @@ var Table3 = /*#__PURE__*/function () {
                 _this47.qlikTop = pages[0].qArea.qTop;
 
                 if (_this47.layout.qHyperCube.qMode === 'P') {
+                  if (_this47.layout.qHyperCube.qIndentMode !== true) {
+                    _this47.startRow = _this47.qlikTop;
+                  }
+
                   _this47.layout.qHyperCube.qPivotDataPages = pages;
 
                   var pData = _this47.transformPivotTable(pages[0]);
@@ -5477,7 +5481,7 @@ var Table3 = /*#__PURE__*/function () {
         _this51.qlikTop = 0;
         _this51.startRow = 0;
 
-        if (layout.qHyperCube.qLastExpandedPos && layout.qHyperCube.qLastExpandedPos.qy && layout.qHyperCube.qLastExpandedPos.qy > 0) {
+        if (layout.qHyperCube.qLastExpandedPos && typeof layout.qHyperCube.qLastExpandedPos.qy !== 'undefined') {
           _this51.startRow = layout.qHyperCube.qLastExpandedPos.qy;
           _this51.table.startRow = _this51.startRow;
 
@@ -5736,19 +5740,41 @@ var Table3 = /*#__PURE__*/function () {
 
       for (var _i22 = 0; _i22 < page.qTop.length; _i22++) {
         expandTop.call(this, page.qTop[_i22], 0, _i22);
-      }
+      } // this.pinnedColumns = Math.min(this.validPivotLeft + 1, visibleLeftCount)
 
-      this.pinnedColumns = Math.min(this.validPivotLeft + 1, visibleLeftCount);
+
+      this.pinnedColumns = visibleLeftCount;
       this.table.pinnedColumns = this.pinnedColumns;
-      leftNodes = leftNodes.map(function (n) {
-        return n.map(function (c, i) {
-          if (c.level >= _this54.pinnedColumns && c.qElemNo === -4) {
-            c.level = -1;
-          }
 
-          return c;
-        });
-      });
+      for (var _i23 = 0; _i23 < leftNodes.length; _i23++) {
+        // if (this.layout.qHyperCube.qIndentMode !== true) {
+        //   if (leftNodes[i].length < this.pinnedColumns) {
+        //     let start = leftNodes[i].length
+        //     for (let c = start; c < this.pinnedColumns; c++) {            
+        //       leftNodes[i].push({
+        //         rowspan: 1,
+        //         colspan: 1,
+        //         level: c,
+        //         qText: '-',
+        //         value: '-',
+        //         qType: 'U',
+        //         qElemNo: -4
+        //       })
+        //     }
+        //   }
+        // } 
+        if (leftNodes[_i23].level >= this.pinnedColumns && leftNodes[_i23].qElemNo === -4) {
+          leftNodes[_i23].level = -1;
+        }
+      } // leftNodes = leftNodes.map(n => {
+      //   return n.map((c, i) => {
+      //     if (c.level >= this.pinnedColumns && c.qElemNo === -4) {
+      //       c.level = -1
+      //     }
+      //     return c
+      //   })
+      // })
+
 
       var _loop = function _loop(r) {
         var row = page.qData[r];
@@ -5846,7 +5872,7 @@ var Table3 = /*#__PURE__*/function () {
         additionalCellCount = 1;
       }
 
-      for (var _i23 = 0; _i23 < additionalCellCount; _i23++) {
+      for (var _i24 = 0; _i24 < additionalCellCount; _i24++) {
         additionalTopCells.push({
           rowspan: 1,
           colspan: 1,
@@ -5858,8 +5884,8 @@ var Table3 = /*#__PURE__*/function () {
       }
 
       if (visibleLeftCount !== 0) {
-        for (var _i24 = 0; _i24 < topNodesTransposed.length; _i24++) {
-          if (_i24 === topNodesTransposed.length - 1 && this.layout.qHyperCube.qMode === 'P' && this.layout.qHyperCube.qIndentMode !== true) {
+        for (var _i25 = 0; _i25 < topNodesTransposed.length; _i25++) {
+          if (_i25 === topNodesTransposed.length - 1 && this.layout.qHyperCube.qMode === 'P' && this.layout.qHyperCube.qIndentMode !== true) {
             (function () {
               var columns = _this54.layout.qHyperCube.qDimensionInfo.filter(function (d) {
                 return !d.qError;
@@ -5870,7 +5896,7 @@ var Table3 = /*#__PURE__*/function () {
                 d.show = i <= _this54.validPivotLeft;
                 return d;
               });
-              topNodesTransposed[_i24] = labelledTopCells.concat(topNodesTransposed[_i24]);
+              topNodesTransposed[_i25] = labelledTopCells.concat(topNodesTransposed[_i25]);
             })();
           } else {
             // if (i === topNodesTransposed.length - 1) {          
@@ -5890,7 +5916,7 @@ var Table3 = /*#__PURE__*/function () {
             // })).concat(topNodesTransposed[i])
             // } 
             // else {
-            topNodesTransposed[_i24] = additionalTopCells.concat(topNodesTransposed[_i24]);
+            topNodesTransposed[_i25] = additionalTopCells.concat(topNodesTransposed[_i25]);
           }
         }
       }
@@ -6018,8 +6044,8 @@ var Table3 = /*#__PURE__*/function () {
           tempNode = []; // if (o.qElemNo > -4) {
           // }
 
-          for (var _i25 = 0; _i25 < input.qSubNodes.length; _i25++) {
-            expandLeft.call(this, input.qSubNodes[_i25], level + 1, _i25, input, [].concat(_toConsumableArray(chain), [o]));
+          for (var _i26 = 0; _i26 < input.qSubNodes.length; _i26++) {
+            expandLeft.call(this, input.qSubNodes[_i26], level + 1, _i26, input, [].concat(_toConsumableArray(chain), [o]));
           }
 
           o.classes = input.classes;
@@ -6042,16 +6068,16 @@ var Table3 = /*#__PURE__*/function () {
           //   this.validPivotLeft = Math.max(this.validPivotLeft, level)
           // }
 
-          for (var _i26 = 0; _i26 < input.qSubNodes.length; _i26++) {
+          for (var _i27 = 0; _i27 < input.qSubNodes.length; _i27++) {
             o.qlikRowIndex = lowestLevelNodes + this.qlikTop;
             input.qlikRowIndex = lowestLevelNodes + this.qlikTop;
-            expandLeft.call(this, input.qSubNodes[_i26], level + 1, _i26, input, [].concat(_toConsumableArray(chain), [o]));
+            expandLeft.call(this, input.qSubNodes[_i27], level + 1, _i27, input, [].concat(_toConsumableArray(chain), [o]));
           }
 
           var s = 0;
 
-          for (var _i27 = 0; _i27 < input.qSubNodes.length; _i27++) {
-            s += input.qSubNodes[_i27].rowspan;
+          for (var _i28 = 0; _i28 < input.qSubNodes.length; _i28++) {
+            s += input.qSubNodes[_i28].rowspan;
           }
 
           input.rowspan = s;
@@ -6139,17 +6165,17 @@ var Table3 = /*#__PURE__*/function () {
           } // }
 
         } else {
-          for (var _i28 = 0; _i28 < input.qSubNodes.length; _i28++) {
-            expandTop.call(this, input.qSubNodes[_i28], level + 1, _i28, input);
+          for (var _i29 = 0; _i29 < input.qSubNodes.length; _i29++) {
+            expandTop.call(this, input.qSubNodes[_i29], level + 1, _i29, input);
           }
 
           var s = 0;
           var inView = false;
 
-          for (var _i29 = 0; _i29 < input.qSubNodes.length; _i29++) {
+          for (var _i30 = 0; _i30 < input.qSubNodes.length; _i30++) {
             // if (input.qSubNodes[i].inView === true) {
             // inView = true
-            s += input.qSubNodes[_i29].colspan; // }
+            s += input.qSubNodes[_i30].colspan; // }
           } // o.inView = inView
           // input.inView = inView
 
