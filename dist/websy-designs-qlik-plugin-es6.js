@@ -5941,7 +5941,7 @@ var Table3 = /*#__PURE__*/function () {
 
               var labelledTopCells = [];
               additionalTopCells.forEach(function (d, i) {
-                var newD = _extends({}, _this54.options.columnOverrides[i], d);
+                var newD = _extends({}, sourceColumns[i] || {}, _this54.options.columnOverrides[i], d);
 
                 newD.name = _this54.options.allowPivoting !== true ? (columns[i] || {}).qFallbackTitle || '' : '';
                 newD.show = i <= _this54.validPivotLeft;

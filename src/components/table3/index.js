@@ -1482,7 +1482,7 @@ class Table3 {
           let columns = this.layout.qHyperCube.qDimensionInfo.filter(d => !d.qError)
           let labelledTopCells = []
           additionalTopCells.forEach((d, i) => {
-            let newD = Object.assign({}, this.options.columnOverrides[i], d)
+            let newD = Object.assign({}, sourceColumns[i] || {}, this.options.columnOverrides[i], d)
             newD.name = this.options.allowPivoting !== true ? (columns[i] || {}).qFallbackTitle || '' : ''
             newD.show = i <= this.validPivotLeft
             d.show = i <= this.validPivotLeft              
