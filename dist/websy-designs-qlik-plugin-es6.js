@@ -4430,6 +4430,10 @@ var Table3 = /*#__PURE__*/function () {
 
             if (this.layout.qHyperCube.qIndentMode !== true && _i17 < this.pinnedColumns || _i17 < this.layout.qHyperCube.qNoOfLeftDims) {
               rows.push(dim);
+
+              if (effectiveOrder[_i17] >= 0 && this.columns[this.columns.length - 1][effectiveOrder[_i17]]) {
+                this.columns[this.columns.length - 1][effectiveOrder[_i17]].def = dim;
+              }
             } else {
               columns.push(dim);
             }
@@ -4577,6 +4581,56 @@ var Table3 = /*#__PURE__*/function () {
           }
         });
       } else {
+        this.columns[this.columns.length - 1].forEach(function (c, i) {
+          if (c.searchable !== false && i < _this43.layout.qHyperCube.qDimensionInfo.length) {
+            c.searchable = true;
+
+            if (!c.onSearch && c.def) {
+              c.isExternalSearch = true;
+              var dimId = c.def.qLibraryId || c.def.qDef.qFieldLabels[0] || c.def.qDef.qFieldDefs[0];
+              c.dimId = c.def.qDef.cId || dimId;
+              c.onSearch = _this43.handleSearch.bind(_this43);
+              c.onCloseSearch = _this43.handleCloseSearch.bind(_this43);
+            }
+          }
+        });
+        this.table.buildHeaderHtml();
+        this.columns[this.columns.length - 1].forEach(function (c, i) {
+          if (c.searchable !== false) {
+            if (c.isExternalSearch === true) {
+              if (!_this43.dropdowns[c.dimId]) {
+                var ddDef = {
+                  qInfo: {
+                    qType: 'table-dropdown'
+                  },
+                  qListObjectDef: c.def
+                };
+                ddDef.qListObjectDef.qDef.qSortCriterias = [{
+                  qSortByState: 1,
+                  qSortByAscii: 1,
+                  qSortByNumeric: 1
+                }];
+
+                _this43.options.app.createSessionObject(ddDef).then(function (model) {
+                  _this43.dropdowns[c.dimId] = new WebsyDesignsQlikPlugins.Dropdown("".concat(_this43.elementId, "_tableContainer_columnSearch_").concat(c.dimId || i), {
+                    app: _this43.options.app,
+                    model: model,
+                    multiSelect: true,
+                    closeAfterSelection: false,
+                    onClose: _this43.handleCloseSearch
+                  });
+                  model.on('changed', function () {
+                    _this43.dropdowns[c.dimId].render();
+                  }); // d.instance.options.model = model
+                  // d.instance.render()
+                });
+              } else {// d.instance.options.model = this.dropdowns[d.dimId]
+                // d.instance.render()
+              }
+            }
+          }
+        });
+        this.table.options.columns = this.columns;
         var tableEl = document.getElementById("".concat(this.elementId, "_tableContainer"));
 
         if (tableEl) {
@@ -4602,6 +4656,7 @@ var Table3 = /*#__PURE__*/function () {
       this.columns = this.columns.map(function (c, i) {
         c.colIndex = _this44.columnOrder.indexOf(i);
         c.classes = ["".concat(c.isMeasure ? 'measure' : 'dimension')];
+        c.classes.push(c.qNumFormat.qType === 'D' ? 'date' : '');
         c.name = c.qFallbackTitle;
 
         if (c.tooltip) {
@@ -4628,7 +4683,7 @@ var Table3 = /*#__PURE__*/function () {
           if (!c.onSearch) {
             c.isExternalSearch = true;
             var dimId = c.def.qLibraryId || c.def.qDef.qFieldLabels[0] || c.def.qDef.qFieldDefs[0];
-            c.dimId = c.cId || dimId;
+            c.dimId = c.def.qDef.cId || dimId;
             c.onSearch = _this44.handleSearch.bind(_this44);
             c.onCloseSearch = _this44.handleCloseSearch.bind(_this44);
           }
@@ -4646,7 +4701,7 @@ var Table3 = /*#__PURE__*/function () {
 
       this.totals = [];
 
-      if (this.layout.qHyperCube.qGrandTotalRow && this.layout.totals && this.layout.totals.show === true) {
+      if (this.layout.qHyperCube.qGrandTotalRow && this.layout.totals && this.layout.totals.show === true && this.layout.totals.position !== 'noTotals') {
         if (this.layout.qHyperCube.qMode === 'S') {
           this.totals = this.layout.qHyperCube.qDimensionInfo.filter(function (d) {
             return !d.qError;
@@ -4820,22 +4875,17 @@ var Table3 = /*#__PURE__*/function () {
           _this45.buildEmptyRows(top);
 
           if (top < end && top !== -1) {
-            console.log('get data 1');
-
             _this45.getData(top, function () {
               // console.log('if callback for', top)
               resolve();
             }, true);
           } else if (top !== -1) {
-            console.log('get data 2');
-
             _this45.getData(top, function () {
               // console.log('else if callback for', top)
               resolve();
             }, true);
           } else {
-            // console.log('else callback for', top)
-            console.log('no get data 3');
+            // console.log('else callback for', top)          
             resolve();
           }
         }
@@ -5697,7 +5747,10 @@ var Table3 = /*#__PURE__*/function () {
                     c.color = a.qText;
                   } else if (_this53.layout.qHyperCube.qDimensionInfo[c.level] && _this53.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo && _this53.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI] && _this53.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                     c.backgroundColor = a.qText;
-                  }
+                  } // else { // THIS COULD BE WRONG
+                  //   c.color = a.qText
+                  // }
+
                 } else {
                   var measureIndex = (c.level - _this53.layout.qHyperCube.qDimensionInfo.length) % _this53.layout.qHyperCube.qMeasureInfo.length;
 
@@ -5801,7 +5854,10 @@ var Table3 = /*#__PURE__*/function () {
                     row[c].color = a.qText;
                   } else if (_this54.layout.qHyperCube.qDimensionInfo[row[c].level] && _this54.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo && _this54.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo[aI] && _this54.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                     row[c].backgroundColor = a.qText;
-                  }
+                  } // else { // THIS COULD BE WRONG
+                  //   row[c].color = a.qText
+                  // }
+
                 } else {
                   var measureIndex = c % _this54.layout.qHyperCube.qMeasureInfo.length;
 
@@ -5813,15 +5869,7 @@ var Table3 = /*#__PURE__*/function () {
                 }
               }
             });
-          } // row[c].width = `${this.columnParams.cellWidths[(this.options.freezeColumns || this.layout.qHyperCube.qNoOfLeftDims) + c] || this.columnParams.cellWidths[this.columnParams.cellWidths.length - 1]}px`
-          // if (row[c].qAttrExps && row[c].qAttrExps.qValues && row[c].qAttrExps.qValues[0] && row[c].qAttrExps.qValues[0].qText) {
-          //   row[c].backgroundColor = row[c].qAttrExps.qValues[0].qText
-          //   row[c].color = this.getFontColor(row[c].qAttrExps.qValues[0].qText)
-          // }
-          // if (row[c].qAttrExps && row[c].qAttrExps.qValues && row[c].qAttrExps.qValues[1] && row[c].qAttrExps.qValues[1].qText) {
-          //   row[c].color = this.getFontColor(row[c].qAttrExps.qValues[1].qText)
-          // }
-
+          }
 
           var lastTop = topNodesTransposed[topNodesTransposed.length - 1][c];
 
@@ -5891,10 +5939,14 @@ var Table3 = /*#__PURE__*/function () {
                 return !d.qError;
               });
 
-              var labelledTopCells = additionalTopCells.map(function (d, i) {
-                d.name = _this54.options.allowPivoting !== true ? (columns[i] || {}).qFallbackTitle || '' : '';
+              var labelledTopCells = [];
+              additionalTopCells.forEach(function (d, i) {
+                var newD = _extends({}, _this54.options.columnOverrides[i], d);
+
+                newD.name = _this54.options.allowPivoting !== true ? (columns[i] || {}).qFallbackTitle || '' : '';
+                newD.show = i <= _this54.validPivotLeft;
                 d.show = i <= _this54.validPivotLeft;
-                return d;
+                labelledTopCells.push(newD);
               });
               topNodesTransposed[_i25] = labelledTopCells.concat(topNodesTransposed[_i25]);
             })();
@@ -5926,6 +5978,8 @@ var Table3 = /*#__PURE__*/function () {
       // into a 2 dimensions array    
 
       function expandLeft(input, level, index, parent, chain) {
+        var _this55 = this;
+
         var o = _extends({}, input);
 
         o.level = this.layout.qHyperCube.qIndentMode === true ? 0 : level;
@@ -5952,16 +6006,32 @@ var Table3 = /*#__PURE__*/function () {
         // leftKeys[keyLevel].push(o.qElemNo)      
 
         visibleLeftCount = Math.max(visibleLeftCount, level + 1);
-        o.childCount = o.qSubNodes.length; // TODO add id mapping to attribute exressions here
-
-        if (o.qAttrExps && o.qAttrExps.qValues && o.qAttrExps.qValues[0] && o.qAttrExps.qValues[0].qText) {
-          o.backgroundColor = o.qAttrExps.qValues[0].qText;
-          o.color = this.getFontColor(o.qAttrExps.qValues[0].qText);
-        }
-
-        if (o.qAttrExps && o.qAttrExps.qValues && o.qAttrExps.qValues[1] && o.qAttrExps.qValues[1].qText) {
-          o.color = this.getFontColor(o.qAttrExps.qValues[1].qText);
-        }
+        o.childCount = o.qSubNodes.length; // if (o.qAttrExps && o.qAttrExps.qValues) {
+        //   o.qAttrExps.qValues.forEach((a, aI) => {            
+        //     if (a.qText && a.qText !== '') {              
+        //       if (o.level < this.layout.qHyperCube.qDimensionInfo.length) {              
+        //         if (this.layout.qHyperCube.qDimensionInfo[o.level] && this.layout.qHyperCube.qDimensionInfo[o.level].qAttrExprInfo && this.layout.qHyperCube.qDimensionInfo[o.level].qAttrExprInfo[aI] && this.layout.qHyperCube.qDimensionInfo[o.level].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+        //           o.color = a.qText
+        //         }
+        //         else if (this.layout.qHyperCube.qDimensionInfo[o.level] && this.layout.qHyperCube.qDimensionInfo[o.level].qAttrExprInfo && this.layout.qHyperCube.qDimensionInfo[o.level].qAttrExprInfo[aI] && this.layout.qHyperCube.qDimensionInfo[o.level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+        //           o.backgroundColor = a.qText
+        //           o.color = this.getFontColor(a.qText)
+        //         }
+        //         // else { // THIS COULD BE WRONG
+        //         //   row[c].color = a.qText
+        //         // }
+        //       }
+        //     }
+        //   })
+        // } 
+        // // TODO add id mapping to attribute exressions here
+        // if (o.qAttrExps && o.qAttrExps.qValues && o.qAttrExps.qValues[0] && o.qAttrExps.qValues[0].qText) {
+        //   o.backgroundColor = o.qAttrExps.qValues[0].qText
+        //   o.color = this.getFontColor(o.qAttrExps.qValues[0].qText)
+        // }
+        // if (o.qAttrExps && o.qAttrExps.qValues && o.qAttrExps.qValues[1] && o.qAttrExps.qValues[1].qText) {
+        //   o.color = this.getFontColor(o.qAttrExps.qValues[1].qText)
+        // }
 
         delete o.qSubNodes;
 
@@ -6007,6 +6077,7 @@ var Table3 = /*#__PURE__*/function () {
                 o.color = a.qText;
               } else if (sourceColumns[o.level] && sourceColumns[o.level].qAttrExprInfo && sourceColumns[o.level].qAttrExprInfo[aI] && sourceColumns[o.level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                 o.backgroundColor = a.qText;
+                o.color = _this55.getFontColor(a.qText);
               }
             }
           });
@@ -6089,7 +6160,8 @@ var Table3 = /*#__PURE__*/function () {
 
 
       function expandTop(input, level, index, parent) {
-        var _topNodesTransposed$l3;
+        var _this56 = this,
+            _topNodesTransposed$l3;
 
         if (typeof topNodesTransposed[level] === 'undefined') {
           topNodesTransposed[level] = [];
@@ -6116,16 +6188,28 @@ var Table3 = /*#__PURE__*/function () {
         }
 
         o.childCount = o.qSubNodes.length;
-        visibleTopCount = Math.max(visibleTopCount, level + 1); // TODO add id mapping to attribute exressions here
+        visibleTopCount = Math.max(visibleTopCount, level + 1);
 
-        if (o.qAttrExps && o.qAttrExps.qValues && o.qAttrExps.qValues[0] && o.qAttrExps.qValues[0].qText) {
-          o.backgroundColor = o.qAttrExps.qValues[0].qText;
-          o.color = this.getFontColor(o.qAttrExps.qValues[0].qText);
-        }
+        if (o.qAttrExps && o.qAttrExps.qValues) {
+          o.qAttrExps.qValues.forEach(function (a, aI) {
+            if (a.qText && a.qText !== '') {
+              if (sourceColumns[o.level] && sourceColumns[o.level].qAttrExprInfo && sourceColumns[o.level].qAttrExprInfo[aI] && sourceColumns[o.level].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                o.color = a.qText;
+              } else if (sourceColumns[o.level] && sourceColumns[o.level].qAttrExprInfo && sourceColumns[o.level].qAttrExprInfo[aI] && sourceColumns[o.level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                o.backgroundColor = a.qText;
+                o.color = _this56.getFontColor(a.qText);
+              }
+            }
+          });
+        } // // TODO add id mapping to attribute exressions here
+        // if (o.qAttrExps && o.qAttrExps.qValues && o.qAttrExps.qValues[0] && o.qAttrExps.qValues[0].qText) {
+        //   o.backgroundColor = o.qAttrExps.qValues[0].qText
+        //   o.color = this.getFontColor(o.qAttrExps.qValues[0].qText)
+        // }
+        // if (o.qAttrExps && o.qAttrExps.qValues && o.qAttrExps.qValues[1] && o.qAttrExps.qValues[1].qText) {
+        //   o.color = this.getFontColor(o.qAttrExps.qValues[1].qText)
+        // }
 
-        if (o.qAttrExps && o.qAttrExps.qValues && o.qAttrExps.qValues[1] && o.qAttrExps.qValues[1].qText) {
-          o.color = this.getFontColor(o.qAttrExps.qValues[1].qText);
-        }
 
         delete o.qSubNodes;
 
@@ -6276,7 +6360,7 @@ var WebsyDesignsQlikPlugins = {
 
 var ObjectManager = /*#__PURE__*/function () {
   function ObjectManager(options) {
-    var _this55 = this;
+    var _this57 = this;
 
     _classCallCheck(this, ObjectManager);
 
@@ -6324,7 +6408,7 @@ var ObjectManager = /*#__PURE__*/function () {
       });
       defaultVisualisationPlugins.forEach(function (p) {
         if (visKeys.indexOf(p.id) === -1) {
-          _this55.options.visualisationPlugins.push(p);
+          _this57.options.visualisationPlugins.push(p);
         }
       });
     } else {
@@ -6358,7 +6442,7 @@ var ObjectManager = /*#__PURE__*/function () {
   }, {
     key: "mergeObjects",
     value: function mergeObjects() {
-      var _this56 = this;
+      var _this58 = this;
 
       // Variables
       var extended = {};
@@ -6376,7 +6460,7 @@ var ObjectManager = /*#__PURE__*/function () {
           if (obj.hasOwnProperty(prop)) {
             if (deep && Object.prototype.toString.call(obj[prop]) === '[object Object]') {
               // If we're doing a deep merge and the property is an object
-              extended[prop] = _this56.mergeObjects(extended, extended[prop], obj[prop]);
+              extended[prop] = _this58.mergeObjects(extended, extended[prop], obj[prop]);
             } else {
               // Otherwise, do a regular merge
               if (Array.isArray(extended[prop]) && Array.isArray(obj[prop])) {
@@ -6408,14 +6492,14 @@ var ObjectManager = /*#__PURE__*/function () {
   }, {
     key: "init",
     value: function init() {
-      var _this57 = this;
+      var _this59 = this;
 
       return new Promise(function (resolve, reject) {
-        _this57.prep('global');
+        _this59.prep('global');
 
-        _this57.connectToApp().then(function () {
-          _this57.executeAction(0, _this57.options.initialActions, function () {
-            _this57.selectFromUrl(function () {
+        _this59.connectToApp().then(function () {
+          _this59.executeAction(0, _this59.options.initialActions, function () {
+            _this59.selectFromUrl(function () {
               resolve();
             });
           });
@@ -6496,7 +6580,7 @@ var ObjectManager = /*#__PURE__*/function () {
   }, {
     key: "prep",
     value: function prep(view) {
-      var _this58 = this;
+      var _this60 = this;
 
       // for (let view in this.options.views) {
       // sort out the elements in each view
@@ -6518,31 +6602,31 @@ var ObjectManager = /*#__PURE__*/function () {
 
 
       var _loop3 = function _loop3(a) {
-        var el = document.getElementById(_this58.options.actions[a].elementId);
+        var el = document.getElementById(_this60.options.actions[a].elementId);
 
         if (el) {
-          el.addEventListener(_this58.options.actions[a].event, function () {
+          el.addEventListener(_this60.options.actions[a].event, function () {
             var _loop4 = function _loop4(i) {
-              var item = _this58.options.actions[a].items[i];
+              var item = _this60.options.actions[a].items[i];
 
               if (typeof item.params === 'undefined') {
                 item.params = [];
               }
 
               if (item.field) {
-                _this58.app.getField(item.field, item.state || '$').then(function (field) {
+                _this60.app.getField(item.field, item.state || '$').then(function (field) {
                   field[item.method].apply(field, _toConsumableArray(item.params));
                 });
               } else if (item.fn) {
                 item.fn();
               } else {
-                var _this58$app;
+                var _this60$app;
 
-                (_this58$app = _this58.app)[item.method].apply(_this58$app, _toConsumableArray(item.params));
+                (_this60$app = _this60.app)[item.method].apply(_this60$app, _toConsumableArray(item.params));
               }
             };
 
-            for (var i = 0; i < _this58.options.actions[a].items.length; i++) {
+            for (var i = 0; i < _this60.options.actions[a].items.length; i++) {
               _loop4(i);
             }
           });
@@ -6558,14 +6642,14 @@ var ObjectManager = /*#__PURE__*/function () {
   }, {
     key: "connectToApp",
     value: function connectToApp() {
-      var _this59 = this;
+      var _this61 = this;
 
       return new Promise(function (resolve, reject) {
         // check for enigma.js      
-        var originalId = _this59.options.enigmaConfig.app;
+        var originalId = _this61.options.enigmaConfig.app;
 
-        if (_this59.options.enigmaConfig.app) {
-          _this59.options.enigmaConfig.app = _this59.normalizeId(_this59.options.enigmaConfig.app);
+        if (_this61.options.enigmaConfig.app) {
+          _this61.options.enigmaConfig.app = _this61.normalizeId(_this61.options.enigmaConfig.app);
         }
 
         if (typeof enigma === 'undefined') {
@@ -6575,28 +6659,28 @@ var ObjectManager = /*#__PURE__*/function () {
           return;
         }
 
-        if (typeof _this59.options.enigmaSchema === 'undefined') {
+        if (typeof _this61.options.enigmaSchema === 'undefined') {
           reject({
             error: 'enigmaSchema property not found.'
           });
           return;
         }
 
-        var url = _this59.options.enigmaConfig.url;
+        var url = _this61.options.enigmaConfig.url;
 
-        if (_this59.options.enigmaConfig.ticket) {
+        if (_this61.options.enigmaConfig.ticket) {
           if (url.indexOf('?') === -1) {
             url += '?';
           } else {
             url += '&';
           }
 
-          url += "qlikTicket=".concat(_this59.options.enigmaConfig.ticket);
+          url += "qlikTicket=".concat(_this61.options.enigmaConfig.ticket);
         }
 
         var MAX_RETRIES = 5;
         var config = {
-          schema: _this59.options.enigmaSchema,
+          schema: _this61.options.enigmaSchema,
           url: url,
           onRejected: function onRejected(sessionReference, request, error) {
             if (error.code === this.options.enigmaSchema.enums.LocalizedErrorCode.LOCERR_GENERIC_ABORTED) {
@@ -6611,16 +6695,16 @@ var ObjectManager = /*#__PURE__*/function () {
           }
         };
         var session = enigma.create(config);
-        _this59.session = session;
+        _this61.session = session;
         session.open().then(function (global) {
-          _this59.global = global;
+          _this61.global = global;
           global.getActiveDoc().then(function (app) {
             if (app) {
               app.abortModal(true).then(function () {
-                _this59.app = app;
+                _this61.app = app;
 
-                if (_this59.options.views.global) {
-                  _this59.executeActions('global').then(function () {
+                if (_this61.options.views.global) {
+                  _this61.executeActions('global').then(function () {
                     resolve();
                   });
                 } else {
@@ -6628,7 +6712,7 @@ var ObjectManager = /*#__PURE__*/function () {
                 }
               });
             } else {
-              return _this59.openApp(originalId).then(function () {
+              return _this61.openApp(originalId).then(function () {
                 resolve();
               });
             }
@@ -6636,10 +6720,10 @@ var ObjectManager = /*#__PURE__*/function () {
             var e = err;
 
             if (originalId) {
-              return _this59.openApp(originalId).then(function () {
+              return _this61.openApp(originalId).then(function () {
                 resolve();
               }, function (err) {
-                _this59.sessionOnNotification({
+                _this61.sessionOnNotification({
                   err: err
                 });
               });
@@ -6648,40 +6732,40 @@ var ObjectManager = /*#__PURE__*/function () {
             }
           });
 
-          if (_this59.options.keepAlive === true) {
-            _this59.keepAlive();
+          if (_this61.options.keepAlive === true) {
+            _this61.keepAlive();
           }
         }, function (err) {
           reject(err);
         });
         session.on('traffic:received', function (data) {
           if (typeof data.suspend !== 'undefined') {
-            _this59.sessionSuspended();
+            _this61.sessionSuspended();
           }
         });
         session.on('notification:*', function (eventName, data) {
           if (eventName === 'OnAuthenticationInformation') {
             if (data.mustAuthenticate === true) {
-              if (_this59.options.enigmaConfig.authUrl) {
-                window.location = _this59.options.enigmaConfig.authUrl + window.location.search.replace('?', '%3F').replace('=', '%3D');
-              } else if (_this59.options.enigmaConfig.onMustAuthenticate) {
-                _this59.options.enigmaConfig.onMustAuthenticate();
+              if (_this61.options.enigmaConfig.authUrl) {
+                window.location = _this61.options.enigmaConfig.authUrl + window.location.search.replace('?', '%3F').replace('=', '%3D');
+              } else if (_this61.options.enigmaConfig.onMustAuthenticate) {
+                _this61.options.enigmaConfig.onMustAuthenticate();
               } else if (data.loginUri) {
                 window.location = data.loginUri;
               }
             } else if (data.mustAuthenticate === false) {
-              _this59.user = {
+              _this61.user = {
                 userDirectory: data.userDirectory,
                 userId: data.userId
               };
             }
           } else {
-            _this59.sessionOnNotification(data, eventName);
+            _this61.sessionOnNotification(data, eventName);
           }
         });
-        session.on('suspended', _this59.sessionSuspended.bind(_this59));
-        session.on('resumed', _this59.sessionResumed.bind(_this59));
-        session.on('closed', _this59.sessionClosed.bind(_this59));
+        session.on('suspended', _this61.sessionSuspended.bind(_this61));
+        session.on('resumed', _this61.sessionResumed.bind(_this61));
+        session.on('closed', _this61.sessionClosed.bind(_this61));
       });
     }
   }, {
@@ -6702,25 +6786,25 @@ var ObjectManager = /*#__PURE__*/function () {
   }, {
     key: "keepAlive",
     value: function keepAlive() {
-      var _this60 = this;
+      var _this62 = this;
 
       this.global.engineVersion();
       setTimeout(function () {
-        _this60.keepAlive();
+        _this62.keepAlive();
       }, 59000);
     }
   }, {
     key: "openApp",
     value: function openApp(appId) {
-      var _this61 = this;
+      var _this63 = this;
 
       return new Promise(function (resolve, reject) {
-        _this61.global.openDoc(appId).then(function (app) {
+        _this63.global.openDoc(appId).then(function (app) {
           app.abortModal(true).then(function () {
-            _this61.app = app;
+            _this63.app = app;
 
-            if (_this61.options.views.global) {
-              _this61.executeActions('global').then(function () {
+            if (_this63.options.views.global) {
+              _this63.executeActions('global').then(function () {
                 resolve();
               });
             } else {
@@ -6735,7 +6819,7 @@ var ObjectManager = /*#__PURE__*/function () {
   }, {
     key: "loadView",
     value: function loadView(view, force) {
-      var _this62 = this;
+      var _this64 = this;
 
       if (typeof force === 'undefined') {
         force = false;
@@ -6755,23 +6839,23 @@ var ObjectManager = /*#__PURE__*/function () {
 
       if (this.options.views[view].controller && this.options.views[view].initialized !== true) {
         this.options.views[view].controller.init(function () {
-          _this62.options.views[view].initialized = true;
+          _this64.options.views[view].initialized = true;
 
-          if (_this62.options.views[view].prepped !== true) {
-            _this62.prep(view);
+          if (_this64.options.views[view].prepped !== true) {
+            _this64.prep(view);
           }
 
-          _this62.executeActions(view).then(function () {
-            if ((_this62.globalObjectsLoaded === false || _this62.options.alwaysLoadGlobal === true) && view !== 'global') {
-              _this62.loadObjects('global', force);
+          _this64.executeActions(view).then(function () {
+            if ((_this64.globalObjectsLoaded === false || _this64.options.alwaysLoadGlobal === true) && view !== 'global') {
+              _this64.loadObjects('global', force);
 
-              _this62.globalObjectsLoaded = true;
+              _this64.globalObjectsLoaded = true;
             }
 
-            _this62.loadObjects(view, force);
+            _this64.loadObjects(view, force);
 
             if (view === 'global') {
-              _this62.globalObjectsLoaded = true;
+              _this64.globalObjectsLoaded = true;
             }
           });
         });
@@ -6781,16 +6865,16 @@ var ObjectManager = /*#__PURE__*/function () {
         }
 
         this.executeActions(view).then(function () {
-          if ((_this62.globalObjectsLoaded === false || _this62.options.alwaysLoadGlobal === true) && view !== 'global') {
-            _this62.loadObjects('global', force);
+          if ((_this64.globalObjectsLoaded === false || _this64.options.alwaysLoadGlobal === true) && view !== 'global') {
+            _this64.loadObjects('global', force);
 
-            _this62.globalObjectsLoaded = true;
+            _this64.globalObjectsLoaded = true;
           }
 
-          _this62.loadObjects(view, force);
+          _this64.loadObjects(view, force);
 
           if (view === 'global') {
-            _this62.globalObjectsLoaded = true;
+            _this64.globalObjectsLoaded = true;
           }
         });
       }
@@ -6798,7 +6882,7 @@ var ObjectManager = /*#__PURE__*/function () {
   }, {
     key: "executeAction",
     value: function executeAction(index, actionList, callbackFn) {
-      var _this63 = this;
+      var _this65 = this;
 
       var item = actionList[index];
 
@@ -6813,7 +6897,7 @@ var ObjectManager = /*#__PURE__*/function () {
 
       if (item.field) {
         this.app.getField(item.field, item.state || '$').then(function (field) {
-          if (_this63.options.router) {
+          if (_this65.options.router) {
             if (item.method === 'unlock') {// need to think how we do this
             }
           }
@@ -6826,7 +6910,7 @@ var ObjectManager = /*#__PURE__*/function () {
                 if (index === actionList.length) {
                   callbackFn();
                 } else {
-                  _this63.executeAction(index, actionList, callbackFn);
+                  _this65.executeAction(index, actionList, callbackFn);
                 }
               });
             } else {
@@ -6835,7 +6919,7 @@ var ObjectManager = /*#__PURE__*/function () {
               if (index === actionList.length) {
                 callbackFn();
               } else {
-                _this63.executeAction(index, actionList, callbackFn);
+                _this65.executeAction(index, actionList, callbackFn);
               }
             }
           });
@@ -6863,7 +6947,7 @@ var ObjectManager = /*#__PURE__*/function () {
           if (index === actionList.length) {
             callbackFn();
           } else {
-            _this63.executeAction(index, actionList, callbackFn);
+            _this65.executeAction(index, actionList, callbackFn);
           }
         });
       }
@@ -6871,20 +6955,20 @@ var ObjectManager = /*#__PURE__*/function () {
   }, {
     key: "executeActions",
     value: function executeActions(view) {
-      var _this64 = this;
+      var _this66 = this;
 
       return new Promise(function (resolve, reject) {
-        if (!_this64.options.views[view] || !_this64.options.views[view].actions || _this64.options.views[view].actions.length === 0) {
+        if (!_this66.options.views[view] || !_this66.options.views[view].actions || _this66.options.views[view].actions.length === 0) {
           resolve();
         }
 
-        _this64.executeAction(0, _this64.options.views[view].actions, resolve);
+        _this66.executeAction(0, _this66.options.views[view].actions, resolve);
       });
     }
   }, {
     key: "loadObjects",
     value: function loadObjects(view, force) {
-      var _this65 = this;
+      var _this67 = this;
 
       if (typeof force === 'undefined') {
         force = false;
@@ -6908,16 +6992,16 @@ var ObjectManager = /*#__PURE__*/function () {
             }
           } else if (objList[i].definition) {
             if (typeof objList[i].definition === 'string' && objList[i].definition.toLowerCase().indexOf('.json') !== -1) {
-              _this65.request('GET', objList[i].definition).then(function (def) {
+              _this67.request('GET', objList[i].definition).then(function (def) {
                 objList[i].definition = def;
 
-                _this65.createObjectFromDefinition(objList[i]);
+                _this67.createObjectFromDefinition(objList[i]);
               });
             } else {
-              _this65.createObjectFromDefinition(objList[i]);
+              _this67.createObjectFromDefinition(objList[i]);
             }
           } else {
-            _this65.createObjectFromDefinition(objList[i]);
+            _this67.createObjectFromDefinition(objList[i]);
           }
         };
 
@@ -6978,7 +7062,7 @@ var ObjectManager = /*#__PURE__*/function () {
   }, {
     key: "createObjectFromDefinition",
     value: function createObjectFromDefinition(objectConfig) {
-      var _this66 = this;
+      var _this68 = this;
 
       if (objectConfig.retries) {
         objectConfig.retries = 0;
@@ -7003,16 +7087,16 @@ var ObjectManager = /*#__PURE__*/function () {
           objectConfig.attached = true;
           var chartType = objectConfig.type || objectConfig.definition.qInfo.qType;
 
-          if (_this66.supportedChartTypes.indexOf(chartType) !== -1) {
+          if (_this68.supportedChartTypes.indexOf(chartType) !== -1) {
             var options = _extends({}, objectConfig.options, {
               model: model,
               def: objectConfig.definition,
-              app: _this66.app
+              app: _this68.app
             });
 
-            objectConfig.vis = new _this66.chartLibrary[chartType]("".concat(objectConfig.elementId, "_vis"), options);
+            objectConfig.vis = new _this68.chartLibrary[chartType]("".concat(objectConfig.elementId, "_vis"), options);
             model.on('changed', function () {
-              if (objectConfig.attached === true && _this66.paused === false) {
+              if (objectConfig.attached === true && _this68.paused === false) {
                 objectConfig.vis.render();
               }
             });
@@ -7022,7 +7106,7 @@ var ObjectManager = /*#__PURE__*/function () {
             objectConfig.model = model;
             objectConfig.render(objectConfig, model);
             model.on('changed', function () {
-              if (objectConfig.attached === true && _this66.paused === false) {
+              if (objectConfig.attached === true && _this68.paused === false) {
                 objectConfig.render(objectConfig, model);
               }
             });
@@ -7030,11 +7114,11 @@ var ObjectManager = /*#__PURE__*/function () {
         }, function (err) {
           console.log('Error creating object', err);
 
-          if (objectConfig.retries < _this66.options.retryCount) {
+          if (objectConfig.retries < _this68.options.retryCount) {
             console.log('retrying');
             objectConfig.retries++;
 
-            _this66.createObjectFromDefinition(objectConfig);
+            _this68.createObjectFromDefinition(objectConfig);
           } else {
             console.log('Max retries reached.');
           }
@@ -7183,7 +7267,7 @@ var ObjectManager = /*#__PURE__*/function () {
   }, {
     key: "select",
     value: function select(index, selections, locks, callbackFn) {
-      var _this67 = this;
+      var _this69 = this;
 
       if (index === selections.length) {
         this.play();
@@ -7221,19 +7305,19 @@ var ObjectManager = /*#__PURE__*/function () {
               f.lock().then(function () {
                 index++;
 
-                _this67.select(index, selections, locks, callbackFn);
+                _this69.select(index, selections, locks, callbackFn);
               });
             } else {
               index++;
 
-              _this67.select(index, selections, locks, callbackFn);
+              _this69.select(index, selections, locks, callbackFn);
             }
           });
         }, function (err) {
           console.log('field for selection not found', err);
           index++;
 
-          _this67.select(index, selections, locks, callbackFn);
+          _this69.select(index, selections, locks, callbackFn);
         });
       }
     }

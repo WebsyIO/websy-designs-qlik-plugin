@@ -238,7 +238,10 @@ class Table3 {
         if (effectiveOrder[i] >= 0) {
           let dim = this.properties.qHyperCubeDef.qDimensions[effectiveOrder[i]]                
           if ((this.layout.qHyperCube.qIndentMode !== true && i < this.pinnedColumns) || i < this.layout.qHyperCube.qNoOfLeftDims) {          
-            rows.push(dim)          
+            rows.push(dim)
+            if (effectiveOrder[i] >= 0 && this.columns[this.columns.length - 1][effectiveOrder[i]]) {              
+              this.columns[this.columns.length - 1][effectiveOrder[i]].def = dim          
+            }
           }   
           else {
             columns.push(dim)
@@ -368,6 +371,55 @@ class Table3 {
       })
     }
     else {
+      this.columns[this.columns.length - 1].forEach((c, i) => {
+        if (c.searchable !== false && i < this.layout.qHyperCube.qDimensionInfo.length) {
+          c.searchable = true
+          if (!c.onSearch && c.def) {    
+            c.isExternalSearch = true   
+            let dimId = c.def.qLibraryId || c.def.qDef.qFieldLabels[0] || c.def.qDef.qFieldDefs[0]            
+            c.dimId = c.def.qDef.cId || dimId
+            c.onSearch = this.handleSearch.bind(this)
+            c.onCloseSearch = this.handleCloseSearch.bind(this)
+          }
+        }
+      })
+      this.table.buildHeaderHtml()
+      this.columns[this.columns.length - 1].forEach((c, i) => {
+        if (c.searchable !== false) {
+          if (c.isExternalSearch === true) {                 
+            if (!this.dropdowns[c.dimId]) {
+              let ddDef = {
+                qInfo: { qType: 'table-dropdown' },
+                qListObjectDef: c.def
+              }
+              ddDef.qListObjectDef.qDef.qSortCriterias = [{
+                qSortByState: 1,
+                qSortByAscii: 1,
+                qSortByNumeric: 1
+              }]
+              this.options.app.createSessionObject(ddDef).then(model => {
+                this.dropdowns[c.dimId] = new WebsyDesignsQlikPlugins.Dropdown(`${this.elementId}_tableContainer_columnSearch_${c.dimId || i}`, {
+                  app: this.options.app,
+                  model,
+                  multiSelect: true,
+                  closeAfterSelection: false,
+                  onClose: this.handleCloseSearch
+                })
+                model.on('changed', () => {
+                  this.dropdowns[c.dimId].render()
+                })
+                // d.instance.options.model = model
+                // d.instance.render()
+              })
+            }
+            else {
+              // d.instance.options.model = this.dropdowns[d.dimId]
+              // d.instance.render()
+            }          
+          }
+        }
+      }) 
+      this.table.options.columns = this.columns      
       const tableEl = document.getElementById(`${this.elementId}_tableContainer`)
       if (tableEl) {
         tableEl.style.height = '100%'
@@ -388,6 +440,7 @@ class Table3 {
     this.columns = this.columns.map((c, i) => {
       c.colIndex = this.columnOrder.indexOf(i)
       c.classes = [`${c.isMeasure ? 'measure' : 'dimension'}`]
+      c.classes.push(c.qNumFormat.qType === 'D' ? 'date' : '')
       c.name = c.qFallbackTitle
       if (c.tooltip) {
         c.name += `
@@ -414,7 +467,7 @@ class Table3 {
         if (!c.onSearch) {    
           c.isExternalSearch = true   
           let dimId = c.def.qLibraryId || c.def.qDef.qFieldLabels[0] || c.def.qDef.qFieldDefs[0]            
-          c.dimId = c.cId || dimId
+          c.dimId = c.def.qDef.cId || dimId
           c.onSearch = this.handleSearch.bind(this)
           c.onCloseSearch = this.handleCloseSearch.bind(this)
         }
@@ -428,7 +481,7 @@ class Table3 {
     this.table.options.columns = [this.columns]
     // set up the Totals
     this.totals = []
-    if (this.layout.qHyperCube.qGrandTotalRow && this.layout.totals && this.layout.totals.show === true) {
+    if (this.layout.qHyperCube.qGrandTotalRow && this.layout.totals && this.layout.totals.show === true && this.layout.totals.position !== 'noTotals') {
       if (this.layout.qHyperCube.qMode === 'S') {
         this.totals = this.layout.qHyperCube.qDimensionInfo.filter(d => !d.qError).map(d => ({ value: '', classes: ['dimension'] })).concat(this.layout.qHyperCube.qGrandTotalRow.map(t => Object.assign({}, t, { value: t.qText, classes: ['measure'] })))
         this.totals.splice(0, 1, { value: this.layout.totals.label || this.totals })
@@ -450,7 +503,7 @@ class Table3 {
     if (this.layout.scrolling && this.layout.scrolling.keepFirstColumnInView === true) {
       this.pinnedColumns = 1
     }
-    this.tableSizes = this.table.calculateSizes(this.columnParamValues, this.layout.qHyperCube.qSize.qcy, this.layout.qHyperCube.qSize.qcx, this.pinnedColumns)     
+    this.tableSizes = this.table.calculateSizes(this.columnParamValues, this.layout.qHyperCube.qSize.qcy, this.layout.qHyperCube.qSize.qcx, this.pinnedColumns)         
     this.columns.forEach((c, i) => {
       if (c.searchable !== false) {
         if (c.isExternalSearch === true) {                 
@@ -554,23 +607,20 @@ class Table3 {
         }
         // console.log('slicing pre', top)
         this.buildEmptyRows(top)
-        if (top < end && top !== -1) {
-          console.log('get data 1')
+        if (top < end && top !== -1) {          
           this.getData(top, () => {
             // console.log('if callback for', top)
             resolve()
           }, true)        
         }
-        else if (top !== -1) {
-          console.log('get data 2')
+        else if (top !== -1) {          
           this.getData(top, () => {
             // console.log('else if callback for', top)
             resolve()
           }, true)          
         }      
         else {
-          // console.log('else callback for', top)
-          console.log('no get data 3')
+          // console.log('else callback for', top)          
           resolve()
         } 
       }           
@@ -1277,6 +1327,9 @@ class Table3 {
                 else if (this.layout.qHyperCube.qDimensionInfo[c.level] && this.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo && this.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI] && this.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                   c.backgroundColor = a.qText
                 }
+                // else { // THIS COULD BE WRONG
+                //   c.color = a.qText
+                // }
               }
               else {
                 let measureIndex = (c.level - this.layout.qHyperCube.qDimensionInfo.length) % this.layout.qHyperCube.qMeasureInfo.length
@@ -1370,6 +1423,9 @@ class Table3 {
                 else if (this.layout.qHyperCube.qDimensionInfo[row[c].level] && this.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo && this.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo[aI] && this.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                   row[c].backgroundColor = a.qText
                 }
+                // else { // THIS COULD BE WRONG
+                //   row[c].color = a.qText
+                // }
               }
               else {
                 let measureIndex = c % this.layout.qHyperCube.qMeasureInfo.length
@@ -1382,15 +1438,7 @@ class Table3 {
               }              
             }
           })
-        }       
-        // row[c].width = `${this.columnParams.cellWidths[(this.options.freezeColumns || this.layout.qHyperCube.qNoOfLeftDims) + c] || this.columnParams.cellWidths[this.columnParams.cellWidths.length - 1]}px`
-        // if (row[c].qAttrExps && row[c].qAttrExps.qValues && row[c].qAttrExps.qValues[0] && row[c].qAttrExps.qValues[0].qText) {
-        //   row[c].backgroundColor = row[c].qAttrExps.qValues[0].qText
-        //   row[c].color = this.getFontColor(row[c].qAttrExps.qValues[0].qText)
-        // }
-        // if (row[c].qAttrExps && row[c].qAttrExps.qValues && row[c].qAttrExps.qValues[1] && row[c].qAttrExps.qValues[1].qText) {
-        //   row[c].color = this.getFontColor(row[c].qAttrExps.qValues[1].qText)
-        // }
+        }               
         let lastTop = topNodesTransposed[topNodesTransposed.length - 1][c]
         if (['T', 'E'].indexOf(row[c].qType) !== -1 || ['T'].indexOf(lastTop.qType) !== -1) {
           row[c].qType = 'T'
@@ -1435,10 +1483,13 @@ class Table3 {
       for (let i = 0; i < topNodesTransposed.length; i++) {
         if (i === topNodesTransposed.length - 1 && this.layout.qHyperCube.qMode === 'P' && this.layout.qHyperCube.qIndentMode !== true) {  
           let columns = this.layout.qHyperCube.qDimensionInfo.filter(d => !d.qError)
-          let labelledTopCells = additionalTopCells.map((d, i) => {
-            d.name = this.options.allowPivoting !== true ? (columns[i] || {}).qFallbackTitle || '' : ''
-            d.show = i <= this.validPivotLeft
-            return d
+          let labelledTopCells = []
+          additionalTopCells.forEach((d, i) => {
+            let newD = Object.assign({}, this.options.columnOverrides[i], d)
+            newD.name = this.options.allowPivoting !== true ? (columns[i] || {}).qFallbackTitle || '' : ''
+            newD.show = i <= this.validPivotLeft
+            d.show = i <= this.validPivotLeft              
+            labelledTopCells.push(newD)
           })
           topNodesTransposed[i] = labelledTopCells.concat(topNodesTransposed[i])
         }
@@ -1494,15 +1545,33 @@ class Table3 {
       // input.qlikRowIndex = leftKeys[keyLevel].length + this.qlikTop            
       // leftKeys[keyLevel].push(o.qElemNo)      
       visibleLeftCount = Math.max(visibleLeftCount, level + 1)
-      o.childCount = o.qSubNodes.length    
-      // TODO add id mapping to attribute exressions here
-      if (o.qAttrExps && o.qAttrExps.qValues && o.qAttrExps.qValues[0] && o.qAttrExps.qValues[0].qText) {
-        o.backgroundColor = o.qAttrExps.qValues[0].qText
-        o.color = this.getFontColor(o.qAttrExps.qValues[0].qText)
-      }
-      if (o.qAttrExps && o.qAttrExps.qValues && o.qAttrExps.qValues[1] && o.qAttrExps.qValues[1].qText) {
-        o.color = this.getFontColor(o.qAttrExps.qValues[1].qText)
-      }
+      o.childCount = o.qSubNodes.length          
+      // if (o.qAttrExps && o.qAttrExps.qValues) {
+      //   o.qAttrExps.qValues.forEach((a, aI) => {            
+      //     if (a.qText && a.qText !== '') {              
+      //       if (o.level < this.layout.qHyperCube.qDimensionInfo.length) {              
+      //         if (this.layout.qHyperCube.qDimensionInfo[o.level] && this.layout.qHyperCube.qDimensionInfo[o.level].qAttrExprInfo && this.layout.qHyperCube.qDimensionInfo[o.level].qAttrExprInfo[aI] && this.layout.qHyperCube.qDimensionInfo[o.level].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+      //           o.color = a.qText
+      //         }
+      //         else if (this.layout.qHyperCube.qDimensionInfo[o.level] && this.layout.qHyperCube.qDimensionInfo[o.level].qAttrExprInfo && this.layout.qHyperCube.qDimensionInfo[o.level].qAttrExprInfo[aI] && this.layout.qHyperCube.qDimensionInfo[o.level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+      //           o.backgroundColor = a.qText
+      //           o.color = this.getFontColor(a.qText)
+      //         }
+      //         // else { // THIS COULD BE WRONG
+      //         //   row[c].color = a.qText
+      //         // }
+      //       }
+      //     }
+      //   })
+      // } 
+      // // TODO add id mapping to attribute exressions here
+      // if (o.qAttrExps && o.qAttrExps.qValues && o.qAttrExps.qValues[0] && o.qAttrExps.qValues[0].qText) {
+      //   o.backgroundColor = o.qAttrExps.qValues[0].qText
+      //   o.color = this.getFontColor(o.qAttrExps.qValues[0].qText)
+      // }
+      // if (o.qAttrExps && o.qAttrExps.qValues && o.qAttrExps.qValues[1] && o.qAttrExps.qValues[1].qText) {
+      //   o.color = this.getFontColor(o.qAttrExps.qValues[1].qText)
+      // }
       delete o.qSubNodes  
       if (o.qElemNo < 0 && this.layout.qHyperCube.qIndentMode === true && level > 0) {   
         if (o.qType === 'T') {
@@ -1545,6 +1614,7 @@ class Table3 {
             }
             else if (sourceColumns[o.level] && sourceColumns[o.level].qAttrExprInfo && sourceColumns[o.level].qAttrExprInfo[aI] && sourceColumns[o.level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
               o.backgroundColor = a.qText
+              o.color = this.getFontColor(a.qText)
             }
           }
         })
@@ -1635,15 +1705,28 @@ class Table3 {
         o.qElemNo = -99
       }
       o.childCount = o.qSubNodes.length
-      visibleTopCount = Math.max(visibleTopCount, level + 1)      
-      // TODO add id mapping to attribute exressions here
-      if (o.qAttrExps && o.qAttrExps.qValues && o.qAttrExps.qValues[0] && o.qAttrExps.qValues[0].qText) {
-        o.backgroundColor = o.qAttrExps.qValues[0].qText
-        o.color = this.getFontColor(o.qAttrExps.qValues[0].qText)
-      }
-      if (o.qAttrExps && o.qAttrExps.qValues && o.qAttrExps.qValues[1] && o.qAttrExps.qValues[1].qText) {
-        o.color = this.getFontColor(o.qAttrExps.qValues[1].qText)
-      }
+      visibleTopCount = Math.max(visibleTopCount, level + 1) 
+      if (o.qAttrExps && o.qAttrExps.qValues) {
+        o.qAttrExps.qValues.forEach((a, aI) => {            
+          if (a.qText && a.qText !== '') {
+            if (sourceColumns[o.level] && sourceColumns[o.level].qAttrExprInfo && sourceColumns[o.level].qAttrExprInfo[aI] && sourceColumns[o.level].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+              o.color = a.qText
+            }
+            else if (sourceColumns[o.level] && sourceColumns[o.level].qAttrExprInfo && sourceColumns[o.level].qAttrExprInfo[aI] && sourceColumns[o.level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+              o.backgroundColor = a.qText
+              o.color = this.getFontColor(a.qText)
+            }
+          }
+        })
+      }      
+      // // TODO add id mapping to attribute exressions here
+      // if (o.qAttrExps && o.qAttrExps.qValues && o.qAttrExps.qValues[0] && o.qAttrExps.qValues[0].qText) {
+      //   o.backgroundColor = o.qAttrExps.qValues[0].qText
+      //   o.color = this.getFontColor(o.qAttrExps.qValues[0].qText)
+      // }
+      // if (o.qAttrExps && o.qAttrExps.qValues && o.qAttrExps.qValues[1] && o.qAttrExps.qValues[1].qText) {
+      //   o.color = this.getFontColor(o.qAttrExps.qValues[1].qText)
+      // }
       delete o.qSubNodes
       if (['T', 'E'].indexOf(o.qType) === -1) {
         o.qType = 'B'
