@@ -370,9 +370,10 @@ class Table3 {
         } 
       })
     }
-    else {
+    else if (this.layout.qHyperCube.qIndentMode !== true) {
       this.columns[this.columns.length - 1].forEach((c, i) => {
-        if (c.searchable !== false && i < this.layout.qHyperCube.qDimensionInfo.length) {
+        // if (c.searchable !== false && i < this.layout.qHyperCube.qDimensionInfo.length) {
+        if (c.searchable !== false && i < this.layout.qHyperCube.qNoOfLeftDims) {
           c.searchable = true
           if (!c.onSearch && c.def) {    
             c.isExternalSearch = true   
@@ -1142,7 +1143,10 @@ class Table3 {
     // }
     this.validPivotLeft = 0
     if (this.inSelections === false) {
-      this.table.showLoading({message: 'Loading...'})    
+      this.table.showLoading({message: 'Loading...'}) 
+      if (this.options.onLoading) {
+        this.options.onLoading(true)
+      }   
     }    
     if (this.inSelections === true && this.layout.qSelectionInfo.qInSelections === true) {
       return
@@ -1183,16 +1187,25 @@ class Table3 {
         if (layout.qHyperCube.qError && layout.qHyperCube.qCalcCondMsg) {
           this.table.hideLoading()
           this.table.showError({message: this.options.customError || layout.qHyperCube.qCalcCondMsg})
+          if (this.options.onLoading) {
+            this.options.onLoading(false)
+          }
           return
         }
         if (this.options.forcedRowLimit && layout.qHyperCube.qSize.qcy > this.options.forcedRowLimit) {
           this.table.hideLoading()
           this.table.showError({message: this.options.forcedRowLimitError || this.options.customError || layout.qHyperCube.qCalcCondMsg})
+          if (this.options.onLoading) {
+            this.options.onLoading(false)
+          }
           return
         }
         if (this.options.forcedColLimit && layout.qHyperCube.qSize.qcx > this.options.forcedColLimit) {
           this.table.hideLoading()
           this.table.showError({message: this.options.forcedColLimitError || this.options.customError || layout.qHyperCube.qCalcCondMsg})
+          if (this.options.onLoading) {
+            this.options.onLoading(false)
+          }
           return
         }
         this.table.hideError()
@@ -1266,6 +1279,9 @@ class Table3 {
         this.buildPivotColumns()            
       } 
       this.table.hideLoading()
+      if (this.options.onLoading) {
+        this.options.onLoading(false)
+      }
       // if (this.layout.qHyperCube.qMode === 'S') {
       this.table.render([], false)
       this.prepDropdowns()
@@ -1369,6 +1385,9 @@ class Table3 {
     }
     // this.pinnedColumns = Math.min(this.validPivotLeft + 1, visibleLeftCount)
     this.pinnedColumns = visibleLeftCount
+    if (this.layout.qHyperCube.qIndentMode === true) {
+      this.pinnedColumns = 1
+    }
     this.table.pinnedColumns = this.pinnedColumns
     for (let i = 0; i < leftNodes.length; i++) {
       // if (this.layout.qHyperCube.qIndentMode !== true) {
@@ -1422,10 +1441,11 @@ class Table3 {
                 }
                 else if (this.layout.qHyperCube.qDimensionInfo[row[c].level] && this.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo && this.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo[aI] && this.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                   row[c].backgroundColor = a.qText
-                }
+                }                
                 // else { // THIS COULD BE WRONG
                 //   row[c].color = a.qText
                 // }
+                // need to assign an ID to the attr expr to fix this                
               }
               else {
                 let measureIndex = c % this.layout.qHyperCube.qMeasureInfo.length
@@ -1435,6 +1455,13 @@ class Table3 {
                 else if (this.layout.qHyperCube.qMeasureInfo[measureIndex] && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                   row[c].backgroundColor = a.qText
                 }
+                if (this.layout.qHyperCube.qMeasureInfo[measureIndex] && (this.layout.qHyperCube.qMeasureInfo[measureIndex].showAsLink === true || this.layout.qHyperCube.qMeasureInfo[measureIndex].showAsNavigatorLink === true)) {              
+                  row[c].value = a.qText                  
+                  if (row[c].value.indexOf('https://') === -1) {
+                    row[c].value = `https://${row[c].value}`                    
+                  }
+                  row[c].displayText = row[c].qText || '-'                  
+                }  
               }              
             }
           })
@@ -1464,54 +1491,56 @@ class Table3 {
       }
       output.push(row)
     }    
-    let additionalTopCells = []
+    
     let additionalCellCount = visibleLeftCount
     if (this.layout.qHyperCube.qIndentMode === true) {
       additionalCellCount = 1
     }
-    for (let i = 0; i < additionalCellCount; i++) {
-      additionalTopCells.push({
-        rowspan: 1,
-        colspan: 1,
-        level: 0,
-        qText: '',
-        name: '',
-        qType: 'V'
-      })
-    }
+    
     if (visibleLeftCount !== 0) {                
       for (let i = 0; i < topNodesTransposed.length; i++) {
         if (i === topNodesTransposed.length - 1 && this.layout.qHyperCube.qMode === 'P' && this.layout.qHyperCube.qIndentMode !== true) {  
+        // if (i === topNodesTransposed.length - 1 && this.layout.qHyperCube.qMode === 'P') {  
           let columns = this.layout.qHyperCube.qDimensionInfo.filter(d => !d.qError)
           let labelledTopCells = []
-          additionalTopCells.forEach((d, i) => {
-            let newD = Object.assign({}, sourceColumns[i] || {}, this.options.columnOverrides[i], d)
-            newD.name = this.options.allowPivoting !== true ? (columns[i] || {}).qFallbackTitle || '' : ''
-            newD.show = i <= this.validPivotLeft
-            d.show = i <= this.validPivotLeft              
+          for (let j = 0; j < additionalCellCount; j++) {
+            let newD = Object.assign({}, sourceColumns[j] || {}, this.options.columnOverrides[j], {
+              rowspan: 1,
+              colspan: 1,
+              level: 0,
+              qText: '',
+              name: '',
+              qType: 'V'
+            })
+            newD.name = this.options.allowPivoting !== true ? (columns[j] || {}).qFallbackTitle || '' : ''
+            newD.show = j <= this.validPivotLeft
+            // d.show = i <= this.validPivotLeft              
             labelledTopCells.push(newD)
-          })
-          topNodesTransposed[i] = labelledTopCells.concat(topNodesTransposed[i])
+          }
+          topNodesTransposed[i] = labelledTopCells.concat(topNodesTransposed[i].map((t, tIndex) => {
+            return Object.assign({}, sourceColumns[additionalCellCount + tIndex] || {}, this.options.columnOverrides[additionalCellCount + tIndex], t)
+          }))
         }
         else {
-        // if (i === topNodesTransposed.length - 1) {          
-        // topNodesTransposed[i] = (this.layout.qHyperCube.qDimensionInfo.filter(d => !d.qError).filter((d, dI) => dI < visibleLeftCount).map((d, dI) => {
-        //   return Object.assign({}, d, {
-        //     name: d.qFallbackTitle || 'Review this'
-        //     // width: `${this.columnParams.cellWidths[dI] || this.columnParams.cellWidths[this.columnParams.cellWidths.length - 1]}px`
-        //   })
-        // }).filter((d, i) => {
-        //   if (this.layout.qHyperCube.qIndentMode === true && i === 0) {
-        //     return true
-        //   }
-        //   else if (this.layout.qHyperCube.qIndentMode === false) {
-        //     return true
-        //   }
-        //   return false
-        // })).concat(topNodesTransposed[i])
-        // } 
-        // else {
-          topNodesTransposed[i] = additionalTopCells.concat(topNodesTransposed[i])
+          let additionalTopCells = []
+          for (let j = 0; j < additionalCellCount; j++) {
+            additionalTopCells.push({
+              rowspan: 1,
+              colspan: 1,
+              level: 0,
+              qText: '',
+              name: '',
+              qType: 'V'
+            })
+          }    
+          if (i === topNodesTransposed.length - 1) {
+            topNodesTransposed[i] = additionalTopCells.concat(topNodesTransposed[i].map((t, tIndex) => {
+              return Object.assign({}, sourceColumns[this.layout.qHyperCube.qNoOfLeftDims + tIndex] || {}, this.options.columnOverrides[this.layout.qHyperCube.qNoOfLeftDims + tIndex], t)
+            }))
+          } 
+          else {
+            topNodesTransposed[i] = additionalTopCells.concat(topNodesTransposed[i])
+          }   
         }
       }
     }
@@ -1525,7 +1554,7 @@ class Table3 {
       o.index = level
       o.pos = 'Left'
       o.style = ''
-      o.value = o.qText || '' 
+      o.value = o.qText || ''       
       // if (!o.classes) {
       //   o.classes = []
       // }           
@@ -1616,6 +1645,17 @@ class Table3 {
               o.backgroundColor = a.qText
               o.color = this.getFontColor(a.qText)
             }
+            // need to assign an ID to the attr expr to fix this
+            if (sourceColumns[o.level] && (sourceColumns[o.level].showAsLink === true || sourceColumns[o.level].showAsNavigatorLink === true)) {              
+              o.value = a.qText
+              input.value = a.qText
+              if (o.value.indexOf('https://') === -1) {
+                o.value = `https://${o.value}`
+                input.value = `https://${input.value}`
+              }
+              o.displayText = o.qText || '-'
+              input.displayText = o.qText || '-'
+            }             
           }
         })
       }      
