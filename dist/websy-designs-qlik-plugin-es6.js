@@ -5988,14 +5988,14 @@ var Table3 = /*#__PURE__*/function () {
             var additionalTopCells = [];
 
             for (var _j = 0; _j < additionalCellCount; _j++) {
-              additionalTopCells.push({
+              additionalTopCells.push(_extends({}, _i24 === topNodesTransposed.length - 1 && this.layout.qHyperCube.qMode === 'P' && this.layout.qHyperCube.qIndentMode === true && _j === 0 ? this.options.columnOverrides[0] : {}, {
                 rowspan: 1,
                 colspan: 1,
                 level: 0,
                 qText: '',
                 name: '',
                 qType: 'V'
-              });
+              }));
             }
 
             if (_i24 === topNodesTransposed.length - 1) {

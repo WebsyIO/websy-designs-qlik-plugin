@@ -5070,14 +5070,18 @@ class Table3 {
         else {
           let additionalTopCells = []
           for (let j = 0; j < additionalCellCount; j++) {
-            additionalTopCells.push({
-              rowspan: 1,
-              colspan: 1,
-              level: 0,
-              qText: '',
-              name: '',
-              qType: 'V'
-            })
+            additionalTopCells.push(Object.assign(
+              {}, 
+              i === topNodesTransposed.length - 1 && this.layout.qHyperCube.qMode === 'P' && this.layout.qHyperCube.qIndentMode === true && j === 0 ? this.options.columnOverrides[0] : {},
+              {
+                rowspan: 1,
+                colspan: 1,
+                level: 0,
+                qText: '',
+                name: '',
+                qType: 'V'
+              }
+            ))
           }    
           if (i === topNodesTransposed.length - 1) {
             topNodesTransposed[i] = additionalTopCells.concat(topNodesTransposed[i].map((t, tIndex) => {
