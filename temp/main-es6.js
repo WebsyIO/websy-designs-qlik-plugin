@@ -3602,6 +3602,7 @@ class Table3 {
       }     
       html += `
         <div id='${this.elementId}_cellSelectMask' class='websy-cell-select-mask'></div>
+        <div id='${this.elementId}_tableTitle' class='websy-table-title'></div>
         <div id='${this.elementId}_tableContainer' style='height: ${tableHeight};'></div>        
         <div id='${this.elementId}_cellSelectMaskLeft' class='websy-cell-select-mask-side'></div>
         <div id='${this.elementId}_cellSelectMaskRight' class='websy-cell-select-mask-side'></div>
@@ -4079,28 +4080,47 @@ class Table3 {
   }
   calculateTableHeight () {
     let tableHeight = '100%'
+    let subtraction = 0
     if (this.options.allowPivoting === true) {
       if (this.options.pivotPanel === 'docked') {
         if (this.options.allowExpandCollapseAll && this.isPivot()) {
-          tableHeight = 'calc(100% - 140px)' 
+          subtraction = 140
         }
         else {
-          tableHeight = 'calc(100% - 100px)' 
+          subtraction = 100
         }
       }
       else {
         if (this.options.allowExpandCollapseAll && this.isPivot()) {
-          tableHeight = 'calc(100% - 70px)' 
+          subtraction = 70
         }
         else {
-          tableHeight = 'calc(100% - 30px)' 
+          subtraction = 30
         }        
       }
     }
     else if (this.options.allowExpandCollapseAll) {
       if (this.isPivot()) {
-        tableHeight = 'calc(100% - 30px)'
+        subtraction = 30
       }
+    }
+    if (this.options.showTitle === true) {
+      const el = document.getElementById(`${this.elementId}_tableTitle`)
+      if (el) {
+        if (el.innerText !== '') {
+          let titleSize = el.getBoundingClientRect().height
+          subtraction += titleSize
+        }
+        else {
+          el.innerHTML = 'X'
+          let titleSize = el.getBoundingClientRect().height
+          subtraction += titleSize
+          el.innerHTML = ''
+        }
+      }
+    }
+    if (subtraction > 0) {
+      tableHeight = `calc(100% - ${subtraction}px)`
     }
     return tableHeight
   }
@@ -4325,6 +4345,9 @@ class Table3 {
         // cellEl.classList.add('websy-cell-selected')   
         // let rowIndex = +cellEl.getAttribute('data-row-index')
         let rowIndex = +data.cell.qlikRowIndex
+        if (isNaN(rowIndex)) {
+          rowIndex = +data.rowIndex
+        }
         let cellIndex = +cellEl.getAttribute('data-cell-index')
         let colIndex = +cellEl.getAttribute('data-col-index')        
         if (this.layout.qHyperCube.qMode === 'P') {
@@ -4668,6 +4691,12 @@ class Table3 {
       this.layout = layout
       this.qlikTop = 0
       this.startRow = 0
+      if (this.options.showTitle === true) {
+        const titleEl = document.getElementById(`${this.elementId}_tableTitle`)
+        if (titleEl && this.layout.title) {
+          titleEl.innerHTML = this.layout.title
+        }        
+      }
       if (layout.qHyperCube.qLastExpandedPos && typeof layout.qHyperCube.qLastExpandedPos.qy !== 'undefined') {
         this.startRow = layout.qHyperCube.qLastExpandedPos.qy
         this.table.startRow = this.startRow

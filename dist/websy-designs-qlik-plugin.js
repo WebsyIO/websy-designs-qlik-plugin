@@ -4309,7 +4309,7 @@ var Table3 = /*#__PURE__*/function () {
         html += "\n          <div id='".concat(this.elementId, "_expandCollapseAllContainer' class='websy-expand-collapse-all-container'>\n            <button class='expand-all'>Expand All</button>\n            <button class='collapse-all'>Collapse All</button>\n          </div>\n        ");
       }
 
-      html += "\n        <div id='".concat(this.elementId, "_cellSelectMask' class='websy-cell-select-mask'></div>\n        <div id='").concat(this.elementId, "_tableContainer' style='height: ").concat(tableHeight, ";'></div>        \n        <div id='").concat(this.elementId, "_cellSelectMaskLeft' class='websy-cell-select-mask-side'></div>\n        <div id='").concat(this.elementId, "_cellSelectMaskRight' class='websy-cell-select-mask-side'></div>\n        <div id='").concat(this.elementId, "_cellSelectButtons' class='websy-cell-select-buttons'>\n          <div class='websy-cell-select-cancel'>\n            ").concat(this.options.cancelIcon, "\n          </div>\n          <div class='websy-cell-select-confirm'>\n            ").concat(this.options.confirmIcon, "\n          </div>\n        </div>\n      ");
+      html += "\n        <div id='".concat(this.elementId, "_cellSelectMask' class='websy-cell-select-mask'></div>\n        <div id='").concat(this.elementId, "_tableTitle' class='websy-table-title'></div>\n        <div id='").concat(this.elementId, "_tableContainer' style='height: ").concat(tableHeight, ";'></div>        \n        <div id='").concat(this.elementId, "_cellSelectMaskLeft' class='websy-cell-select-mask-side'></div>\n        <div id='").concat(this.elementId, "_cellSelectMaskRight' class='websy-cell-select-mask-side'></div>\n        <div id='").concat(this.elementId, "_cellSelectButtons' class='websy-cell-select-buttons'>\n          <div class='websy-cell-select-cancel'>\n            ").concat(this.options.cancelIcon, "\n          </div>\n          <div class='websy-cell-select-confirm'>\n            ").concat(this.options.confirmIcon, "\n          </div>\n        </div>\n      ");
       el.innerHTML = html;
       this.table = new WebsyDesigns.WebsyTable3("".concat(this.elementId, "_tableContainer"), _extends({}, {
         onClick: this.handleClick.bind(this),
@@ -4887,25 +4887,46 @@ var Table3 = /*#__PURE__*/function () {
     key: "calculateTableHeight",
     value: function calculateTableHeight() {
       var tableHeight = '100%';
+      var subtraction = 0;
 
       if (this.options.allowPivoting === true) {
         if (this.options.pivotPanel === 'docked') {
           if (this.options.allowExpandCollapseAll && this.isPivot()) {
-            tableHeight = 'calc(100% - 140px)';
+            subtraction = 140;
           } else {
-            tableHeight = 'calc(100% - 100px)';
+            subtraction = 100;
           }
         } else {
           if (this.options.allowExpandCollapseAll && this.isPivot()) {
-            tableHeight = 'calc(100% - 70px)';
+            subtraction = 70;
           } else {
-            tableHeight = 'calc(100% - 30px)';
+            subtraction = 30;
           }
         }
       } else if (this.options.allowExpandCollapseAll) {
         if (this.isPivot()) {
-          tableHeight = 'calc(100% - 30px)';
+          subtraction = 30;
         }
+      }
+
+      if (this.options.showTitle === true) {
+        var el = document.getElementById("".concat(this.elementId, "_tableTitle"));
+
+        if (el) {
+          if (el.innerText !== '') {
+            var titleSize = el.getBoundingClientRect().height;
+            subtraction += titleSize;
+          } else {
+            el.innerHTML = 'X';
+            var _titleSize = el.getBoundingClientRect().height;
+            subtraction += _titleSize;
+            el.innerHTML = '';
+          }
+        }
+      }
+
+      if (subtraction > 0) {
+        tableHeight = "calc(100% - ".concat(subtraction, "px)");
       }
 
       return tableHeight;
@@ -5183,6 +5204,11 @@ var Table3 = /*#__PURE__*/function () {
 
 
           var rowIndex = +data.cell.qlikRowIndex;
+
+          if (isNaN(rowIndex)) {
+            rowIndex = +data.rowIndex;
+          }
+
           var cellIndex = +cellEl.getAttribute('data-cell-index');
           var colIndex = +cellEl.getAttribute('data-col-index');
 
@@ -5593,6 +5619,14 @@ var Table3 = /*#__PURE__*/function () {
         _this53.layout = layout;
         _this53.qlikTop = 0;
         _this53.startRow = 0;
+
+        if (_this53.options.showTitle === true) {
+          var titleEl = document.getElementById("".concat(_this53.elementId, "_tableTitle"));
+
+          if (titleEl && _this53.layout.title) {
+            titleEl.innerHTML = _this53.layout.title;
+          }
+        }
 
         if (layout.qHyperCube.qLastExpandedPos && typeof layout.qHyperCube.qLastExpandedPos.qy !== 'undefined') {
           _this53.startRow = layout.qHyperCube.qLastExpandedPos.qy;
