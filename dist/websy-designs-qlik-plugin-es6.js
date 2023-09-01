@@ -5787,10 +5787,14 @@ var Table3 = /*#__PURE__*/function () {
 
               c.displayText = c.qText || '-';
             } else {
-              c.value = c.qText || '-';
+              if (c.value === '' || typeof c.value === 'undefined') {
+                c.value = c.qText || '-';
+              }
             }
           } else {
-            c.value = c.qText || '-';
+            if (c.value === '' || typeof c.value === 'undefined') {
+              c.value = c.qText || '-';
+            }
           }
 
           if (c.qAttrExps && c.qAttrExps.qValues) {

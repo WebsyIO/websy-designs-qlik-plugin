@@ -4901,11 +4901,15 @@ class Table3 {
             c.displayText = c.qText || '-'
           }
           else {
-            c.value = c.qText || '-'
+            if (c.value === '' || typeof c.value === 'undefined') {
+              c.value = c.qText || '-'              
+            }
           }
         } 
         else {
-          c.value = c.qText || '-'
+          if (c.value === '' || typeof c.value === 'undefined') {
+            c.value = c.qText || '-'              
+          }
         }
         if (c.qAttrExps && c.qAttrExps.qValues) {          
           let tIndex = i + (this.startCol || 0)          
