@@ -4385,10 +4385,14 @@ var Table3 = /*#__PURE__*/function () {
           return '';
         }
 
-        if (d.qApprMaxGlyphCount > d.qFallbackTitle.length) {
-          out += new Array(d.qApprMaxGlyphCount).fill('X').join('');
+        if (d.qFallbackTitle) {
+          if (d.qApprMaxGlyphCount > d.qFallbackTitle.length) {
+            out += new Array(d.qApprMaxGlyphCount).fill('X').join('');
+          } else {
+            out += d.qFallbackTitle;
+          }
         } else {
-          out += d.qFallbackTitle;
+          out += new Array(d.qApprMaxGlyphCount).fill('X').join('');
         }
 
         return out;
@@ -6060,53 +6064,11 @@ var Table3 = /*#__PURE__*/function () {
         o.index = level;
         o.pos = 'Left';
         o.style = '';
-        o.value = o.qText || ''; // if (!o.classes) {
-        //   o.classes = []
-        // }           
-        // if (!input.classes) {
-        //   input.classes = []
-        // }
-
+        o.value = o.qText || '';
         input.value = input.qText || '';
-        input.index = level; // let keyLevel = level
-        // if (this.layout.qHyperCube.qIndentMode === true) {
-        //   keyLevel = 0
-        // }
-        // if (!leftKeys[keyLevel]) {
-        //   leftKeys[keyLevel] = []
-        // }      
-        // o.qlikRowIndex = leftKeys[keyLevel].length + this.qlikTop
-        // input.qlikRowIndex = leftKeys[keyLevel].length + this.qlikTop            
-        // leftKeys[keyLevel].push(o.qElemNo)      
-
+        input.index = level;
         visibleLeftCount = Math.max(visibleLeftCount, level + 1);
-        o.childCount = o.qSubNodes.length; // if (o.qAttrExps && o.qAttrExps.qValues) {
-        //   o.qAttrExps.qValues.forEach((a, aI) => {            
-        //     if (a.qText && a.qText !== '') {              
-        //       if (o.level < this.layout.qHyperCube.qDimensionInfo.length) {              
-        //         if (this.layout.qHyperCube.qDimensionInfo[o.level] && this.layout.qHyperCube.qDimensionInfo[o.level].qAttrExprInfo && this.layout.qHyperCube.qDimensionInfo[o.level].qAttrExprInfo[aI] && this.layout.qHyperCube.qDimensionInfo[o.level].qAttrExprInfo[aI].id === 'cellForegroundColor') {
-        //           o.color = a.qText
-        //         }
-        //         else if (this.layout.qHyperCube.qDimensionInfo[o.level] && this.layout.qHyperCube.qDimensionInfo[o.level].qAttrExprInfo && this.layout.qHyperCube.qDimensionInfo[o.level].qAttrExprInfo[aI] && this.layout.qHyperCube.qDimensionInfo[o.level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
-        //           o.backgroundColor = a.qText
-        //           o.color = this.getFontColor(a.qText)
-        //         }
-        //         // else { // THIS COULD BE WRONG
-        //         //   row[c].color = a.qText
-        //         // }
-        //       }
-        //     }
-        //   })
-        // } 
-        // // TODO add id mapping to attribute exressions here
-        // if (o.qAttrExps && o.qAttrExps.qValues && o.qAttrExps.qValues[0] && o.qAttrExps.qValues[0].qText) {
-        //   o.backgroundColor = o.qAttrExps.qValues[0].qText
-        //   o.color = this.getFontColor(o.qAttrExps.qValues[0].qText)
-        // }
-        // if (o.qAttrExps && o.qAttrExps.qValues && o.qAttrExps.qValues[1] && o.qAttrExps.qValues[1].qText) {
-        //   o.color = this.getFontColor(o.qAttrExps.qValues[1].qText)
-        // }
-
+        o.childCount = o.qSubNodes.length;
         delete o.qSubNodes;
 
         if (o.qElemNo < 0 && this.layout.qHyperCube.qIndentMode === true && level > 0) {
@@ -6119,25 +6081,23 @@ var Table3 = /*#__PURE__*/function () {
               parent.classes.push('sub-total-cell');
               parent.isTotal = true;
             }
-          } // return
-
-        } // else {
-
+          }
+        }
 
         if (typeof o.qText === 'undefined') {
           if (o.qElemNo === -1) {
             o.qText = 'Totals';
           } else if (o.qElemNo === -4) {
-            o.qText = ''; // o.qType = 'T'
+            o.qText = '';
           }
         }
 
         if (o.qElemNo === -4 && this.layout.qHyperCube.qIndentMode === true) {
-          return; // o.qType = 'T'
+          return;
         }
 
         if (o.qType === 'T' && this.layout.qHyperCube.qIndentMode === true && level > 0) {
-          return; // o.qType = 'T'
+          return;
         }
 
         o.expandable = o.qCanExpand;
