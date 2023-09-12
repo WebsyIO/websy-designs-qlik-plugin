@@ -195,8 +195,7 @@ class Table3 {
     let maxMLength = maxMLabel.length > maxMValue ? maxMLabel : new Array(maxMValue).fill('X').join('')
     let effectiveOrder = this.layout.qHyperCube.qEffectiveInterColumnSortOrder
     let possibleExpandCollapse = this.layout.qHyperCube.qMode === 'P' && this.layout.qHyperCube.qAlwaysFullyExpanded !== true
-    let measureLengths = this.layout.qHyperCube.qMeasureInfo.reduce((a, b) => Math.max(a, b.qApprMaxGlyphCount), 0)    
-    // let dimensionLengths = this.layout.qHyperCube.qDimensionInfo.filter(d => !d.qError).map(d => {
+    let measureLengths = this.layout.qHyperCube.qMeasureInfo.reduce((a, b) => Math.max(a, b.qApprMaxGlyphCount), 0)        
     // dimensionLengths not filtered
     let dimensionLengths = this.layout.qHyperCube.qDimensionInfo.map(d => {
       let out = possibleExpandCollapse ? 'xxx' : ''
@@ -228,12 +227,17 @@ class Table3 {
     // dimensionLengths filtered
     dimensionLengths = this.layout.qHyperCube.qDimensionInfo.filter(d => !d.qError).map(d => {
       let out = possibleExpandCollapse ? 'xxx' : ''      
-      if (d.qApprMaxGlyphCount > d.qFallbackTitle.length) {
+      if (d.qFallbackTitle) {
+        if (d.qApprMaxGlyphCount > d.qFallbackTitle.length) {
+          out += new Array(d.qApprMaxGlyphCount).fill('X').join('') 
+        } 
+        else {
+          out += d.qFallbackTitle
+        }
+      }  
+      else {
         out += new Array(d.qApprMaxGlyphCount).fill('X').join('') 
       } 
-      else {
-        out += d.qFallbackTitle
-      }
       return out
     })
     let activeColumns = []

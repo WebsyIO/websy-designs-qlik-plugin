@@ -4375,8 +4375,7 @@ var Table3 = /*#__PURE__*/function () {
       var possibleExpandCollapse = this.layout.qHyperCube.qMode === 'P' && this.layout.qHyperCube.qAlwaysFullyExpanded !== true;
       var measureLengths = this.layout.qHyperCube.qMeasureInfo.reduce(function (a, b) {
         return Math.max(a, b.qApprMaxGlyphCount);
-      }, 0); // let dimensionLengths = this.layout.qHyperCube.qDimensionInfo.filter(d => !d.qError).map(d => {
-      // dimensionLengths not filtered
+      }, 0); // dimensionLengths not filtered
 
       var dimensionLengths = this.layout.qHyperCube.qDimensionInfo.map(function (d) {
         var out = possibleExpandCollapse ? 'xxx' : '';
@@ -4415,10 +4414,14 @@ var Table3 = /*#__PURE__*/function () {
       }).map(function (d) {
         var out = possibleExpandCollapse ? 'xxx' : '';
 
-        if (d.qApprMaxGlyphCount > d.qFallbackTitle.length) {
-          out += new Array(d.qApprMaxGlyphCount).fill('X').join('');
+        if (d.qFallbackTitle) {
+          if (d.qApprMaxGlyphCount > d.qFallbackTitle.length) {
+            out += new Array(d.qApprMaxGlyphCount).fill('X').join('');
+          } else {
+            out += d.qFallbackTitle;
+          }
         } else {
-          out += d.qFallbackTitle;
+          out += new Array(d.qApprMaxGlyphCount).fill('X').join('');
         }
 
         return out;
