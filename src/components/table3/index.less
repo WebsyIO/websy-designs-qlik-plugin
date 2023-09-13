@@ -146,36 +146,44 @@
   &.active {
     display: flex;
   }
-  .websy-cell-select-cancel, .websy-cell-select-confirm {
-    margin-left: 3px;
-    margin-right: 3px;
-    height: 30px;
-    width: 40px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    * {
-      pointer-events: none;
-    }
+}
+
+.websy-cell-select-cancel, .websy-cell-select-confirm {
+  margin-left: 3px;
+  margin-right: 3px;
+  height: 30px;
+  width: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  * {
+    pointer-events: none;
   }
-  .websy-cell-select-cancel {
-    background-color: #cc6677;
-    line {
-      stroke: #ffffff;
-      fill: none;
-    }
+}
+.websy-cell-select-cancel {
+  background-color: #cc6677;
+  line {
+    stroke: #ffffff;
+    fill: none;
   }
-  .websy-cell-select-confirm {
-    background-color: #44aa99;
-    polyline {
-      stroke: #ffffff;
-      fill: none;
-    }
+}
+.websy-cell-select-confirm {
+  background-color: #44aa99;
+  polyline {
+    stroke: #ffffff;
+    fill: none;
   }
 }
 
 .websy-table-title {
   font-weight: bold;
   font-size: 1.2rem;
+}
+
+.websy-dropdown-custom-button {
+  padding: 0;
+  * {
+    pointer-events: none;
+  }
 }

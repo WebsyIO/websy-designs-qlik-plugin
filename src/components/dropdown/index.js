@@ -8,13 +8,16 @@ class Dropdown {
     const DEFAULTS = {
       pageSize: 100,
       path: '',
-      useVariable: false
+      useVariable: false,
+      confirmIcon: `<div class='websy-cell-select-confirm'><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 512 512"><polyline points="416 128 192 384 96 288" style="stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></svg></div>`,
+      cancelIcon: `<div class="websy-cell-select-cancel"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 512 512"><line x1="368" y1="368" x2="144" y2="144" style="stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><line x1="368" y1="144" x2="144" y2="368" style="stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></svg></div>`
     }
     this.options = Object.assign({}, DEFAULTS, options)
     if (!options.def) {
       options.def = { options: {} }
     }
     this.busy = false
+    this.inSelections = true
     this.dropdownOptions = Object.assign({}, options, options.def.options || {}, {
       onItemSelected: this.itemSelected.bind(this),
       onClearSelected: this.clearSelected.bind(this),
@@ -23,6 +26,22 @@ class Dropdown {
       onScroll: this.handleScroll.bind(this),
       onOpen: this.onOpen.bind(this),
       onClose: this.onClose.bind(this),
+      customButtons: [
+        {
+          label: this.options.cancelIcon,
+          fn: () => {
+            this.dropdown.hide()
+            this.onClose(this.elementId, false)
+          }
+        },
+        {
+          label: this.options.confirmIcon,
+          fn: () => {
+            this.dropdown.hide()
+            this.onClose(this.elementId, true)
+          }
+        }
+      ],
       customActions: [
         {
           label: 'Clear All',
@@ -68,6 +87,23 @@ class Dropdown {
     })
     this.dropdown = new WebsyDesigns.WebsyDropdown(elementId, this.dropdownOptions)
     this.render()
+  }
+  beginSelections () {
+    return new Promise((resolve, reject) => {
+      if (this.inSelections === true) {
+        resolve()
+      }
+      else {
+        if (this.options.useVariable !== true) {
+          this.inSelections = true
+          this.abortModal().then(() => {
+            this.options.model.beginSelections(['/qListObjectDef']).then(() => {            
+              resolve()
+            })
+          })        
+        }
+      }
+    })
   }
   cancelSearch (value) {
     this.options.model.abortListObjectSearch(`/${this.options.path}/qListObjectDef`.replace(/\/\//g, '/'))
@@ -121,8 +157,9 @@ class Dropdown {
   clearSelected () {
     this.options.model.clearSelections(`/${this.options.path}/qListObjectDef`.replace(/\/\//g, '/'))
   }
-  onClose (elementId) {
-    this.options.model.endSelections(true).then(() => {
+  onClose (elementId, confirm = true) {
+    this.inSelections = false
+    this.options.model.endSelections(confirm).then(() => {
       if (this.options.onClose) {
         this.options.onClose(elementId)
       }

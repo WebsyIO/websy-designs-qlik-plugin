@@ -1818,13 +1818,16 @@ class Dropdown {
     const DEFAULTS = {
       pageSize: 100,
       path: '',
-      useVariable: false
+      useVariable: false,
+      confirmIcon: `<div class='websy-cell-select-confirm'><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 512 512"><polyline points="416 128 192 384 96 288" style="stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></svg></div>`,
+      cancelIcon: `<div class="websy-cell-select-cancel"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 512 512"><line x1="368" y1="368" x2="144" y2="144" style="stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/><line x1="368" y1="144" x2="144" y2="368" style="stroke-linecap:round;stroke-linejoin:round;stroke-width:32px"/></svg></div>`
     }
     this.options = Object.assign({}, DEFAULTS, options)
     if (!options.def) {
       options.def = { options: {} }
     }
     this.busy = false
+    this.inSelections = true
     this.dropdownOptions = Object.assign({}, options, options.def.options || {}, {
       onItemSelected: this.itemSelected.bind(this),
       onClearSelected: this.clearSelected.bind(this),
@@ -1833,6 +1836,22 @@ class Dropdown {
       onScroll: this.handleScroll.bind(this),
       onOpen: this.onOpen.bind(this),
       onClose: this.onClose.bind(this),
+      customButtons: [
+        {
+          label: this.options.cancelIcon,
+          fn: () => {
+            this.dropdown.hide()
+            this.onClose(this.elementId, false)
+          }
+        },
+        {
+          label: this.options.confirmIcon,
+          fn: () => {
+            this.dropdown.hide()
+            this.onClose(this.elementId, true)
+          }
+        }
+      ],
       customActions: [
         {
           label: 'Clear All',
@@ -1878,6 +1897,23 @@ class Dropdown {
     })
     this.dropdown = new WebsyDesigns.WebsyDropdown(elementId, this.dropdownOptions)
     this.render()
+  }
+  beginSelections () {
+    return new Promise((resolve, reject) => {
+      if (this.inSelections === true) {
+        resolve()
+      }
+      else {
+        if (this.options.useVariable !== true) {
+          this.inSelections = true
+          this.abortModal().then(() => {
+            this.options.model.beginSelections(['/qListObjectDef']).then(() => {            
+              resolve()
+            })
+          })        
+        }
+      }
+    })
   }
   cancelSearch (value) {
     this.options.model.abortListObjectSearch(`/${this.options.path}/qListObjectDef`.replace(/\/\//g, '/'))
@@ -1931,8 +1967,9 @@ class Dropdown {
   clearSelected () {
     this.options.model.clearSelections(`/${this.options.path}/qListObjectDef`.replace(/\/\//g, '/'))
   }
-  onClose (elementId) {
-    this.options.model.endSelections(true).then(() => {
+  onClose (elementId, confirm = true) {
+    this.inSelections = false
+    this.options.model.endSelections(confirm).then(() => {
       if (this.options.onClose) {
         this.options.onClose(elementId)
       }
@@ -3564,6 +3601,7 @@ class Table3 {
     this.qlikColumnOrder = []
     this.pinnedColumns = 0    
     this.selectedCells = []
+    this.selectedElems = []
     this.startCol = 0
     this.endCol = 0
     this.startRow = 0
@@ -3661,6 +3699,7 @@ class Table3 {
       if (this.options.app) {
         this.options.app.abortModal(true).then(() => {
           this.selectedCells = []
+          this.selectedElems = []
           resolve()
         })
       }
@@ -4189,6 +4228,7 @@ class Table3 {
         maskButtonsEl.classList.remove('active')
       }
       // if (this.options.forceRenderAfterSelect === true) {
+      this.selectedElems = []
       this.render()
       // }
     })
@@ -4362,6 +4402,14 @@ class Table3 {
         if (this.layout.qHyperCube.qMode === 'P') {
           let cellRef = `${data.cell.pos === 'Left' ? 'L' : 'T'}_${colIndex}_${rowIndex}`
           let cellRefIndex = this.selectedCells.indexOf(cellRef)
+          let cellElemRef = `${data.cell.pos === 'Left' ? 'L' : 'T'}_${colIndex}_${elemNum}`
+          let cellElemRefIndex = this.selectedElems.indexOf(cellElemRef)
+          if (cellElemRefIndex === -1) {
+            this.selectedElems.push(cellElemRef)
+          }
+          else {
+            this.selectedElems.splice(cellElemRefIndex, 1)
+          }
           if (this.layout.qHyperCube.qIndentMode !== true) {
             rowIndex -= this.startRow
           }
@@ -4484,11 +4532,8 @@ class Table3 {
   handleScroll (direction, startRow, endRow, startCol, endCol) {    
     this.startCol = startCol
     this.endCol = endCol
-    // if (this.layout.qHyperCube.qMode === 'P' && this.layout.qHyperCube.qIndentMode !== true) {
-    //   this.startCol = Math.max(0, startCol - this.pinnedColumns)
-    //   this.endCol = Math.max(0, endCol - this.pinnedColumns)
-    // }
-    this.startRow = startRow        
+    this.startRow = startRow   
+    console.log('selected elems', this.selectedElems)     
     this.checkDataExists(startRow, endRow).then(() => {
       if (this.columns && this.columns.length > 0) {
         if (this.layout.qHyperCube.qMode === 'S') {
@@ -4520,13 +4565,6 @@ class Table3 {
                 else if (acc >= startCol) {
                   c.inView = true
                 }
-                // else if (acc >= startCol && acc + c.colspan <= endCol) {                  
-                //   c.inView = true
-                // }
-                // else if (acc <= endCol && acc + c.colspan >= endCol) {
-                //   // c.colspan = c.colspan - (endCol - acc)
-                //   c.inView = true
-                // }
                 else {
                   c.inView = false
                 }               
@@ -4682,10 +4720,6 @@ class Table3 {
     // }) 
   }
   render (pageNum = 0) {    
-    // if (this.searchPrepped === false) {
-    //   this.prepSearch()
-    //   return 
-    // }
     this.validPivotLeft = 0
     if (this.inSelections === false) {
       this.table.showLoading({message: 'Loading...'}) 
@@ -4765,8 +4799,7 @@ class Table3 {
           if (this.options.onUpdate) {
             this.options.onUpdate(props, layout)
           }          
-          this.endCol = layout.qHyperCube.qSize.qcx + (this.pinnedColumns || layout.qHyperCube.qNoOfLeftDims)
-          // this.layout = layout
+          this.endCol = layout.qHyperCube.qSize.qcx + (this.pinnedColumns || layout.qHyperCube.qNoOfLeftDims)          
           if (this.layout.qHyperCube.qMode === 'P') {
             this.qlikColumnOrder = this.layout.qHyperCube.qEffectiveInterColumnSortOrder
           }
@@ -4782,16 +4815,10 @@ class Table3 {
   }
   resize () {
     this.buildDataStructure()
-    // this.rowCount = pageNum * this.options.pageSize
-    // if (this.layout.qHyperCube.qPivotDataPages[0]) {
-    //   this.layout.qHyperCube.qPivotDataPages = []
-    // }
     this.errorCount = 0    
     this.pageCount = Math.ceil(this.layout.qHyperCube.qSize.qcy / this.options.pageSize)
     this.table.options.pageNum = this.pageNum          
     this.table.options.pageCount = this.pageCount
-    // this.dataWidth = this.layout.qHyperCube.qSize.qcx
-    // this.columnOrder = this.layout.qHyperCube.qColumnOrder
     if (typeof this.columnOrder === 'undefined') {
       this.columnOrder = (new Array(this.layout.qHyperCube.qSize.qcx)).fill({}).map((r, i) => i)
     }
@@ -4800,8 +4827,6 @@ class Table3 {
       if (this.options.columnOverrides[i]) {
         c = {
           ...c,             
-          // onSearch: this.handleSearch.bind(this),
-          // onCloseSearch: this.handleCloseSearch.bind(this),
           ...this.options.columnOverrides[i]
         }
       }        
@@ -4821,7 +4846,6 @@ class Table3 {
     else {      
       this.buildPivotColumns()         
     }      
-    // let dataStart = this.startRow
     if (this.startRow > 0 && this.startRow + this.table.sizes.rowsToRender > this.layout.qHyperCube.qSize.qcy) {
       this.startRow = this.layout.qHyperCube.qSize.qcy - this.table.sizes.rowsToRender
     }
@@ -4833,10 +4857,8 @@ class Table3 {
       if (this.options.onLoading) {
         this.options.onLoading(false)
       }
-      // if (this.layout.qHyperCube.qMode === 'S') {
       this.table.render([], false)
-      this.prepDropdowns()
-      // }        
+      this.prepDropdowns()      
       if (!page || page.err) {
         const tableEl = document.getElementById(`${this.elementId}_foot`)
         if (this.tableEl) {
@@ -4898,9 +4920,6 @@ class Table3 {
                 else if (this.layout.qHyperCube.qDimensionInfo[c.level] && this.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo && this.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI] && this.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                   c.backgroundColor = a.qText
                 }
-                // else { // THIS COULD BE WRONG
-                //   c.color = a.qText
-                // }
               }
               else {
                 let measureIndex = (c.level - this.layout.qHyperCube.qDimensionInfo.length) % this.layout.qHyperCube.qMeasureInfo.length
@@ -4913,7 +4932,13 @@ class Table3 {
               }              
             }
           })
-        }        
+        } 
+        if (this.selectedElems.indexOf(`L_${c.level}_${c.qElemNo}`) !== -1) {
+          if (!c.classes) {
+            c.classes = []
+          }
+          c.classes.push('websy-cell-selected')
+        }       
         return c
       })
     })    
@@ -4944,35 +4969,11 @@ class Table3 {
       this.pinnedColumns = 1
     }
     this.table.pinnedColumns = this.pinnedColumns
-    for (let i = 0; i < leftNodes.length; i++) {
-      // if (this.layout.qHyperCube.qIndentMode !== true) {
-      //   if (leftNodes[i].length < this.pinnedColumns) {
-      //     let start = leftNodes[i].length
-      //     for (let c = start; c < this.pinnedColumns; c++) {            
-      //       leftNodes[i].push({
-      //         rowspan: 1,
-      //         colspan: 1,
-      //         level: c,
-      //         qText: '-',
-      //         value: '-',
-      //         qType: 'U',
-      //         qElemNo: -4
-      //       })
-      //     }
-      //   }
-      // } 
+    for (let i = 0; i < leftNodes.length; i++) {      
       if (leftNodes[i].level >= this.pinnedColumns && leftNodes[i].qElemNo === -4) {
         leftNodes[i].level = -1
       }           
-    }
-    // leftNodes = leftNodes.map(n => {
-    //   return n.map((c, i) => {
-    //     if (c.level >= this.pinnedColumns && c.qElemNo === -4) {
-    //       c.level = -1
-    //     }
-    //     return c
-    //   })
-    // })
+    }    
     for (let r = 0; r < page.qData.length; r++) {
       let row = page.qData[r]      
       for (let c = 0; c < row.length; c++) {
@@ -4980,10 +4981,8 @@ class Table3 {
           row[c].classes = []
         }
         row[c].pos = 'Data'  
-        row[c].style = 'text-align: right;'       
-        // row[c].level = this.layout.qHyperCube.qDimensionInfo.filter(d => !d.qError).length + c
-        row[c].dataIndex = c        
-        // row[c].level = this.pinnedColumns
+        row[c].style = 'text-align: right;'               
+        row[c].dataIndex = c                
         if (this.layout.qHyperCube.qIndentMode !== true) {
           row[c].level = this.pinnedColumns + c
         }  
@@ -5115,7 +5114,7 @@ class Table3 {
       o.style = ''
       o.value = o.qText || ''             
       input.value = input.qText || ''
-      input.index = level         
+      input.index = level
       visibleLeftCount = Math.max(visibleLeftCount, level + 1)
       o.childCount = o.qSubNodes.length                
       delete o.qSubNodes  
