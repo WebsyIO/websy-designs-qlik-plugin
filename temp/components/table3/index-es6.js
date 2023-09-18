@@ -91,6 +91,7 @@ class Table3 {
       html += `
         <div id='${this.elementId}_cellSelectMask' class='websy-cell-select-mask'></div>
         <div id='${this.elementId}_tableTitle' class='websy-table-title'></div>
+        <div id='${this.elementId}_tableSubtitle' class='websy-table-subtitle'></div>
         <div id='${this.elementId}_tableContainer' style='height: ${tableHeight};'></div>        
         <div id='${this.elementId}_cellSelectMaskLeft' class='websy-cell-select-mask-side'></div>
         <div id='${this.elementId}_cellSelectMaskRight' class='websy-cell-select-mask-side'></div>
@@ -604,6 +605,21 @@ class Table3 {
     }
     if (this.options.showTitle === true) {
       const el = document.getElementById(`${this.elementId}_tableTitle`)
+      if (el) {
+        if (el.innerText !== '') {
+          let titleSize = el.getBoundingClientRect().height
+          subtraction += titleSize
+        }
+        else {
+          el.innerHTML = 'X'
+          let titleSize = el.getBoundingClientRect().height
+          subtraction += titleSize
+          el.innerHTML = ''
+        }
+      }
+    }
+    if (this.options.showSubtitle === true) {
+      const el = document.getElementById(`${this.elementId}_tableSubtitle`)
       if (el) {
         if (el.innerText !== '') {
           let titleSize = el.getBoundingClientRect().height
@@ -1188,6 +1204,12 @@ class Table3 {
         const titleEl = document.getElementById(`${this.elementId}_tableTitle`)
         if (titleEl && this.layout.title) {
           titleEl.innerHTML = this.layout.title
+        }        
+      }
+      if (this.options.showSubtitle === true) {
+        const subtitleEl = document.getElementById(`${this.elementId}_tableSubtitle`)
+        if (subtitleEl && this.layout.subtitle) {
+          subtitleEl.innerHTML = this.layout.subtitle
         }        
       }
       if (layout.qHyperCube.qLastExpandedPos && typeof layout.qHyperCube.qLastExpandedPos.qy !== 'undefined') {

@@ -4293,7 +4293,7 @@ var Table3 = /*#__PURE__*/function () {
         html += "\n          <div id='".concat(this.elementId, "_expandCollapseAllContainer' class='websy-expand-collapse-all-container'>\n            <button class='expand-all'>Expand All</button>\n            <button class='collapse-all'>Collapse All</button>\n          </div>\n        ");
       }
 
-      html += "\n        <div id='".concat(this.elementId, "_cellSelectMask' class='websy-cell-select-mask'></div>\n        <div id='").concat(this.elementId, "_tableTitle' class='websy-table-title'></div>\n        <div id='").concat(this.elementId, "_tableContainer' style='height: ").concat(tableHeight, ";'></div>        \n        <div id='").concat(this.elementId, "_cellSelectMaskLeft' class='websy-cell-select-mask-side'></div>\n        <div id='").concat(this.elementId, "_cellSelectMaskRight' class='websy-cell-select-mask-side'></div>\n        <div id='").concat(this.elementId, "_cellSelectButtons' class='websy-cell-select-buttons'>\n          <div class='websy-cell-select-cancel'>\n            ").concat(this.options.cancelIcon, "\n          </div>\n          <div class='websy-cell-select-confirm'>\n            ").concat(this.options.confirmIcon, "\n          </div>\n        </div>\n      ");
+      html += "\n        <div id='".concat(this.elementId, "_cellSelectMask' class='websy-cell-select-mask'></div>\n        <div id='").concat(this.elementId, "_tableTitle' class='websy-table-title'></div>\n        <div id='").concat(this.elementId, "_tableSubtitle' class='websy-table-subtitle'></div>\n        <div id='").concat(this.elementId, "_tableContainer' style='height: ").concat(tableHeight, ";'></div>        \n        <div id='").concat(this.elementId, "_cellSelectMaskLeft' class='websy-cell-select-mask-side'></div>\n        <div id='").concat(this.elementId, "_cellSelectMaskRight' class='websy-cell-select-mask-side'></div>\n        <div id='").concat(this.elementId, "_cellSelectButtons' class='websy-cell-select-buttons'>\n          <div class='websy-cell-select-cancel'>\n            ").concat(this.options.cancelIcon, "\n          </div>\n          <div class='websy-cell-select-confirm'>\n            ").concat(this.options.confirmIcon, "\n          </div>\n        </div>\n      ");
       el.innerHTML = html;
       this.table = new _websyDesignsEs["default"].WebsyTable3("".concat(this.elementId, "_tableContainer"), _extends({}, {
         onClick: this.handleClick.bind(this),
@@ -4913,6 +4913,25 @@ var Table3 = /*#__PURE__*/function () {
             var _titleSize = el.getBoundingClientRect().height;
             subtraction += _titleSize;
             el.innerHTML = '';
+          }
+        }
+      }
+
+      if (this.options.showSubtitle === true) {
+        var _el = document.getElementById("".concat(this.elementId, "_tableSubtitle"));
+
+        if (_el) {
+          if (_el.innerText !== '') {
+            var _titleSize2 = _el.getBoundingClientRect().height;
+
+            subtraction += _titleSize2;
+          } else {
+            _el.innerHTML = 'X';
+
+            var _titleSize3 = _el.getBoundingClientRect().height;
+
+            subtraction += _titleSize3;
+            _el.innerHTML = '';
           }
         }
       }
@@ -5615,6 +5634,14 @@ var Table3 = /*#__PURE__*/function () {
 
           if (titleEl && _this52.layout.title) {
             titleEl.innerHTML = _this52.layout.title;
+          }
+        }
+
+        if (_this52.options.showSubtitle === true) {
+          var subtitleEl = document.getElementById("".concat(_this52.elementId, "_tableSubtitle"));
+
+          if (subtitleEl && _this52.layout.subtitle) {
+            subtitleEl.innerHTML = _this52.layout.subtitle;
           }
         }
 
