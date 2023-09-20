@@ -354,6 +354,12 @@ class Table3 {
       })
       this.columnList.render()
       this.columnList.options.items.forEach((d, i) => {
+        if (this.columnOrder.indexOf(i) > this.layout.qHyperCube.qNoOfLeftDims) {
+          return
+        }
+        if (d.qError) {
+          return
+        }
         if (!this.dropdowns[d.dimId]) {
           if (!d.dim.qDef) {            
             d.dim.qDef = {}
@@ -397,7 +403,13 @@ class Table3 {
       this.table.buildHeaderHtml()
       this.columns[this.columns.length - 1].forEach((c, i) => {
         if (c.searchable !== false) {
-          if (c.isExternalSearch === true) {                 
+          if (c.isExternalSearch === true) {
+            if (this.columnOrder.indexOf(i) > this.layout.qHyperCube.qNoOfLeftDims) {
+              return
+            }
+            if (c.qError) {
+              return
+            }                 
             if (!this.dropdowns[c.dimId]) {
               let ddDef = {
                 qInfo: { qType: 'table-dropdown' },
@@ -517,7 +529,13 @@ class Table3 {
     this.tableSizes = this.table.calculateSizes(this.columnParamValues, this.layout.qHyperCube.qSize.qcy, this.layout.qHyperCube.qSize.qcx, this.pinnedColumns)         
     this.columns.forEach((c, i) => {
       if (c.searchable !== false) {
-        if (c.isExternalSearch === true) {                 
+        if (c.isExternalSearch === true) {     
+          if (this.columnOrder.indexOf(i) > this.layout.qHyperCube.qNoOfLeftDims) {
+            return
+          }
+          if (c.qError) {
+            return
+          }           
           if (!this.dropdowns[c.dimId]) {
             let ddDef = {
               qInfo: { qType: 'table-dropdown' },
@@ -843,7 +861,7 @@ class Table3 {
         if (maskRightEl) {
           maskRightEl.classList.add('active')
           maskRightEl.style.left = `${cellEl.offsetLeft + cellEl.offsetWidth}px`
-          maskRightEl.style.right = '0px'
+          maskRightEl.style.right = '30px'
           maskRightEl.style.top = `0px`
           maskRightEl.style.bottom = '0px'
         }
@@ -976,7 +994,7 @@ class Table3 {
     else if (event.target.classList.contains('websy-cell-select-mask')) {
       this.confirmCancelSelections(true)
     }
-    else if (event.target.classList.contains('.websy-cell-select-mask-side')) {
+    else if (event.target.classList.contains('websy-cell-select-mask-side')) {
       this.confirmCancelSelections(true)
     }
     else if (event.target.classList.contains('websy-cell-select-confirm')) {
@@ -1291,8 +1309,18 @@ class Table3 {
     if (typeof this.columnOrder === 'undefined') {
       this.columnOrder = (new Array(this.layout.qHyperCube.qSize.qcx)).fill({}).map((r, i) => i)
     }
-    this.layout.qHyperCube.qDimensionInfo = this.layout.qHyperCube.qDimensionInfo.map((c, i) => {
-      c.searchable = true
+    this.layout.qHyperCube.qDimensionInfo = this.layout.qHyperCube.qDimensionInfo.map((c, i) => {     
+      if (this.layout.qHyperCube.qMode === 'P') {
+        if (this.columnOrder.indexOf(i) > this.layout.qHyperCube.qNoOfLeftDims) {
+          c.searchable = false
+        }
+        if (c.qError) {
+          c.searchable = false
+        }
+      } 
+      else {
+        c.searchable = true
+      }
       if (this.options.columnOverrides[i]) {
         c = {
           ...c,             
