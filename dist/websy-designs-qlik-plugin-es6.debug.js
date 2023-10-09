@@ -3756,7 +3756,7 @@ class Table3 {
         return ''
       }
       if (d.qFallbackTitle) {
-        if (d.qApprMaxGlyphCount > d.qFallbackTitle.length) {
+        if (d.qApprMaxGlyphCount > d.qFallbackTitle.length || d.qFallbackTitle.indexOf('=') === 0) {
           out += new Array(d.qApprMaxGlyphCount).fill('X').join('') 
         } 
         else {
@@ -4566,8 +4566,7 @@ class Table3 {
   handleScroll (direction, startRow, endRow, startCol, endCol) {    
     this.startCol = startCol
     this.endCol = endCol
-    this.startRow = startRow   
-    console.log('selected elems', this.selectedElems)     
+    this.startRow = startRow
     this.checkDataExists(startRow, endRow).then(() => {
       if (this.columns && this.columns.length > 0) {
         if (this.layout.qHyperCube.qMode === 'S') {
@@ -4591,8 +4590,8 @@ class Table3 {
               }              
               if (c.colspan > 1) {
                 // not last level of column headers
-                if (acc < startCol && acc + c.colspan > startCol && firstColTrimmed === false) {
-                  c.colspan = c.colspan - (startCol - acc)
+                if (acc < startCol + this.pinnedColumns && acc + c.colspan > startCol + this.pinnedColumns && firstColTrimmed === false) {
+                  c.colspan = c.colspan - ((startCol + this.pinnedColumns) - acc)
                   c.inView = true
                   firstColTrimmed = true
                 }
@@ -4604,7 +4603,8 @@ class Table3 {
                 }               
               }              
               else {
-                c.inView = i >= startCol + this.pinnedColumns && i <= endCol + this.pinnedColumns
+                // c.inView = i >= (acc + startCol + this.pinnedColumns) && i <= (acc + endCol + this.pinnedColumns)
+                c.inView = acc >= startCol + this.pinnedColumns
               }  
               acc += cC.colspan || 1    
               adjAcc += c.colspan || 1    

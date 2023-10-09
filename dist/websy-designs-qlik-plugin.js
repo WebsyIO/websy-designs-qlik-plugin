@@ -4486,7 +4486,7 @@ var Table3 = /*#__PURE__*/function () {
         }
 
         if (d.qFallbackTitle) {
-          if (d.qApprMaxGlyphCount > d.qFallbackTitle.length) {
+          if (d.qApprMaxGlyphCount > d.qFallbackTitle.length || d.qFallbackTitle.indexOf('=') === 0) {
             out += new Array(d.qApprMaxGlyphCount).fill('X').join('');
           } else {
             out += d.qFallbackTitle;
@@ -5469,7 +5469,6 @@ var Table3 = /*#__PURE__*/function () {
       this.startCol = startCol;
       this.endCol = endCol;
       this.startRow = startRow;
-      console.log('selected elems', this.selectedElems);
       this.checkDataExists(startRow, endRow).then(function () {
         if (_this52.columns && _this52.columns.length > 0) {
           if (_this52.layout.qHyperCube.qMode === 'S') {
@@ -5495,8 +5494,8 @@ var Table3 = /*#__PURE__*/function () {
 
                 if (c.colspan > 1) {
                   // not last level of column headers
-                  if (acc < startCol && acc + c.colspan > startCol && firstColTrimmed === false) {
-                    c.colspan = c.colspan - (startCol - acc);
+                  if (acc < startCol + _this52.pinnedColumns && acc + c.colspan > startCol + _this52.pinnedColumns && firstColTrimmed === false) {
+                    c.colspan = c.colspan - (startCol + _this52.pinnedColumns - acc);
                     c.inView = true;
                     firstColTrimmed = true;
                   } else if (acc >= startCol) {
@@ -5505,7 +5504,8 @@ var Table3 = /*#__PURE__*/function () {
                     c.inView = false;
                   }
                 } else {
-                  c.inView = i >= startCol + _this52.pinnedColumns && i <= endCol + _this52.pinnedColumns;
+                  // c.inView = i >= (acc + startCol + this.pinnedColumns) && i <= (acc + endCol + this.pinnedColumns)
+                  c.inView = acc >= startCol + _this52.pinnedColumns;
                 }
 
                 acc += cC.colspan || 1;
