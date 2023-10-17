@@ -1009,6 +1009,8 @@ class Chart {
   }
   transformMultiMeasure () {
     const options = Object.assign({}, this.optionDefaults, this.layout.options, this.options.chartOptions)
+    let seriesTypes = this.layout.qHyperCube.qMeasureInfo.map(d => ((d.options || {}).type || 'bar'))
+    const isCombo = seriesTypes.indexOf('bar') !== -1 && seriesTypes.indexOf('line') !== -1
     let xAxis = 'bottom'
     let x2Axis = 'bottom'
     let yAxis = 'left'
@@ -1047,6 +1049,7 @@ class Chart {
       }
       if (m.axis === 'secondary') { // right hand axis
         hasy2Axis = true
+        series.axis = 'secondary'
         this.addOptions(options.data[y2Axis], m.options || {})
         // options.data[y2Axis] = Object.assign({}, options.data[y2Axis], m.options)        
         if (options.grouping !== 'stacked') {          
@@ -1067,7 +1070,6 @@ class Chart {
           options.data[yAxis].min = Math.min(options.data[yAxis].min, m.qMin)
           options.data[yAxis].max = Math.max(options.data[yAxis].max, m.qMax)
         }
-        console.log('max', options.data[yAxis].max)
         options.data[yAxis].scale = (m.options || {}).scale || yScale
         options.data[yAxis].title = m.qFallbackTitle
         options.data[yAxis].formatter = d => {          
@@ -1131,7 +1133,9 @@ class Chart {
         c.tooltipLabel = this.layout.qHyperCube.qMeasureInfo[cIndex - 1].qFallbackTitle   
         c.tooltipValue = c.qText || '-'    
         c.label = c.qText || '-'
-        r[0].valueCount++
+        if ((this.layout.qHyperCube.qMeasureInfo[cIndex - 1].options || {}).type !== 'line') {
+          r[0].valueCount++
+        }
         c.color = this.getColor(c, r[0], this.layout.qHyperCube.qDimensionInfo[0], this.layout.qHyperCube.qMeasureInfo[cIndex - 1], this.layout.qHyperCube.color)
         // if (this.layout.qHyperCube.qMeasureInfo[cIndex - 1].options) {
         // c.color = this.layout.qHyperCube.qMeasureInfo[cIndex - 1].options.color 
@@ -4065,7 +4069,9 @@ class Table3 {
     }
     this.table.options.totals = this.totals
     let activeDimensions = this.layout.qHyperCube.qDimensionInfo        
-      .filter(c => !c.qError)        
+      .filter(c => !c.qError)   
+    let activeMeasures = this.layout.qHyperCube.qMeasureInfo        
+      .filter(c => !c.qError)   
     this.columnParamValues = activeDimensions
       .filter((c, i) => (this.layout.qHyperCube.qMode === 'S' || i < this.pinnedColumns))
       .map((c, i) => ({ 
@@ -4075,7 +4081,15 @@ class Table3 {
     let measureLabel = activeDimensions.pop()
     const maxMValue = this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError).reduce((a, b) => a.qApprMaxGlyphCount > b.qApprMaxGlyphCount ? a : b, {qApprMaxGlyphCount: 0})
     const maxMLabel = this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError).reduce((a, b) => a > b.qFallbackTitle.length ? a : b.qFallbackTitle.length, 0)
-    this.columnParamValues = this.columnParamValues.concat(new Array(this.layout.qHyperCube.qSize.qcx).fill(new Array(Math.max(maxMValue.qApprMaxGlyphCount, maxMLabel)).fill('X').join('')).map(d => ({value: d, width: null})))    
+    // this.columnParamValues = this.columnParamValues.concat(new Array(this.layout.qHyperCube.qSize.qcx).fill(new Array(Math.max(maxMValue.qApprMaxGlyphCount, maxMLabel)).fill('X').join('')).map(d => ({value: d, width: null})))    
+    this.columnParamValues = this.columnParamValues.concat(
+      activeMeasures
+        .filter((c, i) => (this.layout.qHyperCube.qMode === 'S' || i < this.pinnedColumns))
+        .map((c, i) => ({ 
+          value: new Array(activeMeasures[i].qFallbackTitle.length).fill('X').join(''),
+          width: c.width || null
+        }))
+    )    
     if (this.layout.scrolling && this.layout.scrolling.keepFirstColumnInView === true) {
       this.pinnedColumns = 1
     }
@@ -4571,7 +4585,7 @@ class Table3 {
       if (this.columns && this.columns.length > 0) {
         if (this.layout.qHyperCube.qMode === 'S') {
           let columnsInView = this.columns.filter((c, i) => {
-            return i < this.pinnedColumns || (i >= startCol && i <= endCol)
+            return i < this.pinnedColumns || (i >= startCol + this.pinnedColumns && i <= endCol + this.pinnedColumns)
           })
           this.table.columns = [columnsInView]   
         }        
@@ -4631,7 +4645,7 @@ class Table3 {
             return c.level < this.pinnedColumns || (c.dataIndex >= startCol && c.dataIndex <= endCol)
           }        
           else {
-            return i < this.pinnedColumns || (i >= startCol + this.pinnedColumns && i <= endCol + this.pinnedColumns)
+            return i < this.pinnedColumns || (i >= startCol + this.pinnedColumns && i <= endCol + this.pinnedColumns)            
           }
         }).map((c, i, arr) => {
           if (this.layout.qHyperCube.qMode === 'P') { // && this.layout.qHyperCube.qIndentMode !== true) {            
@@ -4937,8 +4951,10 @@ class Table3 {
   transformData (page) {    
     return page.map(r => {
       return r.map((c, i) => {
+        let attrIndex = c.level
         if (this.layout.qHyperCube.qMode === 'S') {
           c.level = i
+          attrIndex = i + this.startCol
         }        
         if (this.table.options.columns[this.table.options.columns.length - 1][i] && (this.table.options.columns[this.table.options.columns.length - 1][i].showAsLink === true || this.table.options.columns[this.table.options.columns.length - 1][i].showAsNavigatorLink === true)) {
           if (c.qAttrExps && c.qAttrExps.qValues && c.qAttrExps.qValues[0].qText) {
@@ -4963,16 +4979,16 @@ class Table3 {
           let tIndex = i + (this.startCol || 0)          
           c.qAttrExps.qValues.forEach((a, aI) => {            
             if (a.qText && a.qText !== '') {              
-              if (c.level < this.layout.qHyperCube.qDimensionInfo.length) {              
-                if (this.layout.qHyperCube.qDimensionInfo[c.level] && this.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo && this.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI] && this.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+              if (attrIndex < this.layout.qHyperCube.qDimensionInfo.length) {              
+                if (this.layout.qHyperCube.qDimensionInfo[attrIndex] && this.layout.qHyperCube.qDimensionInfo[attrIndex].qAttrExprInfo && this.layout.qHyperCube.qDimensionInfo[attrIndex].qAttrExprInfo[aI] && this.layout.qHyperCube.qDimensionInfo[attrIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                   c.color = a.qText
                 }
-                else if (this.layout.qHyperCube.qDimensionInfo[c.level] && this.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo && this.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI] && this.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                else if (this.layout.qHyperCube.qDimensionInfo[attrIndex] && this.layout.qHyperCube.qDimensionInfo[attrIndex].qAttrExprInfo && this.layout.qHyperCube.qDimensionInfo[attrIndex].qAttrExprInfo[aI] && this.layout.qHyperCube.qDimensionInfo[attrIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                   c.backgroundColor = a.qText
                 }
               }
               else {
-                let measureIndex = (c.level - this.layout.qHyperCube.qDimensionInfo.length) % this.layout.qHyperCube.qMeasureInfo.length
+                let measureIndex = (attrIndex - this.layout.qHyperCube.qDimensionInfo.length) % this.layout.qHyperCube.qMeasureInfo.length
                 if (this.layout.qHyperCube.qMeasureInfo[measureIndex] && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                   c.color = a.qText
                 }

@@ -443,6 +443,8 @@ class Chart {
   }
   transformMultiMeasure () {
     const options = Object.assign({}, this.optionDefaults, this.layout.options, this.options.chartOptions)
+    let seriesTypes = this.layout.qHyperCube.qMeasureInfo.map(d => ((d.options || {}).type || 'bar'))
+    const isCombo = seriesTypes.indexOf('bar') !== -1 && seriesTypes.indexOf('line') !== -1
     let xAxis = 'bottom'
     let x2Axis = 'bottom'
     let yAxis = 'left'
@@ -481,6 +483,7 @@ class Chart {
       }
       if (m.axis === 'secondary') { // right hand axis
         hasy2Axis = true
+        series.axis = 'secondary'
         this.addOptions(options.data[y2Axis], m.options || {})
         // options.data[y2Axis] = Object.assign({}, options.data[y2Axis], m.options)        
         if (options.grouping !== 'stacked') {          
@@ -501,7 +504,6 @@ class Chart {
           options.data[yAxis].min = Math.min(options.data[yAxis].min, m.qMin)
           options.data[yAxis].max = Math.max(options.data[yAxis].max, m.qMax)
         }
-        console.log('max', options.data[yAxis].max)
         options.data[yAxis].scale = (m.options || {}).scale || yScale
         options.data[yAxis].title = m.qFallbackTitle
         options.data[yAxis].formatter = d => {          
@@ -565,7 +567,9 @@ class Chart {
         c.tooltipLabel = this.layout.qHyperCube.qMeasureInfo[cIndex - 1].qFallbackTitle   
         c.tooltipValue = c.qText || '-'    
         c.label = c.qText || '-'
-        r[0].valueCount++
+        if ((this.layout.qHyperCube.qMeasureInfo[cIndex - 1].options || {}).type !== 'line') {
+          r[0].valueCount++
+        }
         c.color = this.getColor(c, r[0], this.layout.qHyperCube.qDimensionInfo[0], this.layout.qHyperCube.qMeasureInfo[cIndex - 1], this.layout.qHyperCube.color)
         // if (this.layout.qHyperCube.qMeasureInfo[cIndex - 1].options) {
         // c.color = this.layout.qHyperCube.qMeasureInfo[cIndex - 1].options.color 

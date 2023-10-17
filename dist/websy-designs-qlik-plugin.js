@@ -1125,6 +1125,10 @@ var Chart = /*#__PURE__*/function () {
 
       var options = _extends({}, this.optionDefaults, this.layout.options, this.options.chartOptions);
 
+      var seriesTypes = this.layout.qHyperCube.qMeasureInfo.map(function (d) {
+        return (d.options || {}).type || 'bar';
+      });
+      var isCombo = seriesTypes.indexOf('bar') !== -1 && seriesTypes.indexOf('line') !== -1;
       var xAxis = 'bottom';
       var x2Axis = 'bottom';
       var yAxis = 'left';
@@ -1170,6 +1174,7 @@ var Chart = /*#__PURE__*/function () {
         if (m.axis === 'secondary') {
           // right hand axis
           hasy2Axis = true;
+          series.axis = 'secondary';
 
           _this10.addOptions(options.data[y2Axis], m.options || {}); // options.data[y2Axis] = Object.assign({}, options.data[y2Axis], m.options)        
 
@@ -1196,7 +1201,6 @@ var Chart = /*#__PURE__*/function () {
             options.data[yAxis].max = Math.max(options.data[yAxis].max, m.qMax);
           }
 
-          console.log('max', options.data[yAxis].max);
           options.data[yAxis].scale = (m.options || {}).scale || yScale;
           options.data[yAxis].title = m.qFallbackTitle;
 
@@ -1269,7 +1273,11 @@ var Chart = /*#__PURE__*/function () {
           c.tooltipLabel = _this10.layout.qHyperCube.qMeasureInfo[cIndex - 1].qFallbackTitle;
           c.tooltipValue = c.qText || '-';
           c.label = c.qText || '-';
-          r[0].valueCount++;
+
+          if ((_this10.layout.qHyperCube.qMeasureInfo[cIndex - 1].options || {}).type !== 'line') {
+            r[0].valueCount++;
+          }
+
           c.color = _this10.getColor(c, r[0], _this10.layout.qHyperCube.qDimensionInfo[0], _this10.layout.qHyperCube.qMeasureInfo[cIndex - 1], _this10.layout.qHyperCube.color); // if (this.layout.qHyperCube.qMeasureInfo[cIndex - 1].options) {
           // c.color = this.layout.qHyperCube.qMeasureInfo[cIndex - 1].options.color 
           // }        
@@ -4851,6 +4859,9 @@ var Table3 = /*#__PURE__*/function () {
       var activeDimensions = this.layout.qHyperCube.qDimensionInfo.filter(function (c) {
         return !c.qError;
       });
+      var activeMeasures = this.layout.qHyperCube.qMeasureInfo.filter(function (c) {
+        return !c.qError;
+      });
       this.columnParamValues = activeDimensions.filter(function (c, i) {
         return _this47.layout.qHyperCube.qMode === 'S' || i < _this47.pinnedColumns;
       }).map(function (c, i) {
@@ -4871,11 +4882,14 @@ var Table3 = /*#__PURE__*/function () {
         return !m.qError;
       }).reduce(function (a, b) {
         return a > b.qFallbackTitle.length ? a : b.qFallbackTitle.length;
-      }, 0);
-      this.columnParamValues = this.columnParamValues.concat(new Array(this.layout.qHyperCube.qSize.qcx).fill(new Array(Math.max(maxMValue.qApprMaxGlyphCount, maxMLabel)).fill('X').join('')).map(function (d) {
+      }, 0); // this.columnParamValues = this.columnParamValues.concat(new Array(this.layout.qHyperCube.qSize.qcx).fill(new Array(Math.max(maxMValue.qApprMaxGlyphCount, maxMLabel)).fill('X').join('')).map(d => ({value: d, width: null})))    
+
+      this.columnParamValues = this.columnParamValues.concat(activeMeasures.filter(function (c, i) {
+        return _this47.layout.qHyperCube.qMode === 'S' || i < _this47.pinnedColumns;
+      }).map(function (c, i) {
         return {
-          value: d,
-          width: null
+          value: new Array(activeMeasures[i].qFallbackTitle.length).fill('X').join(''),
+          width: c.width || null
         };
       }));
 
@@ -5473,7 +5487,7 @@ var Table3 = /*#__PURE__*/function () {
         if (_this52.columns && _this52.columns.length > 0) {
           if (_this52.layout.qHyperCube.qMode === 'S') {
             var columnsInView = _this52.columns.filter(function (c, i) {
-              return i < _this52.pinnedColumns || i >= startCol && i <= endCol;
+              return i < _this52.pinnedColumns || i >= startCol + _this52.pinnedColumns && i <= endCol + _this52.pinnedColumns;
             });
 
             _this52.table.columns = [columnsInView];
@@ -5932,8 +5946,11 @@ var Table3 = /*#__PURE__*/function () {
 
       return page.map(function (r) {
         return r.map(function (c, i) {
+          var attrIndex = c.level;
+
           if (_this56.layout.qHyperCube.qMode === 'S') {
             c.level = i;
+            attrIndex = i + _this56.startCol;
           }
 
           if (_this56.table.options.columns[_this56.table.options.columns.length - 1][i] && (_this56.table.options.columns[_this56.table.options.columns.length - 1][i].showAsLink === true || _this56.table.options.columns[_this56.table.options.columns.length - 1][i].showAsNavigatorLink === true)) {
@@ -5960,14 +5977,14 @@ var Table3 = /*#__PURE__*/function () {
             var tIndex = i + (_this56.startCol || 0);
             c.qAttrExps.qValues.forEach(function (a, aI) {
               if (a.qText && a.qText !== '') {
-                if (c.level < _this56.layout.qHyperCube.qDimensionInfo.length) {
-                  if (_this56.layout.qHyperCube.qDimensionInfo[c.level] && _this56.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo && _this56.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI] && _this56.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                if (attrIndex < _this56.layout.qHyperCube.qDimensionInfo.length) {
+                  if (_this56.layout.qHyperCube.qDimensionInfo[attrIndex] && _this56.layout.qHyperCube.qDimensionInfo[attrIndex].qAttrExprInfo && _this56.layout.qHyperCube.qDimensionInfo[attrIndex].qAttrExprInfo[aI] && _this56.layout.qHyperCube.qDimensionInfo[attrIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                     c.color = a.qText;
-                  } else if (_this56.layout.qHyperCube.qDimensionInfo[c.level] && _this56.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo && _this56.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI] && _this56.layout.qHyperCube.qDimensionInfo[c.level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                  } else if (_this56.layout.qHyperCube.qDimensionInfo[attrIndex] && _this56.layout.qHyperCube.qDimensionInfo[attrIndex].qAttrExprInfo && _this56.layout.qHyperCube.qDimensionInfo[attrIndex].qAttrExprInfo[aI] && _this56.layout.qHyperCube.qDimensionInfo[attrIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                     c.backgroundColor = a.qText;
                   }
                 } else {
-                  var measureIndex = (c.level - _this56.layout.qHyperCube.qDimensionInfo.length) % _this56.layout.qHyperCube.qMeasureInfo.length;
+                  var measureIndex = (attrIndex - _this56.layout.qHyperCube.qDimensionInfo.length) % _this56.layout.qHyperCube.qMeasureInfo.length;
 
                   if (_this56.layout.qHyperCube.qMeasureInfo[measureIndex] && _this56.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && _this56.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && _this56.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                     c.color = a.qText;
