@@ -443,10 +443,10 @@ class Table3 {
         }
       }) 
       this.table.options.columns = this.columns      
-      const tableEl = document.getElementById(`${this.elementId}_tableContainer`)
-      if (tableEl) {
-        tableEl.style.height = '100%'
-      }
+      // const tableEl = document.getElementById(`${this.elementId}_tableContainer`)
+      // if (tableEl) {
+      //   tableEl.style.height = '100%'
+      // }
     }
   }
   buildStraightColumnsAndTotals () {
@@ -668,7 +668,7 @@ class Table3 {
       if (this.layout.qHyperCube.qMode === 'P' && this.layout.qHyperCube.qIndentMode !== true) {
         this.getData(start, () => {
           resolve()
-        }) 
+        })
       }
       else {
         let top = -1

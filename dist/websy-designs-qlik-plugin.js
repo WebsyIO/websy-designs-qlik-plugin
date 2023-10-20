@@ -4763,12 +4763,10 @@ var Table3 = /*#__PURE__*/function () {
             }
           }
         });
-        this.table.options.columns = this.columns;
-        var tableEl = document.getElementById("".concat(this.elementId, "_tableContainer"));
-
-        if (tableEl) {
-          tableEl.style.height = '100%';
-        }
+        this.table.options.columns = this.columns; // const tableEl = document.getElementById(`${this.elementId}_tableContainer`)
+        // if (tableEl) {
+        //   tableEl.style.height = '100%'
+        // }
       }
     }
   }, {
