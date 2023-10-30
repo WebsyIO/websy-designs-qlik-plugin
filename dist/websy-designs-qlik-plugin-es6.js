@@ -4841,7 +4841,7 @@ var Table3 = /*#__PURE__*/function () {
       this.columns.forEach(function (c, i) {
         if (c.searchable !== false) {
           if (c.isExternalSearch === true) {
-            if (_this45.columnOrder.indexOf(i) > _this45.layout.qHyperCube.qNoOfLeftDims) {
+            if (_this45.columnOrder.indexOf(i) > _this45.layout.qHyperCube.qDimensionInfo.length) {
               return;
             }
 
@@ -5546,6 +5546,7 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "handleSort",
     value: function handleSort(event, column, colIndex) {
+      colIndex = this.columnOrder[colIndex];
       var reverse = column.reverseSort === true;
       var patchDefs = [{
         qOp: 'replace',
@@ -6026,7 +6027,10 @@ var Table3 = /*#__PURE__*/function () {
                     row[c].color = a.qText;
                   } else if (_this55.layout.qHyperCube.qMeasureInfo[measureIndex] && _this55.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && _this55.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && _this55.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                     row[c].backgroundColor = a.qText;
-                  }
+                  } // else { // THIS COULD BE WRONG
+                  //   row[c].color = a.qText
+                  // }
+
 
                   if (_this55.layout.qHyperCube.qMeasureInfo[measureIndex] && (_this55.layout.qHyperCube.qMeasureInfo[measureIndex].showAsLink === true || _this55.layout.qHyperCube.qMeasureInfo[measureIndex].showAsNavigatorLink === true)) {
                     row[c].value = a.qText;

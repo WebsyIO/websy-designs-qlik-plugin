@@ -4130,7 +4130,7 @@ class Table3 {
     this.columns.forEach((c, i) => {
       if (c.searchable !== false) {
         if (c.isExternalSearch === true) {     
-          if (this.columnOrder.indexOf(i) > this.layout.qHyperCube.qNoOfLeftDims) {
+          if (this.columnOrder.indexOf(i) > this.layout.qHyperCube.qDimensionInfo.length) {
             return
           }
           if (c.qError) {
@@ -4716,6 +4716,7 @@ class Table3 {
     el.classList.remove('active')
   }
   handleSort (event, column, colIndex) {
+    colIndex = this.columnOrder[colIndex]
     const reverse = column.reverseSort === true
     const patchDefs = [{
       qOp: 'replace',
@@ -5108,6 +5109,9 @@ class Table3 {
                 else if (this.layout.qHyperCube.qMeasureInfo[measureIndex] && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                   row[c].backgroundColor = a.qText
                 }
+                // else { // THIS COULD BE WRONG
+                //   row[c].color = a.qText
+                // }
                 if (this.layout.qHyperCube.qMeasureInfo[measureIndex] && (this.layout.qHyperCube.qMeasureInfo[measureIndex].showAsLink === true || this.layout.qHyperCube.qMeasureInfo[measureIndex].showAsNavigatorLink === true)) {              
                   row[c].value = a.qText                  
                   if (row[c].value.indexOf('https://') === -1) {
