@@ -4665,15 +4665,26 @@ class Table3 {
     }
   }
   handleSearch (event, column) {
-    // console.log(event, column)
+    console.log(event, column)
     if (this.dropdowns[column.dimId]) {
       let el = document.getElementById(`${this.elementId}_tableContainer_columnSearch_${column.dimId}`)
       if (el) {
+        let targetPos = event.target.getBoundingClientRect()
+        console.log(targetPos)
+        let left = `${targetPos.x}px`
+        let top = `${targetPos.y + targetPos.height + 5}px`
+        let right = 'unset'
+        if (targetPos.left + 250 >= window.innerWidth) {
+          left = 'unset'
+          right = `${targetPos.x + targetPos.width}px`
+        }
         el.classList.toggle('active')
         // el.style.top = `${event.pageY}px`
-        el.style.top = '0px'
+        el.style.top = top
+        el.style.left = left
+        el.style.right = right
         // el.style.right = `calc(100vw - ${event.pageX + event.target.offsetWidth}px)`
-        el.style.left = `${Math.max(130, event.pageX - this.table.sizes.outer.left)}px` // need to improve this logic. currently based on the dropdown being 220px wide
+        // el.style.left = `${Math.max(130, event.pageX - this.table.sizes.outer.left)}px` // need to improve this logic. currently based on the dropdown being 220px wide
         this.dropdowns[column.dimId].open()
       }
     }
@@ -4987,6 +4998,9 @@ class Table3 {
                 else if (this.layout.qHyperCube.qDimensionInfo[attrIndex] && this.layout.qHyperCube.qDimensionInfo[attrIndex].qAttrExprInfo && this.layout.qHyperCube.qDimensionInfo[attrIndex].qAttrExprInfo[aI] && this.layout.qHyperCube.qDimensionInfo[attrIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                   c.backgroundColor = a.qText
                 }
+                // else { // THIS COULD BE WRONG
+                //   c.color = a.qText
+                // }
               }
               else {
                 let measureIndex = (attrIndex - this.layout.qHyperCube.qDimensionInfo.length) % this.layout.qHyperCube.qMeasureInfo.length
@@ -4996,6 +5010,9 @@ class Table3 {
                 else if (this.layout.qHyperCube.qMeasureInfo[measureIndex] && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                   c.backgroundColor = a.qText
                 }
+                // else { // THIS COULD BE WRONG
+                //   c.color = a.qText
+                // }
               }              
             }
           })
@@ -5076,9 +5093,6 @@ class Table3 {
                 else if (this.layout.qHyperCube.qMeasureInfo[measureIndex] && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                   row[c].backgroundColor = a.qText
                 }
-                // else { // THIS COULD BE WRONG
-                //   row[c].color = a.qText
-                // }
                 if (this.layout.qHyperCube.qMeasureInfo[measureIndex] && (this.layout.qHyperCube.qMeasureInfo[measureIndex].showAsLink === true || this.layout.qHyperCube.qMeasureInfo[measureIndex].showAsNavigatorLink === true)) {              
                   row[c].value = a.qText                  
                   if (row[c].value.indexOf('https://') === -1) {

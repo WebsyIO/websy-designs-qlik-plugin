@@ -5580,16 +5580,29 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "handleSearch",
     value: function handleSearch(event, column) {
-      // console.log(event, column)
+      console.log(event, column);
+
       if (this.dropdowns[column.dimId]) {
         var el = document.getElementById("".concat(this.elementId, "_tableContainer_columnSearch_").concat(column.dimId));
 
         if (el) {
+          var targetPos = event.target.getBoundingClientRect();
+          console.log(targetPos);
+          var left = "".concat(targetPos.x, "px");
+          var top = "".concat(targetPos.y + targetPos.height + 5, "px");
+          var right = 'unset';
+
+          if (targetPos.left + 250 >= window.innerWidth) {
+            left = 'unset';
+            right = "".concat(targetPos.x + targetPos.width, "px");
+          }
+
           el.classList.toggle('active'); // el.style.top = `${event.pageY}px`
 
-          el.style.top = '0px'; // el.style.right = `calc(100vw - ${event.pageX + event.target.offsetWidth}px)`
-
-          el.style.left = "".concat(Math.max(130, event.pageX - this.table.sizes.outer.left), "px"); // need to improve this logic. currently based on the dropdown being 220px wide
+          el.style.top = top;
+          el.style.left = left;
+          el.style.right = right; // el.style.right = `calc(100vw - ${event.pageX + event.target.offsetWidth}px)`
+          // el.style.left = `${Math.max(130, event.pageX - this.table.sizes.outer.left)}px` // need to improve this logic. currently based on the dropdown being 220px wide
 
           this.dropdowns[column.dimId].open();
         }
@@ -5981,7 +5994,10 @@ var Table3 = /*#__PURE__*/function () {
                     c.color = a.qText;
                   } else if (_this56.layout.qHyperCube.qDimensionInfo[attrIndex] && _this56.layout.qHyperCube.qDimensionInfo[attrIndex].qAttrExprInfo && _this56.layout.qHyperCube.qDimensionInfo[attrIndex].qAttrExprInfo[aI] && _this56.layout.qHyperCube.qDimensionInfo[attrIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                     c.backgroundColor = a.qText;
-                  }
+                  } // else { // THIS COULD BE WRONG
+                  //   c.color = a.qText
+                  // }
+
                 } else {
                   var measureIndex = (attrIndex - _this56.layout.qHyperCube.qDimensionInfo.length) % _this56.layout.qHyperCube.qMeasureInfo.length;
 
@@ -5989,7 +6005,10 @@ var Table3 = /*#__PURE__*/function () {
                     c.color = a.qText;
                   } else if (_this56.layout.qHyperCube.qMeasureInfo[measureIndex] && _this56.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && _this56.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && _this56.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                     c.backgroundColor = a.qText;
-                  }
+                  } // else { // THIS COULD BE WRONG
+                  //   c.color = a.qText
+                  // }
+
                 }
               }
             });
@@ -6085,10 +6104,7 @@ var Table3 = /*#__PURE__*/function () {
                     row[c].color = a.qText;
                   } else if (_this57.layout.qHyperCube.qMeasureInfo[measureIndex] && _this57.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && _this57.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && _this57.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                     row[c].backgroundColor = a.qText;
-                  } // else { // THIS COULD BE WRONG
-                  //   row[c].color = a.qText
-                  // }
-
+                  }
 
                   if (_this57.layout.qHyperCube.qMeasureInfo[measureIndex] && (_this57.layout.qHyperCube.qMeasureInfo[measureIndex].showAsLink === true || _this57.layout.qHyperCube.qMeasureInfo[measureIndex].showAsNavigatorLink === true)) {
                     row[c].value = a.qText;
