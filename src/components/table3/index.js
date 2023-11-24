@@ -1136,8 +1136,10 @@ class Table3 {
     let el = document.getElementById(id)
     el.classList.remove('active')
   }
-  handleSort (event, column, colIndex) {
-    colIndex = this.columnOrder[colIndex]
+  handleSort (event, column, colIndex) {    
+    if (this.columnOrder.length > 0) {
+      colIndex = this.columnOrder[colIndex]
+    }
     const reverse = column.reverseSort === true
     const patchDefs = [{
       qOp: 'replace',

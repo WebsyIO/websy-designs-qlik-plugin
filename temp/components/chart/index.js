@@ -414,10 +414,10 @@ class Chart {
         options.data[yAxis].max = Math.max(options.data[yAxis].max, m.qMax)            
       }
     })    
-    if (options.yMinOverride) {
+    if (typeof options.yMinOverride !== 'undefined') {
       options.data[yAxis].min = options.yMinOverride
     }
-    if (options.yMaxOverride) {
+    if (typeof options.yMaxOverride !== 'undefined') {
       options.data[yAxis].max = options.yMaxOverride
     }
     if (this.layout.qHyperCube.qDataPages[0]) {
@@ -455,6 +455,8 @@ class Chart {
     let y2Scale = 'Linear'
     let hasyAxis = false
     let hasy2Axis = false
+    let primaryCount = 0
+    let secondaryCount = 0
     if (options.orientation === 'horizontal') {
       xAxis = 'left'
       x2Axis = 'right'
@@ -484,6 +486,7 @@ class Chart {
       if (m.axis === 'secondary') { // right hand axis
         hasy2Axis = true
         series.axis = 'secondary'
+        secondaryCount++
         this.addOptions(options.data[y2Axis], m.options || {})
         // options.data[y2Axis] = Object.assign({}, options.data[y2Axis], m.options)        
         if (options.grouping !== 'stacked') {          
@@ -498,6 +501,7 @@ class Chart {
       }
       else {
         hasyAxis = true
+        primaryCount++
         this.addOptions(options.data[yAxis], m.options || {})
         // options.data[yAxis] = Object.assign({}, options.data[yAxis], m.options)
         if (options.grouping !== 'stacked') {
@@ -560,7 +564,7 @@ class Chart {
           xAcc.push(0)
           xTotals.push(0)
           r[0].valueCount = 0
-          options.data[xAxis].data.push(x)  
+          options.data[xAxis].data.push(x)
         }
         c.value = isNaN(c.qNum) ? 0 : c.qNum            
         xTotals[xKeys.indexOf(x.qElemNumber)] += c.value

@@ -1075,11 +1075,11 @@ var Chart = /*#__PURE__*/function () {
         }
       });
 
-      if (options.yMinOverride) {
+      if (typeof options.yMinOverride !== 'undefined') {
         options.data[yAxis].min = options.yMinOverride;
       }
 
-      if (options.yMaxOverride) {
+      if (typeof options.yMaxOverride !== 'undefined') {
         options.data[yAxis].max = options.yMaxOverride;
       }
 
@@ -1132,6 +1132,8 @@ var Chart = /*#__PURE__*/function () {
       var y2Scale = 'Linear';
       var hasyAxis = false;
       var hasy2Axis = false;
+      var primaryCount = 0;
+      var secondaryCount = 0;
 
       if (options.orientation === 'horizontal') {
         xAxis = 'left';
@@ -1168,6 +1170,7 @@ var Chart = /*#__PURE__*/function () {
           // right hand axis
           hasy2Axis = true;
           series.axis = 'secondary';
+          secondaryCount++;
 
           _this10.addOptions(options.data[y2Axis], m.options || {}); // options.data[y2Axis] = Object.assign({}, options.data[y2Axis], m.options)        
 
@@ -1185,6 +1188,7 @@ var Chart = /*#__PURE__*/function () {
           };
         } else {
           hasyAxis = true;
+          primaryCount++;
 
           _this10.addOptions(options.data[yAxis], m.options || {}); // options.data[yAxis] = Object.assign({}, options.data[yAxis], m.options)
 
@@ -5559,7 +5563,10 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "handleSort",
     value: function handleSort(event, column, colIndex) {
-      colIndex = this.columnOrder[colIndex];
+      if (this.columnOrder.length > 0) {
+        colIndex = this.columnOrder[colIndex];
+      }
+
       var reverse = column.reverseSort === true;
       var patchDefs = [{
         qOp: 'replace',
