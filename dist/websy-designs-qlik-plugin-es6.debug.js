@@ -910,7 +910,7 @@ class Chart {
       }      
       c.color = this.getColor(c, r[1], this.layout.qHyperCube.qDimensionInfo[1], this.layout.qHyperCube.qMeasureInfo[0], this.layout.qHyperCube.color)
       if (!c.color) {
-        let colors = this.layout.options.colors || this.chart.options.colors
+        let colors = (this.layout.options || {}).colors || this.chart.options.colors
         if (this.options.legendKeys.indexOf(r[0].qText) === -1) {
           this.options.legendKeys.push(r[0].qText)
           this.options.legendData.push({
@@ -1034,7 +1034,7 @@ class Chart {
     options.data[y2Axis].min = 0
     options.data[y2Axis].max = 0
     options.data[xAxis].padding = options.padding || 0
-    let colors = this.layout.options.colors || this.chart.options.colors
+    let colors = (this.layout.options || {}).colors || this.chart.options.colors
     options.data.series = this.layout.qHyperCube.qMeasureInfo.map((m, i) => {
       let series = Object.assign({}, m.options)
       series.key = this.createSeriesKey(m.qFallbackTitle)

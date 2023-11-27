@@ -990,7 +990,7 @@ var Chart = /*#__PURE__*/function () {
         c.color = _this8.getColor(c, r[1], _this8.layout.qHyperCube.qDimensionInfo[1], _this8.layout.qHyperCube.qMeasureInfo[0], _this8.layout.qHyperCube.color);
 
         if (!c.color) {
-          var colors = _this8.layout.options.colors || _this8.chart.options.colors;
+          var colors = (_this8.layout.options || {}).colors || _this8.chart.options.colors;
 
           if (_this8.options.legendKeys.indexOf(r[0].qText) === -1) {
             _this8.options.legendKeys.push(r[0].qText);
@@ -1154,7 +1154,7 @@ var Chart = /*#__PURE__*/function () {
       options.data[y2Axis].min = 0;
       options.data[y2Axis].max = 0;
       options.data[xAxis].padding = options.padding || 0;
-      var colors = this.layout.options.colors || this.chart.options.colors;
+      var colors = (this.layout.options || {}).colors || this.chart.options.colors;
       options.data.series = this.layout.qHyperCube.qMeasureInfo.map(function (m, i) {
         var series = _extends({}, m.options);
 
