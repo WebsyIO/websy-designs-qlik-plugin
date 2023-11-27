@@ -706,7 +706,7 @@ var Chart = /*#__PURE__*/function () {
   }, {
     key: "getColor",
     value: function getColor(cell, dimCell, dimension, measure, colorProps) {
-      var colors = this.layout.options.colors || this.chart.options.colors;
+      var colors = (this.layout.options || {}).colors || this.chart.options.colors;
 
       if (colorProps) {
         if (!colorProps.auto) {

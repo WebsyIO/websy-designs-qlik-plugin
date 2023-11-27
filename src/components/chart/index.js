@@ -112,7 +112,7 @@ class Chart {
     return output
   }
   getColor (cell, dimCell, dimension, measure, colorProps) {
-    let colors = this.layout.options.colors || this.chart.options.colors
+    let colors = (this.layout.options || {}).colors || this.chart.options.colors
     if (colorProps) {
       if (!colorProps.auto) {
         if (colorProps.mode === 'byDimension') {
