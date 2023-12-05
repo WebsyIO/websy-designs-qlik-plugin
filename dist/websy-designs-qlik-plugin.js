@@ -4872,25 +4872,17 @@ var Table3 = /*#__PURE__*/function () {
           width: c.width || null
         };
       });
-      var measureLabel = activeDimensions.pop();
-      var maxMValue = this.layout.qHyperCube.qMeasureInfo.filter(function (m) {
-        return !m.qError;
-      }).reduce(function (a, b) {
-        return a.qApprMaxGlyphCount > b.qApprMaxGlyphCount ? a : b;
-      }, {
-        qApprMaxGlyphCount: 0
-      });
-      var maxMLabel = this.layout.qHyperCube.qMeasureInfo.filter(function (m) {
-        return !m.qError;
-      }).reduce(function (a, b) {
-        return a > b.qFallbackTitle.length ? a : b.qFallbackTitle.length;
-      }, 0); // this.columnParamValues = this.columnParamValues.concat(new Array(this.layout.qHyperCube.qSize.qcx).fill(new Array(Math.max(maxMValue.qApprMaxGlyphCount, maxMLabel)).fill('X').join('')).map(d => ({value: d, width: null})))    
+      var measureLabel = activeDimensions.pop(); // const maxMValue = this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError).reduce((a, b) => a.qApprMaxGlyphCount > b.qApprMaxGlyphCount ? a : b, {qApprMaxGlyphCount: 0})
+      // const maxMLabel = this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError).reduce((a, b) => a > b.qFallbackTitle.length ? a : b.qFallbackTitle.length, 0)
+      // this.columnParamValues = this.columnParamValues.concat(new Array(this.layout.qHyperCube.qSize.qcx).fill(new Array(Math.max(maxMValue.qApprMaxGlyphCount, maxMLabel)).fill('X').join('')).map(d => ({value: d, width: null})))    
 
       this.columnParamValues = this.columnParamValues.concat(activeMeasures.filter(function (c, i) {
         return _this47.layout.qHyperCube.qMode === 'S' || i < _this47.pinnedColumns;
       }).map(function (c, i) {
+        var maxMValue = activeMeasures[i].qApprMaxGlyphCount;
+        var maxMLabel = activeMeasures[i].qFallbackTitle.length;
         return {
-          value: new Array(activeMeasures[i].qFallbackTitle.length).fill('X').join(''),
+          value: new Array(Math.max(maxMValue, maxMLabel)).fill('X').join(''),
           width: c.width || null
         };
       }));
@@ -5968,8 +5960,10 @@ var Table3 = /*#__PURE__*/function () {
           var attrIndex = c.level;
 
           if (_this56.layout.qHyperCube.qMode === 'S') {
-            c.level = i;
-            attrIndex = i + _this56.startCol;
+            c.level = i; // attrIndex = i
+            // if (this.options.virtualScroll !== true) {
+
+            attrIndex = i + _this56.startCol; // }
           }
 
           if (_this56.table.options.columns[_this56.table.options.columns.length - 1][i] && (_this56.table.options.columns[_this56.table.options.columns.length - 1][i].showAsLink === true || _this56.table.options.columns[_this56.table.options.columns.length - 1][i].showAsNavigatorLink === true)) {
@@ -6006,11 +6000,23 @@ var Table3 = /*#__PURE__*/function () {
                   // }
 
                 } else {
-                  var measureIndex = (attrIndex - _this56.layout.qHyperCube.qDimensionInfo.length) % _this56.layout.qHyperCube.qMeasureInfo.length;
+                  var validMeasures = _this56.layout.qHyperCube.qMeasureInfo.filter(function (m) {
+                    return !m.qError;
+                  });
 
-                  if (_this56.layout.qHyperCube.qMeasureInfo[measureIndex] && _this56.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && _this56.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && _this56.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                  var measureIndex = (attrIndex - _this56.layout.qHyperCube.qDimensionInfo.length) % validMeasures.length;
+
+                  if (validMeasures[measureIndex] && validMeasures[measureIndex].qAttrExprInfo && validMeasures[measureIndex].qAttrExprInfo[aI] && validMeasures[measureIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                     c.color = a.qText;
-                  } else if (_this56.layout.qHyperCube.qMeasureInfo[measureIndex] && _this56.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && _this56.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && _this56.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                  } else if (_this56.layout.qHyperCube.qMeasureInfo.filter(function (m) {
+                    return !m.qError;
+                  })[measureIndex] && _this56.layout.qHyperCube.qMeasureInfo.filter(function (m) {
+                    return !m.qError;
+                  })[measureIndex].qAttrExprInfo && _this56.layout.qHyperCube.qMeasureInfo.filter(function (m) {
+                    return !m.qError;
+                  })[measureIndex].qAttrExprInfo[aI] && _this56.layout.qHyperCube.qMeasureInfo.filter(function (m) {
+                    return !m.qError;
+                  })[measureIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                     c.backgroundColor = a.qText;
                   } // else { // THIS COULD BE WRONG
                   //   c.color = a.qText

@@ -4083,16 +4083,20 @@ class Table3 {
         width: c.width || null
       }))
     let measureLabel = activeDimensions.pop()
-    const maxMValue = this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError).reduce((a, b) => a.qApprMaxGlyphCount > b.qApprMaxGlyphCount ? a : b, {qApprMaxGlyphCount: 0})
-    const maxMLabel = this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError).reduce((a, b) => a > b.qFallbackTitle.length ? a : b.qFallbackTitle.length, 0)
+    // const maxMValue = this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError).reduce((a, b) => a.qApprMaxGlyphCount > b.qApprMaxGlyphCount ? a : b, {qApprMaxGlyphCount: 0})
+    // const maxMLabel = this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError).reduce((a, b) => a > b.qFallbackTitle.length ? a : b.qFallbackTitle.length, 0)
     // this.columnParamValues = this.columnParamValues.concat(new Array(this.layout.qHyperCube.qSize.qcx).fill(new Array(Math.max(maxMValue.qApprMaxGlyphCount, maxMLabel)).fill('X').join('')).map(d => ({value: d, width: null})))    
     this.columnParamValues = this.columnParamValues.concat(
       activeMeasures
         .filter((c, i) => (this.layout.qHyperCube.qMode === 'S' || i < this.pinnedColumns))
-        .map((c, i) => ({ 
-          value: new Array(activeMeasures[i].qFallbackTitle.length).fill('X').join(''),
-          width: c.width || null
-        }))
+        .map((c, i) => {
+          const maxMValue = activeMeasures[i].qApprMaxGlyphCount
+          const maxMLabel = activeMeasures[i].qFallbackTitle.length
+          return { 
+            value: new Array(Math.max(maxMValue, maxMLabel)).fill('X').join(''),
+            width: c.width || null
+          }
+        })
     )    
     if (this.layout.scrolling && this.layout.scrolling.keepFirstColumnInView === true) {
       this.pinnedColumns = 1
@@ -4972,7 +4976,10 @@ class Table3 {
         let attrIndex = c.level
         if (this.layout.qHyperCube.qMode === 'S') {
           c.level = i
+          // attrIndex = i
+          // if (this.options.virtualScroll !== true) {
           attrIndex = i + this.startCol
+          // }
         }        
         if (this.table.options.columns[this.table.options.columns.length - 1][i] && (this.table.options.columns[this.table.options.columns.length - 1][i].showAsLink === true || this.table.options.columns[this.table.options.columns.length - 1][i].showAsNavigatorLink === true)) {
           if (c.qAttrExps && c.qAttrExps.qValues && c.qAttrExps.qValues[0].qText) {
@@ -5009,11 +5016,12 @@ class Table3 {
                 // }
               }
               else {
-                let measureIndex = (attrIndex - this.layout.qHyperCube.qDimensionInfo.length) % this.layout.qHyperCube.qMeasureInfo.length
-                if (this.layout.qHyperCube.qMeasureInfo[measureIndex] && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                const validMeasures = this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError)
+                let measureIndex = (attrIndex - this.layout.qHyperCube.qDimensionInfo.length) % validMeasures.length
+                if (validMeasures[measureIndex] && validMeasures[measureIndex].qAttrExprInfo && validMeasures[measureIndex].qAttrExprInfo[aI] && validMeasures[measureIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                   c.color = a.qText
                 }
-                else if (this.layout.qHyperCube.qMeasureInfo[measureIndex] && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                else if (this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError)[measureIndex] && this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError)[measureIndex].qAttrExprInfo && this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError)[measureIndex].qAttrExprInfo[aI] && this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError)[measureIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                   c.backgroundColor = a.qText
                 }
                 // else { // THIS COULD BE WRONG
