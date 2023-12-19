@@ -1126,9 +1126,22 @@ var Chart = /*#__PURE__*/function () {
       var options = _extends({}, this.optionDefaults, this.layout.options, this.options.chartOptions);
 
       var seriesTypes = this.layout.qHyperCube.qMeasureInfo.map(function (d) {
-        return (d.options || {}).type || 'bar';
+        if (d.options && d.options.type) {
+          return d.options.type;
+        }
+
+        if (d.series && d.series.type) {
+          return d.series.type;
+        }
+
+        return 'bar';
       });
       var isCombo = seriesTypes.indexOf('bar') !== -1 && seriesTypes.indexOf('line') !== -1;
+
+      if (isCombo) {
+        options.grouping = 'stacked';
+      }
+
       var xAxis = 'bottom';
       var x2Axis = 'bottom';
       var yAxis = 'left';
@@ -1159,10 +1172,19 @@ var Chart = /*#__PURE__*/function () {
         var series = _extends({}, m.options);
 
         series.key = _this10.createSeriesKey(m.qFallbackTitle);
-        series.data = [];
-        series.type = (m.options || {}).type || options.type || 'bar';
+        series.data = []; // series.type = (m.options || {}).type || options.type || 'bar'      
+
+        series.type = seriesTypes[i];
         series.accumulative = 0;
         series.color = colors[i % colors.length];
+
+        if (typeof series.showSymbols === 'undefined') {
+          series.showSymbols = m.series.markerFill;
+        }
+
+        if (m.series && m.series.axis) {
+          m.axis = m.series.axis === 0 ? 'primary' : 'secondary';
+        }
 
         if (_this10.options.legendKeys.indexOf(m.qFallbackTitle) === -1) {
           _this10.options.legendKeys.push(m.qFallbackTitle);
@@ -1182,7 +1204,7 @@ var Chart = /*#__PURE__*/function () {
           _this10.addOptions(options.data[y2Axis], m.options || {}); // options.data[y2Axis] = Object.assign({}, options.data[y2Axis], m.options)        
 
 
-          if (options.grouping !== 'stacked') {
+          if (options.grouping !== 'stacked' || isCombo === true) {
             options.data[y2Axis].min = Math.min(options.data[y2Axis].min, m.qMin);
             options.data[y2Axis].max = Math.max(options.data[y2Axis].max, m.qMax);
           }
@@ -1200,7 +1222,7 @@ var Chart = /*#__PURE__*/function () {
           _this10.addOptions(options.data[yAxis], m.options || {}); // options.data[yAxis] = Object.assign({}, options.data[yAxis], m.options)
 
 
-          if (options.grouping !== 'stacked') {
+          if (options.grouping !== 'stacked' || isCombo === true) {
             options.data[yAxis].min = Math.min(options.data[yAxis].min, m.qMin);
             options.data[yAxis].max = Math.max(options.data[yAxis].max, m.qMax);
           }
@@ -1299,7 +1321,7 @@ var Chart = /*#__PURE__*/function () {
         });
       });
 
-      if (options.grouping === 'stacked') {
+      if (options.grouping === 'stacked' && isCombo !== true) {
         if (hasyAxis) {
           options.data[yAxis].min = 0; // may need to revisit this to think about negative numbers
 

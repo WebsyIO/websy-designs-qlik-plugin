@@ -443,8 +443,19 @@ class Chart {
   }
   transformMultiMeasure () {
     const options = Object.assign({}, this.optionDefaults, this.layout.options, this.options.chartOptions)
-    let seriesTypes = this.layout.qHyperCube.qMeasureInfo.map(d => ((d.options || {}).type || 'bar'))
+    let seriesTypes = this.layout.qHyperCube.qMeasureInfo.map(d => {
+      if (d.options && d.options.type) {
+        return d.options.type
+      }
+      if (d.series && d.series.type) {
+        return d.series.type
+      }
+      return 'bar'
+    })
     const isCombo = seriesTypes.indexOf('bar') !== -1 && seriesTypes.indexOf('line') !== -1
+    if (isCombo) {
+      options.grouping = 'stacked' 
+    }    
     let xAxis = 'bottom'
     let x2Axis = 'bottom'
     let yAxis = 'left'
@@ -473,9 +484,16 @@ class Chart {
       let series = Object.assign({}, m.options)
       series.key = this.createSeriesKey(m.qFallbackTitle)
       series.data = []
-      series.type = (m.options || {}).type || options.type || 'bar'      
+      // series.type = (m.options || {}).type || options.type || 'bar'      
+      series.type = seriesTypes[i]
       series.accumulative = 0
-      series.color = colors[i % colors.length]
+      series.color = colors[i % colors.length]   
+      if (typeof series.showSymbols === 'undefined') {
+        series.showSymbols = m.series.markerFill
+      }
+      if (m.series && m.series.axis) {
+        m.axis = m.series.axis === 0 ? 'primary' : 'secondary'
+      }   
       if (this.options.legendKeys.indexOf(m.qFallbackTitle) === -1) {
         this.options.legendKeys.push(m.qFallbackTitle)
         this.options.legendData.push({
@@ -489,7 +507,7 @@ class Chart {
         secondaryCount++
         this.addOptions(options.data[y2Axis], m.options || {})
         // options.data[y2Axis] = Object.assign({}, options.data[y2Axis], m.options)        
-        if (options.grouping !== 'stacked') {          
+        if (options.grouping !== 'stacked' || isCombo === true) {          
           options.data[y2Axis].min = Math.min(options.data[y2Axis].min, m.qMin)
           options.data[y2Axis].max = Math.max(options.data[y2Axis].max, m.qMax)
         }        
@@ -504,7 +522,7 @@ class Chart {
         primaryCount++
         this.addOptions(options.data[yAxis], m.options || {})
         // options.data[yAxis] = Object.assign({}, options.data[yAxis], m.options)
-        if (options.grouping !== 'stacked') {
+        if (options.grouping !== 'stacked' || isCombo === true) {
           options.data[yAxis].min = Math.min(options.data[yAxis].min, m.qMin)
           options.data[yAxis].max = Math.max(options.data[yAxis].max, m.qMax)
         }
@@ -590,7 +608,7 @@ class Chart {
         })
       })
     })
-    if (options.grouping === 'stacked') {
+    if (options.grouping === 'stacked' && isCombo !== true) {
       if (hasyAxis) {
         options.data[yAxis].min = 0 // may need to revisit this to think about negative numbers
         options.data[yAxis].max = Math.max(...xTotals)
