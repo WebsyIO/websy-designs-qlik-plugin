@@ -325,9 +325,15 @@ class Chart {
         seriesIndex = seriesKeys.length - 1
         series.push(Object.assign({}, this.layout.qHyperCube.qMeasureInfo[0].options, {
           key: `series_${seriesIndex}`,
-          type: (this.layout.qHyperCube.qMeasureInfo[0].options || {}).type || options.type || 'bar',
+          type: 
+            (this.layout.qHyperCube.qMeasureInfo[0].options || {}).type || 
+            (this.layout.qHyperCube.qMeasureInfo[0].series || {}).type || 
+            this.typeMap[this.layout.qInfo.qType] || 
+            options.type || 
+            'bar',
           accumulative: 0,   
-          label: r[0].qText || '-',
+          label: r[0].qText || '-',          
+          showSymbols: typeof series.showSymbols === 'undefined' ? (this.layout.qHyperCube.qMeasureInfo[0].series && this.layout.qHyperCube.qMeasureInfo[0].series.markerFill) || (this.layout.dataPoint || {}).show : this.layout.qHyperCube.qMeasureInfo[0].series.showSymbols,
           // color: this.layout.options.color,
           data: []
         }))
@@ -373,7 +379,7 @@ class Chart {
     options.data.series = series
     options.data[yAxis].min = this.layout.qHyperCube.qMeasureInfo[0].qMin 
     // options.data[yAxis].max = this.layout.qHyperCube.qMeasureInfo[0].qMax    
-    if (this.options.grouping === 'stacked' || (this.options.def.options.grouping && this.options.def.options.grouping === 'stacked')) {
+    if (this.options.grouping === 'stacked' || (this.options.def && this.options.def.options.grouping && this.options.def.options.grouping === 'stacked')) {
       options.data[yAxis].max = Math.max(...bottomTotals)
     }    
     else {

@@ -968,9 +968,10 @@ var Chart = /*#__PURE__*/function () {
           seriesIndex = seriesKeys.length - 1;
           series.push(_extends({}, _this8.layout.qHyperCube.qMeasureInfo[0].options, {
             key: "series_".concat(seriesIndex),
-            type: (_this8.layout.qHyperCube.qMeasureInfo[0].options || {}).type || options.type || 'bar',
+            type: (_this8.layout.qHyperCube.qMeasureInfo[0].options || {}).type || (_this8.layout.qHyperCube.qMeasureInfo[0].series || {}).type || _this8.typeMap[_this8.layout.qInfo.qType] || options.type || 'bar',
             accumulative: 0,
             label: r[0].qText || '-',
+            showSymbols: typeof series.showSymbols === 'undefined' ? _this8.layout.qHyperCube.qMeasureInfo[0].series && _this8.layout.qHyperCube.qMeasureInfo[0].series.markerFill || (_this8.layout.dataPoint || {}).show : _this8.layout.qHyperCube.qMeasureInfo[0].series.showSymbols,
             // color: this.layout.options.color,
             data: []
           }));
@@ -1027,7 +1028,7 @@ var Chart = /*#__PURE__*/function () {
       options.data.series = series;
       options.data[yAxis].min = this.layout.qHyperCube.qMeasureInfo[0].qMin; // options.data[yAxis].max = this.layout.qHyperCube.qMeasureInfo[0].qMax    
 
-      if (this.options.grouping === 'stacked' || this.options.def.options.grouping && this.options.def.options.grouping === 'stacked') {
+      if (this.options.grouping === 'stacked' || this.options.def && this.options.def.options.grouping && this.options.def.options.grouping === 'stacked') {
         options.data[yAxis].max = Math.max.apply(Math, bottomTotals);
       } else {
         options.data[yAxis].max = this.layout.qHyperCube.qMeasureInfo[0].qMax;
