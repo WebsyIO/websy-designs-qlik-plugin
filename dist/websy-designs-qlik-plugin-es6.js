@@ -567,6 +567,10 @@ var Chart = /*#__PURE__*/function () {
         series: []
       }
     };
+    this.typeMap = {
+      linechart: 'line',
+      barchart: 'bar'
+    };
     this.chart = new _websyDesignsEs["default"].WebsyChart(elementId);
     window.addEventListener('resize', function () {
       return _this4.chart.render();
@@ -1127,7 +1131,7 @@ var Chart = /*#__PURE__*/function () {
           return d.series.type;
         }
 
-        return 'bar';
+        return _this10.layout.options && _this10.layout.options.type || _this10.typeMap[_this10.layout.qInfo.qType] || 'bar';
       });
       var isCombo = seriesTypes.indexOf('bar') !== -1 && seriesTypes.indexOf('line') !== -1;
 
@@ -1172,7 +1176,7 @@ var Chart = /*#__PURE__*/function () {
         series.color = colors[i % colors.length];
 
         if (typeof series.showSymbols === 'undefined') {
-          series.showSymbols = m.series.markerFill;
+          series.showSymbols = m.series && m.series.markerFill || (_this10.layout.dataPoint || {}).show;
         }
 
         if (m.series && m.series.axis) {

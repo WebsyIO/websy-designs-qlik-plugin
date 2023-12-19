@@ -578,6 +578,10 @@ class Chart {
         series: []
       }      
     }
+    this.typeMap = {
+      linechart: 'line',
+      barchart: 'bar'
+    }
     this.chart = new WebsyDesigns.WebsyChart(elementId)
     window.addEventListener('resize', () => this.chart.render())
     this.monthMap = {
@@ -1016,7 +1020,7 @@ class Chart {
       if (d.series && d.series.type) {
         return d.series.type
       }
-      return 'bar'
+      return (this.layout.options && this.layout.options.type) || this.typeMap[this.layout.qInfo.qType] || 'bar'
     })
     const isCombo = seriesTypes.indexOf('bar') !== -1 && seriesTypes.indexOf('line') !== -1
     if (isCombo) {
@@ -1055,8 +1059,8 @@ class Chart {
       series.accumulative = 0
       series.color = colors[i % colors.length]   
       if (typeof series.showSymbols === 'undefined') {
-        series.showSymbols = m.series.markerFill
-      }
+        series.showSymbols = (m.series && m.series.markerFill) || (this.layout.dataPoint || {}).show
+      }      
       if (m.series && m.series.axis) {
         m.axis = m.series.axis === 0 ? 'primary' : 'secondary'
       }   
