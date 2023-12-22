@@ -13,6 +13,7 @@
   Dropdown
   DatePicker
   KPI
+  KPI2
   ObjectManager
 */ 
 include('./components/bookmarks/index.js')
@@ -22,6 +23,7 @@ include('./components/current-selections/index.js')
 include('./components/datepicker/index.js')
 include('./components/dropdown/index.js')
 include('./components/kpi/index.js')
+include('./components/kpi2/index.js')
 include('./components/map/index.js')
 include('./components/simple-search/index.js')
 include('./components/table/index.js')
@@ -41,7 +43,8 @@ if (typeof WebsyDesigns !== 'undefined') {
     GeoMap,
     Dropdown,
     DatePicker,
-    KPI
+    KPI,
+    KPI2
   }
   window.WebsyDesignsQlikPlugins = {
     Bookmarks,
@@ -55,7 +58,8 @@ if (typeof WebsyDesigns !== 'undefined') {
     GeoMap,
     Dropdown,    
     DatePicker,
-    KPI
+    KPI,
+    KPI2
   }
   include('./components/object-manager/index.js')
   WebsyDesigns.QlikObjectManager = ObjectManager

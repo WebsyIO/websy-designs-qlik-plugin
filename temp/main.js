@@ -13,6 +13,7 @@
   Dropdown
   DatePicker
   KPI
+  KPI2
   ObjectManager
 */ 
 /* global Bookmark */ 
@@ -2199,6 +2200,62 @@ class KPI {
         let v1 = layout.kpi.qHyperCube.qDataPages[0].qMatrix[0][1].qText
         this.kpiOptions.subValue = {
           value: `${layout.kpi.qHyperCube.qMeasureInfo[1].qFallbackTitle} ${v1}`
+        }        
+      }      
+      this.kpi.render(this.kpiOptions)
+    })    
+  }
+  resize () {
+    this.kpi.resize()
+  }
+}
+
+/* global WebsyDesigns */ 
+class KPI2 {
+  constructor (elementId, options) {
+    this.elementId = elementId
+    this.options = Object.assign({}, options)
+    this.kpiOptions = {}
+    this.kpi = new WebsyDesigns.WebsyKPI(elementId, this.kpiOptions)
+    this.render()
+  }
+  close () {
+    this.kpiOptions.value = { value: '-' }
+    this.kpiOptions.subValue = { value: '' }
+    this.kpi.render(this.kpiOptions)
+  }
+  render () {
+    this.options.model.getLayout().then(layout => {
+      let decimals = 2
+      let v = layout.qHyperCube.qDataPages[0].qMatrix[0][0].qText
+      this.kpiOptions.value = {
+        value: v
+      }        
+      this.kpiOptions.label = {
+        value: layout.qHyperCube.qMeasureInfo[0].qFallbackTitle
+      }
+      if (layout.icon) {
+        this.kpiOptions.icon = `${window.location.origin}/resources/svg/${layout.icon}.svg`
+      }
+      if (layout.tooltip && layout.tooltip.value) {
+        this.kpiOptions.tooltip = {
+          value: layout.tooltip.value
+        }
+        if (layout.tooltip.classes) {
+          this.kpiOptions.tooltip.classes = layout.tooltip.classes
+        }
+      } 
+      this.kpiOptions.subValue = {
+        value: ''
+      }     
+      if (layout.qHyperCube.qMeasureInfo[1]) {
+        let decimals = 2
+        if (typeof layout.qHyperCube.qMeasureInfo[1].decimals !== 'undefined') {
+          decimals = layout.qHyperCube.qMeasureInfo[1].decimals
+        }
+        let v1 = layout.qHyperCube.qDataPages[0].qMatrix[0][1].qText
+        this.kpiOptions.subValue = {
+          value: `${layout.qHyperCube.qMeasureInfo[1].qFallbackTitle} ${v1}`
         }        
       }      
       this.kpi.render(this.kpiOptions)
@@ -5123,7 +5180,7 @@ class Table3 {
       expandTop.call(this, page.qTop[i], 0, i)
     }
     // this.pinnedColumns = Math.min(this.validPivotLeft + 1, visibleLeftCount)
-    this.pinnedColumns = visibleLeftCount
+    this.pinnedColumns = Math.min(visibleLeftCount, this.validPivotLeft + 1)
     if (this.layout.qHyperCube.qIndentMode === true) {
       this.pinnedColumns = 1
     }
@@ -5133,8 +5190,8 @@ class Table3 {
         leftNodes[i].level = -1
       }           
     }    
-    for (let r = 0; r < page.qData.length; r++) {
-      let row = page.qData[r]      
+    for (let r = 0; r < page.qData.length; r++) {      
+      let row = page.qData[r]
       for (let c = 0; c < row.length; c++) {
         if (!row[c].classes) {
           row[c].classes = []
@@ -5552,7 +5609,8 @@ if (typeof WebsyDesigns !== 'undefined') {
     GeoMap,
     Dropdown,
     DatePicker,
-    KPI
+    KPI,
+    KPI2
   }
   window.WebsyDesignsQlikPlugins = {
     Bookmarks,
@@ -5566,7 +5624,8 @@ if (typeof WebsyDesigns !== 'undefined') {
     GeoMap,
     Dropdown,    
     DatePicker,
-    KPI
+    KPI,
+    KPI2
   }
   /* 
   global

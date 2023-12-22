@@ -1501,7 +1501,7 @@ class Table3 {
       expandTop.call(this, page.qTop[i], 0, i)
     }
     // this.pinnedColumns = Math.min(this.validPivotLeft + 1, visibleLeftCount)
-    this.pinnedColumns = visibleLeftCount
+    this.pinnedColumns = Math.min(visibleLeftCount, this.validPivotLeft + 1)
     if (this.layout.qHyperCube.qIndentMode === true) {
       this.pinnedColumns = 1
     }
@@ -1511,8 +1511,8 @@ class Table3 {
         leftNodes[i].level = -1
       }           
     }    
-    for (let r = 0; r < page.qData.length; r++) {
-      let row = page.qData[r]      
+    for (let r = 0; r < page.qData.length; r++) {      
+      let row = page.qData[r]
       for (let c = 0; c < row.length; c++) {
         if (!row[c].classes) {
           row[c].classes = []

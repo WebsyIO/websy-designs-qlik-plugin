@@ -6036,7 +6036,7 @@ var Table3 = /*#__PURE__*/function () {
       } // this.pinnedColumns = Math.min(this.validPivotLeft + 1, visibleLeftCount)
 
 
-      this.pinnedColumns = visibleLeftCount;
+      this.pinnedColumns = Math.min(visibleLeftCount, this.validPivotLeft + 1);
 
       if (this.layout.qHyperCube.qIndentMode === true) {
         this.pinnedColumns = 1;
