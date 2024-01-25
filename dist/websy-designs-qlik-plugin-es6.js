@@ -593,6 +593,11 @@ var Chart = /*#__PURE__*/function () {
   }
 
   _createClass(Chart, [{
+    key: "isRendered",
+    get: function get() {
+      return this.chart.isRendered;
+    }
+  }, {
     key: "addOptions",
     value: function addOptions(input, options) {
       for (var key in options) {
@@ -2304,8 +2309,8 @@ var Dropdown = /*#__PURE__*/function () {
     }
   }, {
     key: "open",
-    value: function open() {
-      this.dropdown.open();
+    value: function open(event) {
+      this.dropdown.open(event);
     }
   }, {
     key: "render",
@@ -2339,7 +2344,7 @@ var Dropdown = /*#__PURE__*/function () {
 
           _this24.checkForData().then(function () {
             if (listObject.qDataPages[0]) {
-              _this24.dropdown.options.label = listObject.qDimensionInfo.qFallbackTitle;
+              _this24.dropdown.options.label = _this24.options.label || listObject.qDimensionInfo.qFallbackTitle;
               _this24.dropdown.data = _this24.transformData(variableValue);
             }
           });
@@ -5569,7 +5574,7 @@ var Table3 = /*#__PURE__*/function () {
           el.style.right = right; // el.style.right = `calc(100vw - ${event.pageX + event.target.offsetWidth}px)`
           // el.style.left = `${Math.max(130, event.pageX - this.table.sizes.outer.left)}px` // need to improve this logic. currently based on the dropdown being 220px wide
 
-          this.dropdowns[column.dimId].open();
+          this.dropdowns[column.dimId].open(event);
         }
       }
     }

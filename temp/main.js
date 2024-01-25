@@ -600,6 +600,9 @@ class Chart {
     }
     this.render()
   }
+  get isRendered () {
+    return this.chart.isRendered
+  }
   addOptions (input, options) {
     for (const key in options) {
       input[key] = options[key]
@@ -2083,8 +2086,8 @@ class Dropdown {
     console.log('dropdown open')    
     this.options.model.beginSelections([`/${this.options.path}/qListObjectDef`.replace(/\/\//g, '/')])
   }
-  open () {    
-    this.dropdown.open()
+  open (event) {    
+    this.dropdown.open(event)
   }
   render () {
     if (!this.options.model) {
@@ -2107,7 +2110,7 @@ class Dropdown {
         this.rowsLoaded = listObject.qDataPages[0].qMatrix.length
         this.checkForData().then(() => {        
           if (listObject.qDataPages[0]) {
-            this.dropdown.options.label = listObject.qDimensionInfo.qFallbackTitle                                
+            this.dropdown.options.label = this.options.label || listObject.qDimensionInfo.qFallbackTitle
             this.dropdown.data = this.transformData(variableValue)
           }
         })
@@ -2215,7 +2218,9 @@ class KPI2 {
   constructor (elementId, options) {
     this.elementId = elementId
     this.options = Object.assign({}, options)
-    this.kpiOptions = {}
+    this.kpiOptions = {
+      
+    }
     this.kpi = new WebsyDesigns.WebsyKPI(elementId, this.kpiOptions)
     this.render()
   }
@@ -4811,7 +4816,7 @@ class Table3 {
         el.style.right = right
         // el.style.right = `calc(100vw - ${event.pageX + event.target.offsetWidth}px)`
         // el.style.left = `${Math.max(130, event.pageX - this.table.sizes.outer.left)}px` // need to improve this logic. currently based on the dropdown being 220px wide
-        this.dropdowns[column.dimId].open()
+        this.dropdowns[column.dimId].open(event)
       }
     }
   }

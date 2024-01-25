@@ -34,6 +34,9 @@ class Chart {
     }
     this.render()
   }
+  get isRendered () {
+    return this.chart.isRendered
+  }
   addOptions (input, options) {
     for (const key in options) {
       input[key] = options[key]

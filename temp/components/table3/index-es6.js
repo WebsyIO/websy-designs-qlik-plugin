@@ -1135,7 +1135,7 @@ class Table3 {
         el.style.right = right
         // el.style.right = `calc(100vw - ${event.pageX + event.target.offsetWidth}px)`
         // el.style.left = `${Math.max(130, event.pageX - this.table.sizes.outer.left)}px` // need to improve this logic. currently based on the dropdown being 220px wide
-        this.dropdowns[column.dimId].open()
+        this.dropdowns[column.dimId].open(event)
       }
     }
   }

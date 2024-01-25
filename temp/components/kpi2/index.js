@@ -3,7 +3,9 @@ class KPI2 {
   constructor (elementId, options) {
     this.elementId = elementId
     this.options = Object.assign({}, options)
-    this.kpiOptions = {}
+    this.kpiOptions = {
+      
+    }
     this.kpi = new WebsyDesigns.WebsyKPI(elementId, this.kpiOptions)
     this.render()
   }

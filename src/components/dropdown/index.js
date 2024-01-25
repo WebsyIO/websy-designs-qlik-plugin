@@ -203,8 +203,8 @@ class Dropdown {
     console.log('dropdown open')    
     this.options.model.beginSelections([`/${this.options.path}/qListObjectDef`.replace(/\/\//g, '/')])
   }
-  open () {    
-    this.dropdown.open()
+  open (event) {    
+    this.dropdown.open(event)
   }
   render () {
     if (!this.options.model) {
@@ -227,7 +227,7 @@ class Dropdown {
         this.rowsLoaded = listObject.qDataPages[0].qMatrix.length
         this.checkForData().then(() => {        
           if (listObject.qDataPages[0]) {
-            this.dropdown.options.label = listObject.qDimensionInfo.qFallbackTitle                                
+            this.dropdown.options.label = this.options.label || listObject.qDimensionInfo.qFallbackTitle
             this.dropdown.data = this.transformData(variableValue)
           }
         })
