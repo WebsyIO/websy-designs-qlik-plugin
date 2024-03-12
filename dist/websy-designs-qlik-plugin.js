@@ -5692,14 +5692,13 @@ var Table3 = /*#__PURE__*/function () {
   }, {
     key: "handleSearch",
     value: function handleSearch(event, column) {
-      console.log(event, column);
-
+      // console.log(event, column)
       if (this.dropdowns[column.dimId]) {
         var el = document.getElementById("".concat(this.elementId, "_tableContainer_columnSearch_").concat(column.dimId));
 
         if (el) {
-          var targetPos = event.target.getBoundingClientRect();
-          console.log(targetPos);
+          var targetPos = event.target.getBoundingClientRect(); // console.log(targetPos)
+
           var left = "".concat(targetPos.x, "px");
           var top = "".concat(targetPos.y + targetPos.height + 5, "px");
           var right = 'unset';
@@ -5848,7 +5847,8 @@ var Table3 = /*#__PURE__*/function () {
       }
 
       this.options.model.getLayout().then(function (layout) {
-        _this55.layout = layout;
+        _this55.layout = layout; // console.log(layout)
+
         _this55.qlikTop = 0;
         _this55.startRow = 0;
 
@@ -6071,9 +6071,20 @@ var Table3 = /*#__PURE__*/function () {
     value: function transformData(page) {
       var _this57 = this;
 
-      return page.map(function (r) {
+      var leftMeasures = false; // this only works if the measure is the last left dimension
+
+      if (this.layout.qHyperCube.qEffectiveInterColumnSortOrder.indexOf(-1) === this.layout.qHyperCube.qNoOfLeftDims - 1) {
+        leftMeasures = true;
+      } // console.log('leftMeasures', leftMeasures)
+
+
+      return page.map(function (r, rowIndex) {
         return r.map(function (c, i) {
           var attrIndex = c.level;
+
+          var validDimensions = _this57.layout.qHyperCube.qDimensionInfo.filter(function (m) {
+            return !m.qError;
+          });
 
           if (_this57.layout.qHyperCube.qMode === 'S') {
             c.level = i; // attrIndex = i
@@ -6106,10 +6117,10 @@ var Table3 = /*#__PURE__*/function () {
             var tIndex = i + (_this57.startCol || 0);
             c.qAttrExps.qValues.forEach(function (a, aI) {
               if (a.qText && a.qText !== '') {
-                if (attrIndex < _this57.layout.qHyperCube.qDimensionInfo.length) {
-                  if (_this57.layout.qHyperCube.qDimensionInfo[attrIndex] && _this57.layout.qHyperCube.qDimensionInfo[attrIndex].qAttrExprInfo && _this57.layout.qHyperCube.qDimensionInfo[attrIndex].qAttrExprInfo[aI] && _this57.layout.qHyperCube.qDimensionInfo[attrIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                if (attrIndex < validDimensions.length) {
+                  if (validDimensions[attrIndex] && validDimensions[attrIndex].qAttrExprInfo && validDimensions[attrIndex].qAttrExprInfo[aI] && validDimensions[attrIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                     c.color = a.qText;
-                  } else if (_this57.layout.qHyperCube.qDimensionInfo[attrIndex] && _this57.layout.qHyperCube.qDimensionInfo[attrIndex].qAttrExprInfo && _this57.layout.qHyperCube.qDimensionInfo[attrIndex].qAttrExprInfo[aI] && _this57.layout.qHyperCube.qDimensionInfo[attrIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                  } else if (validDimensions[attrIndex] && validDimensions[attrIndex].qAttrExprInfo && validDimensions[attrIndex].qAttrExprInfo[aI] && validDimensions[attrIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                     c.backgroundColor = a.qText;
                   } // else { // THIS COULD BE WRONG
                   //   c.color = a.qText
@@ -6120,10 +6131,23 @@ var Table3 = /*#__PURE__*/function () {
                     return !m.qError;
                   });
 
-                  var measureIndex = (attrIndex - _this57.layout.qHyperCube.qDimensionInfo.length) % validMeasures.length;
+                  var measureIndex = (attrIndex - validDimensions.length) % validMeasures.length;
+
+                  if (leftMeasures === true) {
+                    measureIndex = (rowIndex - validDimensions.length) % validMeasures.length;
+                  }
 
                   if (validMeasures[measureIndex] && validMeasures[measureIndex].qAttrExprInfo && validMeasures[measureIndex].qAttrExprInfo[aI] && validMeasures[measureIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                     c.color = a.qText;
+
+                    if (validMeasures[measureIndex].qAttrExprInfo[aI].qFallbackTitle.toLowerCase().indexOf('//bold') !== -1) {
+                      // make the font bold
+                      if (!c.style) {
+                        c.style = '';
+                      }
+
+                      c.style += 'font-weight: bold;';
+                    }
                   } else if (_this57.layout.qHyperCube.qMeasureInfo.filter(function (m) {
                     return !m.qError;
                   })[measureIndex] && _this57.layout.qHyperCube.qMeasureInfo.filter(function (m) {
@@ -6138,6 +6162,30 @@ var Table3 = /*#__PURE__*/function () {
                   //   c.color = a.qText
                   // }
 
+                }
+              } else {
+                if (attrIndex < validDimensions.length) {// 
+                } else {
+                  var _validMeasures = _this57.layout.qHyperCube.qMeasureInfo.filter(function (m) {
+                    return !m.qError;
+                  });
+
+                  var _measureIndex = (attrIndex - validDimensions.length) % _validMeasures.length;
+
+                  if (leftMeasures === true) {
+                    _measureIndex = rowIndex % _validMeasures.length;
+                  }
+
+                  if (_validMeasures[_measureIndex] && _validMeasures[_measureIndex].qAttrExprInfo && _validMeasures[_measureIndex].qAttrExprInfo[aI] && _validMeasures[_measureIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                    if (_validMeasures[_measureIndex].qAttrExprInfo[aI].qFallbackTitle && _validMeasures[_measureIndex].qAttrExprInfo[aI].qFallbackTitle.toLowerCase().indexOf('//bold') !== -1) {
+                      // make the font bold
+                      if (!c.style) {
+                        c.style = '';
+                      }
+
+                      c.style += 'font-weight: bold;';
+                    }
+                  }
                 }
               }
             });
@@ -6172,7 +6220,13 @@ var Table3 = /*#__PURE__*/function () {
       var lowestLevelNodes = 0;
       this.validPivotLeft = 0;
       var tempNode = [];
-      var sourceColumns = this.layout.qHyperCube.qDimensionInfo.concat(this.layout.qHyperCube.qMeasureInfo);
+      var sourceColumns = this.layout.qHyperCube.qDimensionInfo.concat(this.layout.qHyperCube.qMeasureInfo); // console.log('sourceColumns', sourceColumns)
+
+      var leftMeasures = false; // this only works if the measure is the last left dimension
+
+      if (this.layout.qHyperCube.qEffectiveInterColumnSortOrder.indexOf(-1) === this.layout.qHyperCube.qNoOfLeftDims - 1) {
+        leftMeasures = true;
+      }
 
       for (var i = 0; i < page.qLeft.length; i++) {
         expandLeft.call(this, page.qLeft[i], 0, 0, null, []);
@@ -6428,6 +6482,30 @@ var Table3 = /*#__PURE__*/function () {
               }
             }
           });
+        }
+
+        var validMeasures = this.layout.qHyperCube.qMeasureInfo.filter(function (m) {
+          return !m.qError;
+        });
+        var measureIndex = lowestLevelNodes % validMeasures.length;
+
+        if (leftMeasures === true && o.level === this.layout.qHyperCube.qNoOfLeftDims - 1) {
+          //     measureIndex = rowIndex % validMeasures.length
+          //   }
+          if (validMeasures[measureIndex] && validMeasures[measureIndex].qAttrExprInfo) {
+            validMeasures[measureIndex] && validMeasures[measureIndex].qAttrExprInfo.forEach(function (a, aI) {
+              if (a.id === 'cellForegroundColor') {
+                if (a.qFallbackTitle.toLowerCase().indexOf('//bold') !== -1) {
+                  // make the font bold
+                  if (!o.style) {
+                    o.style = '';
+                  }
+
+                  o.style += 'font-weight: bold;';
+                }
+              }
+            });
+          }
         }
 
         input.rowspan = Math.max(1, input.qSubNodes.length);

@@ -4796,12 +4796,12 @@ class Table3 {
     }
   }
   handleSearch (event, column) {
-    console.log(event, column)
+    // console.log(event, column)
     if (this.dropdowns[column.dimId]) {
       let el = document.getElementById(`${this.elementId}_tableContainer_columnSearch_${column.dimId}`)
       if (el) {
         let targetPos = event.target.getBoundingClientRect()
-        console.log(targetPos)
+        // console.log(targetPos)
         let left = `${targetPos.x}px`
         let top = `${targetPos.y + targetPos.height + 5}px`
         let right = 'unset'
@@ -4925,6 +4925,7 @@ class Table3 {
     }
     this.options.model.getLayout().then(layout => {  
       this.layout = layout
+      // console.log(layout)
       this.qlikTop = 0
       this.startRow = 0
       if (this.options.showTitle === true) {
@@ -5093,10 +5094,17 @@ class Table3 {
     this.options.pageSize = size
     this.render()
   }
-  transformData (page) {    
-    return page.map(r => {
+  transformData (page) {   
+    let leftMeasures = false
+    // this only works if the measure is the last left dimension
+    if (this.layout.qHyperCube.qEffectiveInterColumnSortOrder.indexOf(-1) === this.layout.qHyperCube.qNoOfLeftDims - 1) {
+      leftMeasures = true
+    } 
+    // console.log('leftMeasures', leftMeasures)
+    return page.map((r, rowIndex) => {
       return r.map((c, i) => {
         let attrIndex = c.level
+        let validDimensions = this.layout.qHyperCube.qDimensionInfo.filter(m => !m.qError)
         if (this.layout.qHyperCube.qMode === 'S') {
           c.level = i
           // attrIndex = i
@@ -5127,11 +5135,11 @@ class Table3 {
           let tIndex = i + (this.startCol || 0)          
           c.qAttrExps.qValues.forEach((a, aI) => {            
             if (a.qText && a.qText !== '') {              
-              if (attrIndex < this.layout.qHyperCube.qDimensionInfo.length) {              
-                if (this.layout.qHyperCube.qDimensionInfo[attrIndex] && this.layout.qHyperCube.qDimensionInfo[attrIndex].qAttrExprInfo && this.layout.qHyperCube.qDimensionInfo[attrIndex].qAttrExprInfo[aI] && this.layout.qHyperCube.qDimensionInfo[attrIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+              if (attrIndex < validDimensions.length) {              
+                if (validDimensions[attrIndex] && validDimensions[attrIndex].qAttrExprInfo && validDimensions[attrIndex].qAttrExprInfo[aI] && validDimensions[attrIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                   c.color = a.qText
                 }
-                else if (this.layout.qHyperCube.qDimensionInfo[attrIndex] && this.layout.qHyperCube.qDimensionInfo[attrIndex].qAttrExprInfo && this.layout.qHyperCube.qDimensionInfo[attrIndex].qAttrExprInfo[aI] && this.layout.qHyperCube.qDimensionInfo[attrIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
+                else if (validDimensions[attrIndex] && validDimensions[attrIndex].qAttrExprInfo && validDimensions[attrIndex].qAttrExprInfo[aI] && validDimensions[attrIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                   c.backgroundColor = a.qText
                 }
                 // else { // THIS COULD BE WRONG
@@ -5140,9 +5148,19 @@ class Table3 {
               }
               else {
                 const validMeasures = this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError)
-                let measureIndex = (attrIndex - this.layout.qHyperCube.qDimensionInfo.length) % validMeasures.length
+                let measureIndex = (attrIndex - validDimensions.length) % validMeasures.length
+                if (leftMeasures === true) {
+                  measureIndex = (rowIndex - validDimensions.length) % validMeasures.length
+                }
                 if (validMeasures[measureIndex] && validMeasures[measureIndex].qAttrExprInfo && validMeasures[measureIndex].qAttrExprInfo[aI] && validMeasures[measureIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                   c.color = a.qText
+                  if (validMeasures[measureIndex].qAttrExprInfo[aI].qFallbackTitle.toLowerCase().indexOf('//bold') !== -1) {
+                    // make the font bold
+                    if (!c.style) {
+                      c.style = ''
+                    }
+                    c.style += 'font-weight: bold;'
+                  }
                 }
                 else if (this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError)[measureIndex] && this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError)[measureIndex].qAttrExprInfo && this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError)[measureIndex].qAttrExprInfo[aI] && this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError)[measureIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
                   c.backgroundColor = a.qText
@@ -5151,6 +5169,27 @@ class Table3 {
                 //   c.color = a.qText
                 // }
               }              
+            }
+            else {
+              if (attrIndex < validDimensions.length) {              
+                // 
+              }
+              else {
+                const validMeasures = this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError)
+                let measureIndex = (attrIndex - validDimensions.length) % validMeasures.length
+                if (leftMeasures === true) {
+                  measureIndex = rowIndex % validMeasures.length
+                }
+                if (validMeasures[measureIndex] && validMeasures[measureIndex].qAttrExprInfo && validMeasures[measureIndex].qAttrExprInfo[aI] && validMeasures[measureIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
+                  if (validMeasures[measureIndex].qAttrExprInfo[aI].qFallbackTitle && validMeasures[measureIndex].qAttrExprInfo[aI].qFallbackTitle.toLowerCase().indexOf('//bold') !== -1) {
+                    // make the font bold
+                    if (!c.style) {
+                      c.style = ''
+                    }
+                    c.style += 'font-weight: bold;'
+                  }
+                }
+              }
             }
           })
         } 
@@ -5178,6 +5217,12 @@ class Table3 {
     this.validPivotLeft = 0
     let tempNode = []
     let sourceColumns = this.layout.qHyperCube.qDimensionInfo.concat(this.layout.qHyperCube.qMeasureInfo)
+    // console.log('sourceColumns', sourceColumns)
+    let leftMeasures = false
+    // this only works if the measure is the last left dimension
+    if (this.layout.qHyperCube.qEffectiveInterColumnSortOrder.indexOf(-1) === this.layout.qHyperCube.qNoOfLeftDims - 1) {
+      leftMeasures = true
+    } 
     for (let i = 0; i < page.qLeft.length; i++) {
       expandLeft.call(this, page.qLeft[i], 0, 0, null, [])
     }              
@@ -5388,9 +5433,28 @@ class Table3 {
               o.displayText = o.qText || '-'
               input.displayText = o.qText || '-'
             }             
-          }
+          }          
         })
-      }      
+      }   
+      const validMeasures = this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError)
+      let measureIndex = lowestLevelNodes % validMeasures.length
+      if (leftMeasures === true && o.level === this.layout.qHyperCube.qNoOfLeftDims - 1) {
+      //     measureIndex = rowIndex % validMeasures.length
+      //   }
+        if (validMeasures[measureIndex] && validMeasures[measureIndex].qAttrExprInfo) {
+          validMeasures[measureIndex] && validMeasures[measureIndex].qAttrExprInfo.forEach((a, aI) => {
+            if (a.id === 'cellForegroundColor') {
+              if (a.qFallbackTitle.toLowerCase().indexOf('//bold') !== -1) {
+                // make the font bold
+                if (!o.style) {
+                  o.style = ''
+                }
+                o.style += 'font-weight: bold;'
+              }
+            }
+          })
+        }
+      }   
       input.rowspan = Math.max(1, input.qSubNodes.length)
       if (this.layout.qHyperCube.qIndentMode === true) {
         o.rowspan = 1

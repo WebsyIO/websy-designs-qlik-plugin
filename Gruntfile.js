@@ -127,7 +127,7 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-express-server')
   grunt.loadNpmTasks('grunt-stylelint')
   grunt.loadNpmTasks('grunt-eslint')
-  grunt.registerTask('default', ['stylelint', 'less', 'includes', 'eslint', 'babel', 'uglify', 'copy', 'express', 'watch'])
+  grunt.registerTask('default', ['stylelint', 'less', 'includes', 'eslint', 'babel', 'uglify', 'copy', 'watch'])
   grunt.registerTask('build', ['stylelint', 'less', 'includes', 'eslint', 'babel', 'uglify', 'copy'])
   grunt.registerTask('buildcss', ['less'])
 }
