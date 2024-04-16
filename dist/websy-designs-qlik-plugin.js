@@ -4577,8 +4577,24 @@ var Table3 = /*#__PURE__*/function () {
 
       var pData = this.transformPivotTable(this.layout.qHyperCube.qPivotDataPages[0]); // this.pinnedColumns = this.layout.qHyperCube.qIndentMode === true ? 1 : this.layout.qHyperCube.qNoOfLeftDims
 
+      var leftMeasures = false; // this only works if the measure is the last left dimension
+
+      if (this.layout.qHyperCube.qEffectiveInterColumnSortOrder.indexOf(-1) === this.layout.qHyperCube.qNoOfLeftDims - 1) {
+        leftMeasures = true;
+      }
+
       this.columns = pData.columns; // .filter(c => c.show !== false) -- shift logic to underlying table
 
+      if (leftMeasures === true) {
+        this.columns[this.columns.length - 1][this.layout.qHyperCube.qNoOfLeftDims - 1].name = '';
+      }
+
+      this.columns[this.columns.length - 1].forEach(function (c, i) {
+        if (i >= _this47.pinnedColumns) {
+          c.searchable = false;
+          delete c.searchField;
+        }
+      });
       this.startCol = 0; // if (this.layout.qHyperCube.qIndentMode !== true) {
       //   this.startCol = this.pinnedColumns
       // }
