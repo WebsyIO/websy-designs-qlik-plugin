@@ -4698,6 +4698,10 @@ var Table3 = /*#__PURE__*/function () {
           // activeColumns.push(Math.max(maxMLength, maxMLabel))
           activeColumns.push(maxMLength);
         }
+      } else if (effectiveOrder.indexOf(-1) < (this.layout.qHyperCube.qIndentMode === true ? 1 : this.pinnedColumns)) {
+        // measures have been pivoted
+        activeColumns.splice(effectiveOrder.indexOf(-1), 1, maxMLength);
+        maxMLength = new Array(maxMValue).fill('X').join('');
       } else if (effectiveOrder.indexOf(-1) === -1) {
         // only a single measure has been defined
         if (this.pinnedColumns <= 0) {
@@ -6170,10 +6174,10 @@ var Table3 = /*#__PURE__*/function () {
                     return !m.qError;
                   });
 
-                  var _measureIndex = (attrIndex - validDimensions.length) % _validMeasures.length;
+                  var _measureIndex = (attrIndex + _this57.startRow - validDimensions.length) % _validMeasures.length;
 
                   if (leftMeasures === true) {
-                    _measureIndex = rowIndex % _validMeasures.length;
+                    _measureIndex = (rowIndex + _this57.startRow) % _validMeasures.length;
                   }
 
                   if (_validMeasures[_measureIndex] && _validMeasures[_measureIndex].qAttrExprInfo && _validMeasures[_measureIndex].qAttrExprInfo[aI] && _validMeasures[_measureIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
@@ -6492,6 +6496,8 @@ var Table3 = /*#__PURE__*/function () {
         if (leftMeasures === true && o.level === this.layout.qHyperCube.qNoOfLeftDims - 1) {
           //     measureIndex = rowIndex % validMeasures.length
           //   }
+          measureIndex = (lowestLevelNodes + this.startRow) % validMeasures.length;
+
           if (validMeasures[measureIndex] && validMeasures[measureIndex].qAttrExprInfo) {
             validMeasures[measureIndex] && validMeasures[measureIndex].qAttrExprInfo.forEach(function (a, aI) {
               if (a.id === 'cellForegroundColor') {

@@ -3874,6 +3874,11 @@ class Table3 {
         activeColumns.push(maxMLength)
       }
     }  
+    else if (effectiveOrder.indexOf(-1) < (this.layout.qHyperCube.qIndentMode === true ? 1 : this.pinnedColumns)) {
+      // measures have been pivoted
+      activeColumns.splice(effectiveOrder.indexOf(-1), 1, maxMLength)
+      maxMLength = new Array(maxMValue).fill('X').join('')
+    }
     else if (effectiveOrder.indexOf(-1) === -1) {
       // only a single measure has been defined
       if (this.pinnedColumns <= 0) {
@@ -5084,9 +5089,9 @@ class Table3 {
               }
               else {
                 const validMeasures = this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError)
-                let measureIndex = (attrIndex - validDimensions.length) % validMeasures.length
+                let measureIndex = (attrIndex + this.startRow - validDimensions.length) % validMeasures.length
                 if (leftMeasures === true) {
-                  measureIndex = rowIndex % validMeasures.length
+                  measureIndex = (rowIndex + this.startRow) % validMeasures.length
                 }
                 if (validMeasures[measureIndex] && validMeasures[measureIndex].qAttrExprInfo && validMeasures[measureIndex].qAttrExprInfo[aI] && validMeasures[measureIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                   if (validMeasures[measureIndex].qAttrExprInfo[aI].qFallbackTitle && validMeasures[measureIndex].qAttrExprInfo[aI].qFallbackTitle.toLowerCase().indexOf('//bold') !== -1) {
@@ -5349,6 +5354,7 @@ class Table3 {
       if (leftMeasures === true && o.level === this.layout.qHyperCube.qNoOfLeftDims - 1) {
       //     measureIndex = rowIndex % validMeasures.length
       //   }
+        measureIndex = (lowestLevelNodes + this.startRow) % validMeasures.length
         if (validMeasures[measureIndex] && validMeasures[measureIndex].qAttrExprInfo) {
           validMeasures[measureIndex] && validMeasures[measureIndex].qAttrExprInfo.forEach((a, aI) => {
             if (a.id === 'cellForegroundColor') {
