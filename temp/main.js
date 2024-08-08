@@ -5167,9 +5167,9 @@ class Table3 {
               }
               else {
                 const validMeasures = this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError)
-                let measureIndex = (attrIndex - validDimensions.length) % validMeasures.length
+                let measureIndex = (attrIndex + this.startRow - validDimensions.length) % validMeasures.length
                 if (leftMeasures === true) {
-                  measureIndex = (rowIndex - validDimensions.length) % validMeasures.length
+                  measureIndex = (rowIndex + this.startRow) % validMeasures.length
                 }
                 if (validMeasures[measureIndex] && validMeasures[measureIndex].qAttrExprInfo && validMeasures[measureIndex].qAttrExprInfo[aI] && validMeasures[measureIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                   c.color = a.qText

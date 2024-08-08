@@ -6009,10 +6009,10 @@ var Table3 = /*#__PURE__*/function () {
                     return !m.qError;
                   });
 
-                  var measureIndex = (attrIndex - validDimensions.length) % validMeasures.length;
+                  var measureIndex = (attrIndex + _this54.startRow - validDimensions.length) % validMeasures.length;
 
                   if (leftMeasures === true) {
-                    measureIndex = (rowIndex - validDimensions.length) % validMeasures.length;
+                    measureIndex = (rowIndex + _this54.startRow) % validMeasures.length;
                   }
 
                   if (validMeasures[measureIndex] && validMeasures[measureIndex].qAttrExprInfo && validMeasures[measureIndex].qAttrExprInfo[aI] && validMeasures[measureIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
