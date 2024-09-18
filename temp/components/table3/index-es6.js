@@ -299,7 +299,7 @@ class Table3 {
         activeColumns.push(maxMLength)
       }
     }  
-    else if (effectiveOrder.indexOf(-1) < (this.layout.qHyperCube.qIndentMode === true ? 1 : this.pinnedColumns)) {
+    else if (effectiveOrder.indexOf(-1) !== -1 && effectiveOrder.indexOf(-1) < (this.layout.qHyperCube.qIndentMode === true ? 1 : this.pinnedColumns)) {
       // measures have been pivoted
       activeColumns.splice(effectiveOrder.indexOf(-1), 1, maxMLength)
       maxMLength = new Array(maxMValue).fill('X').join('')
