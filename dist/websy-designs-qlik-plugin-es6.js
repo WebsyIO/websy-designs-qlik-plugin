@@ -5845,7 +5845,14 @@ var Table3 = /*#__PURE__*/function () {
           });
         });
       }, function (err) {
-        console.log('error getting layout', err);
+        if (_this52.errorCount < 6) {
+          _this52.errorCount++;
+          console.log('Error getting layout, in table', err, 'Retrying...attempt', _this52.errorCount);
+
+          _this52.render();
+        } else {
+          console.log('Error getting layout, in table', err, ' Max attempts(5) reached.');
+        }
       });
     }
   }, {

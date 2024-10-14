@@ -1345,7 +1345,14 @@ class Table3 {
         })
       })
     }, err => {        
-      console.log('error getting layout', err)               
+      if (this.errorCount < 6) {        
+        this.errorCount++
+        console.log('Error getting layout, in table', err, 'Retrying...attempt', this.errorCount)     
+        this.render()          
+      }
+      else {
+        console.log('Error getting layout, in table', err, ' Max attempts(5) reached.')     
+      }
     })  
   }
   resize () {
