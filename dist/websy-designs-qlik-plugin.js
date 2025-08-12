@@ -5346,6 +5346,26 @@ var Table3 = /*#__PURE__*/function () {
       }
     }
   }, {
+    key: "getColor",
+    value: function getColor(c) {
+      if (c.toLowerCase().indexOf('argb') !== -1) {
+        var colorParts;
+        var red;
+        var green;
+        var blue;
+        var alpha;
+        colorParts = c.toLowerCase().replace('argb(', '').replace(')', '');
+        colorParts = colorParts.split(',');
+        alpha = colorParts[0];
+        red = colorParts[1];
+        green = colorParts[2];
+        blue = colorParts[3];
+        return "rgba(".concat(red, ", ").concat(green, ", ").concat(blue, ", ").concat(alpha, ")");
+      } else {
+        return c;
+      }
+    }
+  }, {
     key: "getFontColor",
     value: function getFontColor(c) {
       var colorParts;
@@ -6148,7 +6168,7 @@ var Table3 = /*#__PURE__*/function () {
                   if (validDimensions[attrIndex] && validDimensions[attrIndex].qAttrExprInfo && validDimensions[attrIndex].qAttrExprInfo[aI] && validDimensions[attrIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                     c.color = a.qText;
                   } else if (validDimensions[attrIndex] && validDimensions[attrIndex].qAttrExprInfo && validDimensions[attrIndex].qAttrExprInfo[aI] && validDimensions[attrIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
-                    c.backgroundColor = a.qText;
+                    c.backgroundColor = _this57.getColor(a.qText);
                   } // else { // THIS COULD BE WRONG
                   //   c.color = a.qText
                   // }
@@ -6184,7 +6204,7 @@ var Table3 = /*#__PURE__*/function () {
                   })[measureIndex].qAttrExprInfo[aI] && _this57.layout.qHyperCube.qMeasureInfo.filter(function (m) {
                     return !m.qError;
                   })[measureIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
-                    c.backgroundColor = a.qText;
+                    c.backgroundColor = _this57.getColor(a.qText);
                   } // else { // THIS COULD BE WRONG
                   //   c.color = a.qText
                   // }
@@ -6301,7 +6321,7 @@ var Table3 = /*#__PURE__*/function () {
                   if (_this58.layout.qHyperCube.qDimensionInfo[row[c].level] && _this58.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo && _this58.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo[aI] && _this58.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                     row[c].color = a.qText;
                   } else if (_this58.layout.qHyperCube.qDimensionInfo[row[c].level] && _this58.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo && _this58.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo[aI] && _this58.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
-                    row[c].backgroundColor = a.qText;
+                    row[c].backgroundColor = _this58.getColor(a.qText);
                   } // else { // THIS COULD BE WRONG
                   //   row[c].color = a.qText
                   // }
@@ -6313,7 +6333,7 @@ var Table3 = /*#__PURE__*/function () {
                   if (_this58.layout.qHyperCube.qMeasureInfo[measureIndex] && _this58.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && _this58.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && _this58.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                     row[c].color = a.qText;
                   } else if (_this58.layout.qHyperCube.qMeasureInfo[measureIndex] && _this58.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && _this58.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && _this58.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
-                    row[c].backgroundColor = a.qText;
+                    row[c].backgroundColor = _this58.getColor(a.qText);
                   }
 
                   if (_this58.layout.qHyperCube.qMeasureInfo[measureIndex] && (_this58.layout.qHyperCube.qMeasureInfo[measureIndex].showAsLink === true || _this58.layout.qHyperCube.qMeasureInfo[measureIndex].showAsNavigatorLink === true)) {
@@ -6490,7 +6510,7 @@ var Table3 = /*#__PURE__*/function () {
               if (sourceColumns[o.level] && sourceColumns[o.level].qAttrExprInfo && sourceColumns[o.level].qAttrExprInfo[aI] && sourceColumns[o.level].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                 o.color = a.qText;
               } else if (sourceColumns[o.level] && sourceColumns[o.level].qAttrExprInfo && sourceColumns[o.level].qAttrExprInfo[aI] && sourceColumns[o.level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
-                o.backgroundColor = a.qText;
+                o.backgroundColor = _this59.getColor(a.qText);
                 o.color = _this59.getFontColor(a.qText);
               } // need to assign an ID to the attr expr to fix this
 
@@ -6650,7 +6670,7 @@ var Table3 = /*#__PURE__*/function () {
               if (sourceColumns[o.level] && sourceColumns[o.level].qAttrExprInfo && sourceColumns[o.level].qAttrExprInfo[aI] && sourceColumns[o.level].qAttrExprInfo[aI].id === 'cellForegroundColor') {
                 o.color = a.qText;
               } else if (sourceColumns[o.level] && sourceColumns[o.level].qAttrExprInfo && sourceColumns[o.level].qAttrExprInfo[aI] && sourceColumns[o.level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
-                o.backgroundColor = a.qText;
+                o.backgroundColor = _this60.getColor(a.qText);
                 o.color = _this60.getFontColor(a.qText);
               }
             }

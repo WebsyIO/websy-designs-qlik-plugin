@@ -4509,6 +4509,25 @@ class Table3 {
       }
     }
   }
+  getColor (c) {
+    if (c.toLowerCase().indexOf('argb') !== -1) {
+      let colorParts
+      let red
+      let green
+      let blue
+      let alpha      
+      colorParts = c.toLowerCase().replace('argb(', '').replace(')', '')
+      colorParts = colorParts.split(',')
+      alpha = colorParts[0]
+      red = colorParts[1]
+      green = colorParts[2]
+      blue = colorParts[3]
+      return `rgba(${red}, ${green}, ${blue}, ${alpha})`
+    }
+    else {
+      return c
+    }
+  }
   getFontColor (c) {
     let colorParts
     let red
@@ -4521,7 +4540,7 @@ class Table3 {
       red = parseInt(colorParts[0] + colorParts[1], 16)
       green = parseInt(colorParts[2] + colorParts[3], 16)
       blue = parseInt(colorParts[4] + colorParts[5], 16)
-    }
+    }    
     else if (c.toLowerCase().indexOf('rgb') !== -1) {
       // rgb color
       colorParts = c.toLowerCase().replace('rgb(', '').replace(')', '')
@@ -5166,7 +5185,7 @@ class Table3 {
                   c.color = a.qText
                 }
                 else if (validDimensions[attrIndex] && validDimensions[attrIndex].qAttrExprInfo && validDimensions[attrIndex].qAttrExprInfo[aI] && validDimensions[attrIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
-                  c.backgroundColor = a.qText
+                  c.backgroundColor = this.getColor(a.qText)
                 }
                 // else { // THIS COULD BE WRONG
                 //   c.color = a.qText
@@ -5189,7 +5208,7 @@ class Table3 {
                   }
                 }
                 else if (this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError)[measureIndex] && this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError)[measureIndex].qAttrExprInfo && this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError)[measureIndex].qAttrExprInfo[aI] && this.layout.qHyperCube.qMeasureInfo.filter(m => !m.qError)[measureIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
-                  c.backgroundColor = a.qText
+                  c.backgroundColor = this.getColor(a.qText)
                 }
                 // else { // THIS COULD BE WRONG
                 //   c.color = a.qText
@@ -5286,7 +5305,7 @@ class Table3 {
                   row[c].color = a.qText
                 }
                 else if (this.layout.qHyperCube.qDimensionInfo[row[c].level] && this.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo && this.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo[aI] && this.layout.qHyperCube.qDimensionInfo[row[c].level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
-                  row[c].backgroundColor = a.qText
+                  row[c].backgroundColor = this.getColor(a.qText)
                 }                
                 // else { // THIS COULD BE WRONG
                 //   row[c].color = a.qText
@@ -5299,7 +5318,7 @@ class Table3 {
                   row[c].color = a.qText
                 }
                 else if (this.layout.qHyperCube.qMeasureInfo[measureIndex] && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI] && this.layout.qHyperCube.qMeasureInfo[measureIndex].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
-                  row[c].backgroundColor = a.qText
+                  row[c].backgroundColor = this.getColor(a.qText)
                 }
                 if (this.layout.qHyperCube.qMeasureInfo[measureIndex] && (this.layout.qHyperCube.qMeasureInfo[measureIndex].showAsLink === true || this.layout.qHyperCube.qMeasureInfo[measureIndex].showAsNavigatorLink === true)) {              
                   row[c].value = a.qText                  
@@ -5445,7 +5464,7 @@ class Table3 {
               o.color = a.qText
             }
             else if (sourceColumns[o.level] && sourceColumns[o.level].qAttrExprInfo && sourceColumns[o.level].qAttrExprInfo[aI] && sourceColumns[o.level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
-              o.backgroundColor = a.qText
+              o.backgroundColor = this.getColor(a.qText)
               o.color = this.getFontColor(a.qText)
             }
             // need to assign an ID to the attr expr to fix this
@@ -5576,7 +5595,7 @@ class Table3 {
               o.color = a.qText
             }
             else if (sourceColumns[o.level] && sourceColumns[o.level].qAttrExprInfo && sourceColumns[o.level].qAttrExprInfo[aI] && sourceColumns[o.level].qAttrExprInfo[aI].id === 'cellBackgroundColor') {
-              o.backgroundColor = a.qText
+              o.backgroundColor = this.getColor(a.qText)
               o.color = this.getFontColor(a.qText)
             }
           }
